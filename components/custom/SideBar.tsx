@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { LayoutDashboard, Settings as SettingsIcon, LogOut, CreditCard, FileChartColumnIncreasing } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const adminRoutes = [
@@ -14,7 +13,7 @@ const userRoutes = [
 ];
 
 const baseRoutes = [
-    { href: "/settings", label: "Settings", icon: SettingsIcon },
+    // { href: "/settings", label: "Settings", icon: SettingsIcon },
     { href: "/logout", label: "Logout", icon: LogOut },
 ];
 
