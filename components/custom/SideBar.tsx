@@ -27,7 +27,7 @@ export function Sidebar({
 }) {
     const { user } = useAuth();
     const role = user?.user_metadata?.role ?? "user"
-    const navigationRoutes = role === "admin" ? adminRoutes : userRoutes;
+    const navigationRoutes = (role === "admin" || role === "super_admin") ? adminRoutes : userRoutes;
     const pathname = usePathname();
     return (
         <div className="flex h-full flex-col overflow-hidden">
@@ -35,7 +35,7 @@ export function Sidebar({
                 aria-details="logo"
                 className="flex items-center justify-between md:hidden">
                 <Link href="/">
-                    <Image src="/logo.png" alt="logo" width={100} height={100} className='object-cover object-start w-30 h-14' />
+                    <div className='text-2xl font-bold'>Mana Vault</div>
                 </Link>
             </div>
 

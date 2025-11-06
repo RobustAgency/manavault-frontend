@@ -48,15 +48,17 @@ export async function updateSession(request: NextRequest) {
 
     const authRoutes = [
         '/login',
-        '/signup',
         '/forgot-password',
         '/reset-password',
         '/update-password',
         '/auth/confirm',
+        '/setup-mfa',
+        '/verify-mfa',
     ]
 
     const isAuthRoute = authRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
     const isLogoutRoute = pathname === '/logout'
+    const isMFARoute = pathname === '/setup-mfa' || pathname === '/verify-mfa'
 
     const redirectWithCookies = (toPath: string) => {
         const target = request.nextUrl.clone()
@@ -68,6 +70,11 @@ export async function updateSession(request: NextRequest) {
         return redirectResponse
     }
 
+    // Block access to signup route
+    if (pathname === '/signup') {
+        return redirectWithCookies('/login')
+    }
+
     if (!user) {
         if (!isAuthRoute) {
             return redirectWithCookies('/login')
@@ -75,8 +82,85 @@ export async function updateSession(request: NextRequest) {
         return response
     }
 
-    if (user && isAuthRoute && !isLogoutRoute) {
-        if (user.user_metadata.role === 'admin') {
+    // User is authenticated - check MFA status
+    if (user) {
+        // Get MFA status with error handling
+        let hasMFAEnrolled = false
+        let needsMFAVerification = false
+        let isMFAVerified = false
+        
+        try {
+            const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+            const { data: factorsData } = await supabase.auth.mfa.listFactors()
+            
+            hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
+            needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2'
+            isMFAVerified = aalData?.currentLevel === 'aal2'
+        } catch (error) {
+            // If MFA API calls fail, assume MFA is not set up
+            // This allows users to proceed (they'll be prompted to set up MFA)
+            console.error('Error checking MFA status:', error)
+        }
+
+        // If user doesn't have MFA enrolled, redirect to setup (unless already on MFA routes)
+        if (!hasMFAEnrolled && !isMFARoute && !isAuthRoute) {
+            return redirectWithCookies('/setup-mfa')
+        }
+
+        // If user has MFA enrolled but not verified, redirect to verify (unless already on MFA routes)
+        if (hasMFAEnrolled && needsMFAVerification && !isMFARoute && !isAuthRoute) {
+            return redirectWithCookies('/verify-mfa')
+        }
+
+        // If user has MFA enrolled and is on setup-mfa, redirect away
+        if (hasMFAEnrolled && pathname === '/setup-mfa') {
+            if (needsMFAVerification) {
+                return redirectWithCookies('/verify-mfa')
+            } else {
+                // MFA is already set up and verified, go to dashboard
+                if (user.user_metadata?.role === 'admin') {
+                    return redirectWithCookies('/admin/dashboard')
+                } else {
+                    return redirectWithCookies('/dashboard')
+                }
+            }
+        }
+
+        // If MFA is verified, allow access to app but redirect away from MFA routes
+        if (isMFAVerified && isMFARoute) {
+            if (user.user_metadata?.role === 'admin') {
+                return redirectWithCookies('/admin/dashboard')
+            } else {
+                return redirectWithCookies('/dashboard')
+            }
+        }
+    }
+
+    if (user && isAuthRoute && !isLogoutRoute && !isMFARoute) {
+        // Check MFA status before redirecting to dashboard
+        let hasMFAEnrolled = false
+        let needsMFAVerification = false
+        
+        try {
+            const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+            const { data: factorsData } = await supabase.auth.mfa.listFactors()
+            
+            hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
+            needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2'
+        } catch (error) {
+            console.error('Error checking MFA status:', error)
+        }
+
+        if (!hasMFAEnrolled) {
+            return redirectWithCookies('/setup-mfa')
+        }
+
+        if (needsMFAVerification) {
+            return redirectWithCookies('/verify-mfa')
+        }
+
+        const userRole = user.user_metadata?.role;
+        if (userRole === 'admin' || userRole === 'super_admin') {
             return redirectWithCookies('/admin/dashboard')
         } else {
             return redirectWithCookies('/dashboard')
@@ -84,7 +168,30 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (user && pathname === '/') {
-        if (user.user_metadata.role === 'admin') {
+        // Check MFA status
+        let hasMFAEnrolled = false
+        let needsMFAVerification = false
+        
+        try {
+            const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+            const { data: factorsData } = await supabase.auth.mfa.listFactors()
+            
+            hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
+            needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2'
+        } catch (error) {
+            console.error('Error checking MFA status:', error)
+        }
+
+        if (!hasMFAEnrolled) {
+            return redirectWithCookies('/setup-mfa')
+        }
+
+        if (needsMFAVerification) {
+            return redirectWithCookies('/verify-mfa')
+        }
+
+        const userRole = user.user_metadata?.role;
+        if (userRole === 'admin' || userRole === 'super_admin') {
             return redirectWithCookies('/admin/dashboard')
         } else {
             return redirectWithCookies('/dashboard')

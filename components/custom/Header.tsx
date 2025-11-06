@@ -27,7 +27,7 @@ const Header = ({ desktopCollapsed, setDesktopCollapsed }: HeaderProps) => {
                     {!desktopCollapsed && (
                         <div aria-details="logo">
                             <Link href="/" className='hidden md:block'>
-                                <Image src="/logo.png" alt="logo" width={100} height={100} className='object-cover object-start w-30 h-14' />
+                                <div className='text-xl font-bold'>Mana Vault</div>
                             </Link>
                         </div>
                     )}

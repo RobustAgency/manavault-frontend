@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { MoreVertical } from "lucide-react"
 import { TableUser } from "@/hooks/admin/useUsers"
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog"
-import { usersService } from "@/service/admin/users"
+import { deleteUser } from "@/lib/admin-actions"
 import { toast } from "react-toastify"
 
 interface ActionCellProps {
@@ -16,10 +16,10 @@ interface ActionCellProps {
 
 const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const [showDialog, setShowDialog] = useState(false)
-    const [currentAction, setCurrentAction] = useState<"approve" | "reject" | null>(null)
+    const [currentAction, setCurrentAction] = useState<"approve" | "delete" | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
-    const handleActionClick = (action: "approve" | "reject") => {
+    const handleActionClick = (action: "approve" | "delete") => {
         setCurrentAction(action)
         setShowDialog(true)
     }
@@ -34,14 +34,11 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const handleApprove = async () => {
         setIsLoading(true)
         try {
-            const response = await usersService.approveUser(user.id)
-            if (response.error) {
-                toast.error(response.message || "Failed to approve user")
-            } else {
-                toast.success(response.message || "User approved successfully")
-                handleClose()
-                onRefresh?.()
-            }
+            // Since users are auto-confirmed when created, approve action might not be needed
+            // But keeping it for now in case you want to implement approval logic later
+            toast.info("Users are automatically approved when created")
+            handleClose()
+            onRefresh?.()
         } catch {
             toast.error("Error approving user")
         } finally {
@@ -49,19 +46,20 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
         }
     }
 
-    const handleReject = async () => {
+    const handleDelete = async () => {
         setIsLoading(true)
         try {
-            const response = await usersService.rejectUser(user.id)
-            if (response.error) {
-                toast.error(response.message || "Failed to reject user")
+            const result = await deleteUser(user.id)
+            if (!result.success) {
+                toast.error(result.message || "Failed to delete user")
             } else {
-                toast.success(response.message || "User rejected successfully")
+                toast.success(result.message || "User deleted successfully")
                 handleClose()
                 onRefresh?.()
             }
-        } catch {
-            toast.error("Error rejecting user")
+        } catch (error) {
+            toast.error("Error deleting user")
+            console.error("Delete error:", error)
         } finally {
             setIsLoading(false)
         }
@@ -70,13 +68,12 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const handleConfirm = () => {
         if (currentAction === "approve") {
             handleApprove()
-        } else if (currentAction === "reject") {
-            handleReject()
+        } else if (currentAction === "delete") {
+            handleDelete()
         }
     }
 
     const isApproved = user.status === "approved"
-    const isRejected = user.status === "rejected"
 
     const getDialogConfig = () => {
         if (currentAction === "approve") {
@@ -86,11 +83,11 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                 confirmText: "Approve",
                 type: "success" as const
             }
-        } else if (currentAction === "reject") {
+        } else if (currentAction === "delete") {
             return {
-                title: "Reject User",
-                description: `Are you sure you want to reject ${user.full_name}?`,
-                confirmText: "Reject",
+                title: "Delete User",
+                description: `Are you sure you want to delete ${user.full_name}? This action cannot be undone.`,
+                confirmText: "Delete",
                 type: "danger" as const
             }
         }
@@ -122,11 +119,10 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                        onClick={() => handleActionClick("reject")}
-                        disabled={isRejected}
-                        className={`${!isRejected && 'cursor-pointer'}`}
+                        onClick={() => handleActionClick("delete")}
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                     >
-                        {isRejected ? "Rejected" : "Reject"}
+                        Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
