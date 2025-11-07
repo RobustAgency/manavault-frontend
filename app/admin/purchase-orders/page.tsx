@@ -8,7 +8,6 @@ import {
   useGetPurchaseOrdersQuery,
   useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
-  useGetProductsQuery,
   useGetSuppliersQuery,
 } from '@/lib/redux/features';
 import { CreateOrderDialog, ViewOrderDialog, createOrderColumns } from './components';
@@ -18,7 +17,6 @@ export default function PurchaseOrdersPage() {
   const perPage = 10;
 
   const { data, isLoading } = useGetPurchaseOrdersQuery({ page, per_page: perPage });
-  const { data: productsData, refetch: refetchProducts } = useGetProductsQuery({ per_page: 100, status: 'active' });
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
 
@@ -83,12 +81,10 @@ export default function PurchaseOrdersPage() {
       {/* Create Dialog */}
       <CreateOrderDialog
         isOpen={isCreateDialogOpen}
-        products={productsData?.data || []}
         suppliers={suppliersData?.data || []}
         isSubmitting={isCreating}
         onClose={() => setIsCreateDialogOpen(false)}
         onSubmit={handleCreate}
-        onProductsRefetch={refetchProducts}
         onSuppliersRefetch={refetchSuppliers}
       />
 

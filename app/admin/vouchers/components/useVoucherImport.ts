@@ -13,38 +13,59 @@ export const useVoucherImport = () => {
   const [purchaseOrderId, setPurchaseOrderId] = useState<number>(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  const validateFile = (selectedFile: File): boolean => {
-    // Validate file type
-    const validTypes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/zip',
-      'application/x-zip-compressed',
-    ];
-    
+  const validateFile = (selectedFile: File): { valid: boolean; error?: string } => {
+    // Validate file extension (more reliable than MIME type)
     const validExtensions = ['.csv', '.xlsx', '.xls', '.zip'];
-    const fileExtension = selectedFile.name.toLowerCase().slice(selectedFile.name.lastIndexOf('.'));
+    const fileName = selectedFile.name.toLowerCase();
+    const lastDotIndex = fileName.lastIndexOf('.');
     
-    if (!validTypes.includes(selectedFile.type) && !validExtensions.includes(fileExtension)) {
-      alert('Invalid file type. Please upload a CSV, Excel, or ZIP file.');
-      return false;
+    // Check if file has an extension
+    if (lastDotIndex === -1 || lastDotIndex === fileName.length - 1) {
+      return {
+        valid: false,
+        error: 'File must have a valid extension (.csv, .xlsx, .xls, or .zip)',
+      };
+    }
+    
+    const fileExtension = fileName.substring(lastDotIndex);
+    
+    if (!validExtensions.includes(fileExtension)) {
+      return {
+        valid: false,
+        error: `Invalid file type "${fileExtension}". Please upload a CSV, Excel (.xlsx/.xls), or ZIP file.`,
+      };
     }
 
     // Validate file size (10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB in bytes
     if (selectedFile.size > maxSize) {
-      alert('File size exceeds 10MB limit.');
-      return false;
+      return {
+        valid: false,
+        error: 'File size exceeds 10MB limit.',
+      };
     }
 
-    return true;
+    return { valid: true };
   };
 
   const handleFileChange = (selectedFile: File | null) => {
-    if (selectedFile && validateFile(selectedFile)) {
+    console.log('🔵 handleFileChange called with:', selectedFile?.name || 'null');
+    if (selectedFile) {
+      // Always set the file first so it shows up in the UI
+      console.log('🟢 Setting file:', selectedFile.name);
       setFile(selectedFile);
       setImportResult(null);
+      
+      // Then validate and show error if needed
+      const validation = validateFile(selectedFile);
+      console.log('🟡 Validation result:', validation);
+      if (!validation.valid) {
+        alert(validation.error || 'Invalid file');
+        // Don't clear the file even if validation fails - let user see what they selected
+      }
+    } else {
+      console.log('🔴 Clearing file (null passed)');
+      setFile(null);
     }
   };
 

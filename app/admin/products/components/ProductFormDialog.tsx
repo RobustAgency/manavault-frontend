@@ -122,10 +122,15 @@ export const ProductFormDialog = ({
     }
   };
 
-  const handleThirdPartyProductSelect = (productId: string) => {
-    setSelectedThirdPartyProduct(productId);
+  const handleThirdPartyProductSelect = (productSku: string) => {
+    if (productSku === 'none') {
+      setSelectedThirdPartyProduct('');
+      return;
+    }
 
-    const product = thirdPartyProducts.find(p => String(p.id) === productId);
+    setSelectedThirdPartyProduct(productSku);
+
+    const product = thirdPartyProducts.find(p => p.sku === productSku);
     if (product) {
       updateFormData({
         name: product.name || '',
@@ -221,7 +226,12 @@ export const ProductFormDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="third_party_product">Third-Party Product *</Label>
               <Select
-                value={selectedThirdPartyProduct}
+                value={
+                  selectedThirdPartyProduct &&
+                    thirdPartyProducts.some(p => p.sku === selectedThirdPartyProduct)
+                    ? selectedThirdPartyProduct
+                    : undefined
+                }
                 onValueChange={handleThirdPartyProductSelect}
                 disabled={isLoadingThirdParty}
               >
@@ -230,13 +240,17 @@ export const ProductFormDialog = ({
                 </SelectTrigger>
                 <SelectContent>
                   {thirdPartyProducts.length > 0 ? (
-                    thirdPartyProducts.map((product) => (
-                      <SelectItem key={product.id} value={String(product.id)}>
-                        {product.name} {product.sku && `(${product.sku})`}
-                      </SelectItem>
-                    ))
+                    thirdPartyProducts
+                      .filter((product): product is ThirdPartyProduct & { sku: string } => !!product.sku) // Filter out products without SKU
+                      .map((product) => (
+                        <SelectItem key={product.sku} value={product.sku}>
+                          {product.name} ({product.sku})
+                        </SelectItem>
+                      ))
                   ) : (
-                    <SelectItem value="none" disabled>No products available</SelectItem>
+                    <SelectItem key="no-products" value="none" disabled>
+                      No products available
+                    </SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -254,11 +268,14 @@ export const ProductFormDialog = ({
               value={formData.name}
               onChange={(e) => updateFormData({ name: e.target.value })}
               placeholder="Product Name"
+              disabled={!isEditMode && isExternalSupplier && !!selectedThirdPartyProduct}
             />
-            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-            {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-              <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-            )}
+            <div className="min-h-[20px]">
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {!errors.name && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
+                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -268,13 +285,15 @@ export const ProductFormDialog = ({
               value={formData.sku}
               onChange={(e) => updateFormData({ sku: e.target.value })}
               placeholder="PROD-001"
-              disabled={isEditMode}
+              disabled={isEditMode || (isExternalSupplier && !!selectedThirdPartyProduct)}
             />
-            {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
-            {isEditMode && <p className="text-xs text-muted-foreground">SKU cannot be updated</p>}
-            {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-              <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-            )}
+            <div className="min-h-[20px]">
+              {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
+              {!errors.sku && isEditMode && <p className="text-xs text-muted-foreground">SKU cannot be updated</p>}
+              {!errors.sku && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
+                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -286,9 +305,11 @@ export const ProductFormDialog = ({
               placeholder="Product description..."
               rows={3}
             />
-            {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-              <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-            )}
+            <div className="min-h-[20px]">
+              {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
+                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -302,11 +323,14 @@ export const ProductFormDialog = ({
                 value={formData.purchase_price}
                 onChange={(e) => updateFormData({ purchase_price: parseFloat(e.target.value) || 0 })}
                 placeholder="0.00"
+                disabled={!isEditMode && isExternalSupplier && !!selectedThirdPartyProduct}
               />
-              {errors.purchase_price && <p className="text-sm text-red-500">{errors.purchase_price}</p>}
-              {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-              )}
+              <div className="min-h-[20px]">
+                {errors.purchase_price && <p className="text-sm text-red-500">{errors.purchase_price}</p>}
+                {!errors.purchase_price && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
+                  <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-2">
@@ -320,7 +344,9 @@ export const ProductFormDialog = ({
                 onChange={(e) => updateFormData({ selling_price: parseFloat(e.target.value) || 0 })}
                 placeholder="0.00"
               />
-              {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+              <div className="min-h-[20px]">
+                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+              </div>
             </div>
           </div>
 

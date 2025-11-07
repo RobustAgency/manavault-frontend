@@ -21,7 +21,7 @@ import { ColumnDef } from '@tanstack/react-table';
 export default function ThirdPartyProductsPage() {
   const [supplierSlug, setSupplierSlug] = useState('ez_cards');
   const [limit, setLimit] = useState(15);
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(1);
 
   const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
   const { data: products, isLoading, refetch } = useGetThirdPartyProductsQuery({
@@ -35,7 +35,7 @@ export default function ThirdPartyProductsPage() {
 
   const handleSupplierChange = (slug: string) => {
     setSupplierSlug(slug);
-    setOffset(0);
+    setOffset(1);
   };
 
   const handleNextPage = () => {

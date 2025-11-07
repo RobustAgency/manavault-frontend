@@ -65,12 +65,32 @@ export const ViewOrderDialog = ({ isOpen, order, onClose }: ViewOrderDialogProps
               </div>
               <div>
                 <Label className="text-muted-foreground">Unit Price</Label>
-                <p className="font-semibold mt-1">{formatCurrency(order.purchase_price)}</p>
+                <p className="font-semibold mt-1">
+                  {(() => {
+                    const unitPrice = order.purchase_price;
+                    if (unitPrice == null || isNaN(unitPrice)) {
+                      // Fallback: calculate from total_price / quantity if purchase_price is not available
+                      const totalPrice = parseFloat(order.total_price || '0');
+                      const quantity = order.quantity || 1;
+                      const calculatedPrice = quantity > 0 ? totalPrice / quantity : 0;
+                      return formatCurrency(calculatedPrice);
+                    }
+                    return formatCurrency(unitPrice);
+                  })()}
+                </p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Total Amount</Label>
                 <p className="font-semibold text-xl text-primary mt-1">
-                  {formatCurrency(order.total_amount)}
+                  {(() => {
+                    const totalAmount = order.total_amount;
+                    if (totalAmount == null || isNaN(totalAmount)) {
+                      // Fallback: use total_price if total_amount is not available
+                      const totalPrice = parseFloat(order.total_price || '0');
+                      return formatCurrency(totalPrice);
+                    }
+                    return formatCurrency(totalAmount);
+                  })()}
                 </p>
               </div>
             </div>

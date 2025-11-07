@@ -21,13 +21,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Product,
   Supplier,
   CreatePurchaseOrderData,
   useCreateProductMutation,
   useCreateSupplierMutation,
   useGetProductsQuery,
-  useGetSuppliersQuery,
   CreateProductData,
   CreateSupplierData,
 } from '@/lib/redux/features';
@@ -38,23 +36,19 @@ import { ProductFormDialog } from '@/app/admin/products/components/ProductFormDi
 
 interface CreateOrderDialogProps {
   isOpen: boolean;
-  products: Product[];
   suppliers: Supplier[];
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (data: CreatePurchaseOrderData) => void;
-  onProductsRefetch?: () => void;
   onSuppliersRefetch?: () => void;
 }
 
 export const CreateOrderDialog = ({
   isOpen,
-  products,
   suppliers,
   isSubmitting,
   onClose,
   onSubmit,
-  onProductsRefetch,
   onSuppliersRefetch,
 }: CreateOrderDialogProps) => {
   const { formData, errors, validateForm, resetForm, updateFormData } = usePurchaseOrderForm();
@@ -67,7 +61,19 @@ export const CreateOrderDialog = ({
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
 
-  // Get selected product to auto-fill data
+  // Fetch products for selected supplier
+  const { data: productsData, isLoading: isLoadingProducts, refetch: refetchProducts } = useGetProductsQuery(
+    {
+      supplier_id: formData.supplier_id > 0 ? formData.supplier_id : undefined,
+      per_page: 100,
+      status: 'active',
+    },
+    {
+      skip: formData.supplier_id === 0, // Skip query when no supplier is selected
+    }
+  );
+
+  const products = productsData?.data || [];
   const selectedProduct = products.find(p => p.id === formData.product_id);
 
   useEffect(() => {
@@ -78,12 +84,20 @@ export const CreateOrderDialog = ({
     }
   }, [isOpen]);
 
+  const handleSupplierChange = (supplierId: string) => {
+    const id = parseInt(supplierId);
+    updateFormData({
+      supplier_id: id,
+      product_id: 0, // Clear product selection when supplier changes
+      purchase_price: 0, // Clear purchase price when supplier changes
+    });
+  };
+
   const handleProductChange = (productId: string) => {
     const product = products.find(p => p.id === parseInt(productId));
     if (product) {
       updateFormData({
         product_id: product.id,
-        supplier_id: product.supplier_id,
         purchase_price: product.purchase_price,
       });
     }
@@ -103,13 +117,13 @@ export const CreateOrderDialog = ({
   const handleCreateProduct = async (data: CreateProductData) => {
     try {
       const newProduct = await createProduct(data).unwrap();
-      // Refresh products list in parent
-      onProductsRefetch?.();
+      // Refresh products list
+      await refetchProducts();
       // Auto-select the newly created product directly
       if (newProduct) {
         updateFormData({
-          product_id: newProduct.id,
           supplier_id: newProduct.supplier_id,
+          product_id: newProduct.id,
           purchase_price: newProduct.purchase_price,
         });
       }
@@ -146,46 +160,10 @@ export const CreateOrderDialog = ({
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="product_id">Product *</Label>
-            <Select 
-              value={formData.product_id.toString()} 
-              onValueChange={handleProductChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a product" />
-              </SelectTrigger>
-              <SelectContent>
-                {products.map((product) => (
-                  <SelectItem key={product.id} value={product.id.toString()}>
-                    {product.name} - {product.sku}
-                  </SelectItem>
-                ))}
-                <div className="border-t pt-1 mt-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsAddProductDialogOpen(true);
-                    }}
-                  >
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Add New Product
-                  </Button>
-                </div>
-              </SelectContent>
-            </Select>
-            {errors.product_id && <p className="text-sm text-red-500">{errors.product_id}</p>}
-          </div>
-
-          <div className="grid gap-2">
             <Label htmlFor="supplier_id">Supplier *</Label>
-            <Select 
-              value={formData.supplier_id.toString()} 
-              onValueChange={(value) => updateFormData({ supplier_id: parseInt(value) })}
+            <Select
+              value={formData.supplier_id > 0 ? formData.supplier_id.toString() : undefined}
+              onValueChange={handleSupplierChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a supplier" />
@@ -215,11 +193,70 @@ export const CreateOrderDialog = ({
               </SelectContent>
             </Select>
             {errors.supplier_id && <p className="text-sm text-red-500">{errors.supplier_id}</p>}
-            {selectedProduct && (
+            {formData.supplier_id > 0 && !isLoadingProducts && products.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Product supplier: {selectedProduct.supplier?.name}
+                No products found for this supplier. Add a new product below.
               </p>
             )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="product_id">Product *</Label>
+            <Select
+              value={formData.product_id > 0 ? formData.product_id.toString() : undefined}
+              onValueChange={handleProductChange}
+              disabled={formData.supplier_id === 0 || isLoadingProducts}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={
+                  formData.supplier_id === 0
+                    ? "Select a supplier first"
+                    : isLoadingProducts
+                      ? "Loading products..."
+                      : products.length === 0
+                        ? "No products available"
+                        : "Select a product"
+                } />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingProducts ? (
+                  <SelectItem value="loading" disabled>
+                    Loading products...
+                  </SelectItem>
+                ) : products.length > 0 ? (
+                  products.map((product) => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} - {product.sku}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-products" disabled>
+                    {formData.supplier_id === 0
+                      ? "Please select a supplier first"
+                      : "No products available for this supplier"}
+                  </SelectItem>
+                )}
+                {formData.supplier_id > 0 && !isLoadingProducts && (
+                  <div className="border-t pt-1 mt-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsAddProductDialogOpen(true);
+                      }}
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add New Product
+                    </Button>
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
+            {errors.product_id && <p className="text-sm text-red-500">{errors.product_id}</p>}
           </div>
 
           <div className="grid gap-2">
@@ -287,7 +324,12 @@ export const CreateOrderDialog = ({
         isSubmitting={isCreatingProduct}
         onClose={() => setIsAddProductDialogOpen(false)}
         onSubmit={handleCreateProduct}
-        onSupplierChange={() => {}}
+        onSupplierChange={(supplierId, isExternal, slug) => {
+          // Auto-select the supplier when creating a product from this dialog
+          if (supplierId > 0) {
+            updateFormData({ supplier_id: supplierId });
+          }
+        }}
       />
 
       {/* Add New Supplier Dialog */}

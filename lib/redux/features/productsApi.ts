@@ -46,6 +46,7 @@ export interface ProductFilters {
   per_page?: number;
   name?: string;
   status?: ProductStatus;
+  supplier_id?: number;
 }
 
 export interface ThirdPartyProductFilters {
@@ -195,7 +196,11 @@ export const productsApi = createApi({
       query: (filters) => ({
         url: "/admin/products/third-party",
         method: "GET",
-        params: filters,
+        params: {
+          slug: filters.slug,
+          limit: filters.limit,
+          offset: filters.offset ?? 1,
+        },
       }),
       providesTags: [{ type: "ThirdPartyProduct", id: "LIST" }],
       transformResponse: (response: {
@@ -245,8 +250,7 @@ export const productsApi = createApi({
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-              mutationError?.error?.data?.message ||
-              "Failed to create product";
+              mutationError?.error?.data?.message || "Failed to create product";
             toast.error(errorMessage);
           }
         }
@@ -274,8 +278,7 @@ export const productsApi = createApi({
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-              mutationError?.error?.data?.message ||
-              "Failed to update product";
+              mutationError?.error?.data?.message || "Failed to update product";
             toast.error(errorMessage);
           }
         }
@@ -298,8 +301,7 @@ export const productsApi = createApi({
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
-            mutationError?.error?.data?.message ||
-            "Failed to delete product";
+            mutationError?.error?.data?.message || "Failed to delete product";
           toast.error(errorMessage);
         }
       },
@@ -315,4 +317,3 @@ export const {
   useUpdateProductMutation,
   useDeleteProductMutation,
 } = productsApi;
-

@@ -20,17 +20,31 @@ export interface PurchaseOrder {
   purchase_price: number;
   quantity: number;
   total_amount: number;
+  total_price?: string; // API returns this as string
   created_at: string;
   updated_at: string;
   product?: {
     id: number;
     name: string;
     sku: string;
+    description?: string | null;
+    purchase_price?: string; // API returns this as string
+    selling_price?: string; // API returns this as string
+    status?: string;
+    supplier_id?: number;
+    created_at?: string;
+    updated_at?: string;
   };
   supplier?: {
     id: number;
     name: string;
     slug: string;
+    type?: string;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    status?: string;
+    created_at?: string;
+    updated_at?: string;
   };
 }
 
@@ -124,7 +138,7 @@ export const purchaseOrdersApi = createApi({
           : [{ type: "PurchaseOrder", id: "LIST" }],
       transformResponse: (response: {
         data: {
-          data: PurchaseOrder[];
+          data: any[]; // Raw API response - will be transformed
           current_page: number;
           per_page: number;
           total: number;
@@ -136,8 +150,25 @@ export const purchaseOrdersApi = createApi({
         message?: string;
       }) => {
         if (response.data?.data && Array.isArray(response.data.data)) {
+          // Transform the data to map API fields to expected interface
+          const transformedData = response.data.data.map((order: any) => {
+            // API returns total_price as string, convert to number for total_amount
+            const totalPrice = parseFloat(String(order.total_price || '0'));
+            const quantity = order.quantity || 1;
+            // Calculate unit price from total_price / quantity, or use product.purchase_price if available
+            const unitPrice = order.product?.purchase_price
+              ? parseFloat(String(order.product.purchase_price))
+              : quantity > 0 ? totalPrice / quantity : 0;
+
+            return {
+              ...order,
+              total_amount: totalPrice,
+              purchase_price: unitPrice,
+            } as PurchaseOrder;
+          });
+
           return {
-            data: response.data.data,
+            data: transformedData,
             pagination: {
               current_page: response.data.current_page,
               per_page: response.data.per_page,
@@ -171,12 +202,25 @@ export const purchaseOrdersApi = createApi({
         { type: "PurchaseOrder", id: String(id) },
       ],
       transformResponse: (response: {
-        data: PurchaseOrder;
+        data: any; // Raw API response - will be transformed
         error?: boolean;
         message?: string;
       }) => {
         if (response.data) {
-          return response.data;
+          const order = response.data;
+          // API returns total_price as string, convert to number for total_amount
+          const totalPrice = parseFloat(String(order.total_price || '0'));
+          const quantity = order.quantity || 1;
+          // Calculate unit price from total_price / quantity, or use product.purchase_price if available
+          const unitPrice = order.product?.purchase_price
+            ? parseFloat(String(order.product.purchase_price))
+            : quantity > 0 ? totalPrice / quantity : 0;
+
+          return {
+            ...order,
+            total_amount: totalPrice,
+            purchase_price: unitPrice,
+          } as PurchaseOrder;
         }
         return response as unknown as PurchaseOrder;
       },

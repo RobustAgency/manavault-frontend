@@ -54,7 +54,7 @@ export default function ProductsPage() {
 
   // Fetch third-party products when external supplier is selected
   const { data: thirdPartyProducts, isLoading: isLoadingThirdParty } = useGetThirdPartyProductsQuery(
-    { slug: selectedSupplierSlug!, limit: 100, offset: 0 },
+    { slug: selectedSupplierSlug!, limit: 100, offset: 1 },
     { skip: !selectedSupplierSlug || !isExternalSupplier }
   );
 
@@ -124,10 +124,10 @@ export default function ProductsPage() {
           <p className="text-muted-foreground mt-1">Manage your product inventory</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => window.location.href = '/admin/products/third-party'}>
+          {/* <Button variant="outline" onClick={() => window.location.href = '/admin/products/third-party'}>
             <ExternalLinkIcon className="h-4 w-4 mr-2" />
             Third-Party Products
-          </Button>
+          </Button> */}
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Product

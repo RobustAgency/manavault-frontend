@@ -20,7 +20,7 @@ const adminRoutes = [
     { href: "/admin/suppliers", label: "Suppliers", icon: Package },
     { href: "/admin/products", label: "Products", icon: ShoppingCart },
     { href: "/admin/purchase-orders", label: "Purchase Orders", icon: FileText },
-    { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
+    // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },

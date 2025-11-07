@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { UploadIcon, FileIcon, XCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -37,12 +38,39 @@ export const FileUploadSection = ({
   onPurchaseOrderChange,
   onClearFile,
 }: FileUploadSectionProps) => {
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      onFileChange(selectedFile);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const previousFileRef = React.useRef<File | null>(null);
+
+  // Preserve file input value when component re-renders
+  React.useEffect(() => {
+    if (file && fileInputRef.current && file !== previousFileRef.current) {
+      // File was set, preserve it
+      previousFileRef.current = file;
+    } else if (!file && previousFileRef.current && fileInputRef.current) {
+      // File was cleared, reset input
+      fileInputRef.current.value = '';
+      previousFileRef.current = null;
     }
-  };
+  }, [file]);
+
+  // Use useCallback to prevent the handler from being recreated on every render
+  const handleFileInput = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    console.log('📁 File input changed:', selectedFile?.name || 'no file', 'Files length:', e.target.files?.length);
+    
+    if (selectedFile) {
+      console.log('✅ Calling onFileChange with file:', selectedFile.name, 'Size:', selectedFile.size);
+      // Call immediately - don't delay
+      onFileChange(selectedFile);
+    } else {
+      console.log('⚠️ No file selected in input');
+      // Don't clear the file if input is empty - this might be a re-render issue
+      // Only reset the input value to allow selecting the same file again
+      if (fileInputRef.current && !file) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [onFileChange, file]);
 
   return (
     <div className="space-y-6">
@@ -50,18 +78,24 @@ export const FileUploadSection = ({
       <div className="grid gap-2">
         <Label htmlFor="purchase_order">Purchase Order *</Label>
         <Select 
-          value={purchaseOrderId.toString()} 
-          onValueChange={(value) => onPurchaseOrderChange(parseInt(value))}
+          value={purchaseOrderId > 0 ? purchaseOrderId.toString() : undefined} 
+          onValueChange={(value) => onPurchaseOrderChange(parseInt(value, 10))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select a purchase order" />
           </SelectTrigger>
           <SelectContent>
-            {purchaseOrders.map((order) => (
-              <SelectItem key={order.id} value={order.id.toString()}>
-                {order.order_number} - {order.product?.name} ({order.quantity} units)
+            {purchaseOrders.length === 0 ? (
+              <SelectItem value="no-orders" disabled>
+                No purchase orders available
               </SelectItem>
-            ))}
+            ) : (
+              purchaseOrders.map((order) => (
+                <SelectItem key={order.id} value={order.id.toString()}>
+                  {order.order_number} - {order.product?.name || 'N/A'} ({order.quantity} units)
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -71,13 +105,14 @@ export const FileUploadSection = ({
         <Label htmlFor="file-upload">Vouchers File *</Label>
         <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
           <input
+            ref={fileInputRef}
             id="file-upload"
             type="file"
             accept=".csv,.xlsx,.xls,.zip"
             onChange={handleFileInput}
             className="hidden"
           />
-          <label htmlFor="file-upload" className="cursor-pointer">
+          <label htmlFor="file-upload" className="cursor-pointer block">
             <UploadIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-sm font-medium mb-1">
               Click to upload or drag and drop
@@ -100,7 +135,13 @@ export const FileUploadSection = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClearFile}
+            onClick={() => {
+              onClearFile();
+              // Reset the file input
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            }}
           >
             <XCircleIcon className="h-4 w-4" />
           </Button>

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { UploadIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,9 +33,16 @@ export default function VouchersPage() {
     clearFile,
     reset,
   } = useVoucherImport();
+  console.log("🚀 ~ VouchersPage ~ file:", file, "purchaseOrderId:", purchaseOrderId)
 
   const { data: purchaseOrdersData } = useGetPurchaseOrdersQuery({ per_page: 100 });
   const [importVouchers, { isLoading: isImporting }] = useImportVouchersMutation();
+
+  // Memoize the file change handler to prevent unnecessary re-renders
+  const handleFileChange = React.useCallback((selectedFile: File | null) => {
+    console.log('📋 Parent handleFileChange called:', selectedFile?.name || 'null');
+    setFile(selectedFile);
+  }, [setFile]);
 
   const handleImport = async () => {
     if (!file) {
@@ -42,8 +50,24 @@ export default function VouchersPage() {
       return;
     }
 
-    if (!purchaseOrderId || purchaseOrderId === 0) {
+    if (!purchaseOrderId || purchaseOrderId <= 0) {
       alert('Please select a purchase order');
+      return;
+    }
+
+    // Validate file before importing
+    const validExtensions = ['.csv', '.xlsx', '.xls', '.zip'];
+    const fileName = file.name.toLowerCase();
+    const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+    if (!validExtensions.includes(fileExtension)) {
+      alert(`Invalid file type. Please upload a CSV, Excel (.xlsx/.xls), or ZIP file.`);
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      alert('File size exceeds 10MB limit.');
       return;
     }
 
@@ -91,7 +115,7 @@ export default function VouchersPage() {
             file={file}
             purchaseOrderId={purchaseOrderId}
             purchaseOrders={purchaseOrdersData?.data || []}
-            onFileChange={setFile}
+            onFileChange={handleFileChange}
             onPurchaseOrderChange={setPurchaseOrderId}
             onClearFile={clearFile}
           />
@@ -110,7 +134,7 @@ export default function VouchersPage() {
           </Button>
           <Button
             onClick={handleImport}
-            disabled={!file || !purchaseOrderId || purchaseOrderId === 0 || isImporting}
+            disabled={!file || purchaseOrderId <= 0 || isImporting}
           >
             {isImporting ? (
               <>
