@@ -45,7 +45,7 @@ export async function createUser(formData: FormData) {
   }
 
   const userRole = user.user_metadata?.role;
-  if (userRole !== "admin" && userRole !== "super_admin") {
+  if (userRole !== "super_admin") {
     return {
       success: false,
       message: "Unauthorized. Only admins can create users.",
@@ -97,7 +97,7 @@ export async function createUser(formData: FormData) {
         email_confirm: true, // Auto-confirm email
         user_metadata: {
           full_name: fullName,
-          role: "user", // All created users have "user" role
+          role: "admin", // All created users have "admin" role
         },
       }
     );
@@ -175,7 +175,7 @@ export async function getUsers(
   }
 
   const userRole = user.user_metadata?.role;
-  if (userRole !== "admin" && userRole !== "super_admin") {
+  if (userRole !== "super_admin") {
     return {
       success: false,
       message: "Unauthorized. Only admins can view users.",
@@ -227,16 +227,16 @@ export async function getUsers(
 
     let users = usersData.users;
 
-     // Filter out users without email (shouldn't happen, but just in case)
-     users = users.filter((u) => u.email);
+    // Filter out users without email (shouldn't happen, but just in case)
+    users = users.filter((u) => u.email);
 
-     // Filter out super_admin users - they shouldn't appear in the regular users list
-     users = users.filter((u) => {
-       const role = u.user_metadata?.role;
-       return role !== "super_admin";
-     });
+    // Filter out super_admin users - they shouldn't appear in the regular users list
+    users = users.filter((u) => {
+      const role = u.user_metadata?.role;
+      return role !== "super_admin";
+    });
 
-     // Apply search filter if provided
+    // Apply search filter if provided
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       users = users.filter((u) => {
@@ -271,9 +271,9 @@ export async function getUsers(
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to fetch users",
-     };
-   }
- }
+    };
+  }
+}
 
 /**
  * Delete a user from Supabase (Admin only)
@@ -295,7 +295,7 @@ export async function deleteUser(userId: string): Promise<{
   }
 
   const userRole = user.user_metadata?.role;
-  if (userRole !== "admin" && userRole !== "super_admin") {
+  if (userRole !== "super_admin") {
     return {
       success: false,
       message: "Unauthorized. Only admins can delete users.",

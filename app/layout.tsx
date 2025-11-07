@@ -3,6 +3,7 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/layouts/AppShell";
 import ToastProvider from "@/providers/ToastProvider";
+import StoreProvider from "@/providers/StoreProvider";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -37,14 +38,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           .single();
 
         if (!upsertError && newProfile) {
-          initialProfile = (newProfile as typeof initialProfile) ?? null;
+          initialProfile = {
+            id: newProfile.id,
+            full_name: newProfile.full_name,
+            avatar_url: newProfile.avatar_url,
+            email: email,
+            plan_id: null,
+          };
         } else if (upsertError?.code === 'PGRST205') {
           // Table doesn't exist - this is a database setup issue
           console.error("Profiles table not found. Please create the table in Supabase.");
           initialProfile = null;
         }
       } else if (!error && data) {
-        initialProfile = (data as typeof initialProfile) ?? null;
+        initialProfile = {
+          id: data.id,
+          full_name: data.full_name || '',
+          avatar_url: data.avatar_url || null,
+          email: (data as any).email || user?.email || '',
+          plan_id: (data as any).plan_id || null,
+        };
       }
     } catch (err) {
       // Silently handle errors - profile will be null and can be created later
@@ -57,7 +70,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" translate="no">
       <body suppressHydrationWarning={true}>
         <AuthProvider initialUser={user} initialProfile={initialProfile}>
-          <AppShell>{children}</AppShell>
+          <StoreProvider>
+            <AppShell>{children}</AppShell>
+          </StoreProvider>
         </AuthProvider>
         <ToastProvider />
       </body>
