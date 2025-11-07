@@ -18,8 +18,8 @@ export default function PurchaseOrdersPage() {
   const perPage = 10;
 
   const { data, isLoading } = useGetPurchaseOrdersQuery({ page, per_page: perPage });
-  const { data: productsData } = useGetProductsQuery({ per_page: 100, status: 'active' });
-  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
+  const { data: productsData, refetch: refetchProducts } = useGetProductsQuery({ per_page: 100, status: 'active' });
+  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
 
   // Dialog states
@@ -88,6 +88,8 @@ export default function PurchaseOrdersPage() {
         isSubmitting={isCreating}
         onClose={() => setIsCreateDialogOpen(false)}
         onSubmit={handleCreate}
+        onProductsRefetch={refetchProducts}
+        onSuppliersRefetch={refetchSuppliers}
       />
 
       {/* View Details Dialog */}

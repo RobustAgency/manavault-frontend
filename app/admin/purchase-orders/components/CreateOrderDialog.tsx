@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { PlusIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,9 +20,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Product, Supplier, CreatePurchaseOrderData } from '@/lib/redux/features';
+import {
+  Product,
+  Supplier,
+  CreatePurchaseOrderData,
+  useCreateProductMutation,
+  useCreateSupplierMutation,
+  useGetProductsQuery,
+  useGetSuppliersQuery,
+  CreateProductData,
+  CreateSupplierData,
+} from '@/lib/redux/features';
 import { usePurchaseOrderForm } from './usePurchaseOrderForm';
 import { formatCurrency } from './orderColumns';
+import { SupplierFormDialog } from '@/app/admin/suppliers/components/SupplierFormDialog';
+import { ProductFormDialog } from '@/app/admin/products/components/ProductFormDialog';
 
 interface CreateOrderDialogProps {
   isOpen: boolean;
@@ -30,6 +43,8 @@ interface CreateOrderDialogProps {
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (data: CreatePurchaseOrderData) => void;
+  onProductsRefetch?: () => void;
+  onSuppliersRefetch?: () => void;
 }
 
 export const CreateOrderDialog = ({
@@ -39,8 +54,18 @@ export const CreateOrderDialog = ({
   isSubmitting,
   onClose,
   onSubmit,
+  onProductsRefetch,
+  onSuppliersRefetch,
 }: CreateOrderDialogProps) => {
   const { formData, errors, validateForm, resetForm, updateFormData } = usePurchaseOrderForm();
+
+  // Mutations for creating new items
+  const [createProduct, { isLoading: isCreatingProduct }] = useCreateProductMutation();
+  const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
+
+  // Dialog states for adding new items
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
 
   // Get selected product to auto-fill data
   const selectedProduct = products.find(p => p.id === formData.product_id);
@@ -48,6 +73,8 @@ export const CreateOrderDialog = ({
   useEffect(() => {
     if (!isOpen) {
       resetForm();
+      setIsAddProductDialogOpen(false);
+      setIsAddSupplierDialogOpen(false);
     }
   }, [isOpen]);
 
@@ -71,6 +98,40 @@ export const CreateOrderDialog = ({
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleCreateProduct = async (data: CreateProductData) => {
+    try {
+      const newProduct = await createProduct(data).unwrap();
+      // Refresh products list in parent
+      onProductsRefetch?.();
+      // Auto-select the newly created product directly
+      if (newProduct) {
+        updateFormData({
+          product_id: newProduct.id,
+          supplier_id: newProduct.supplier_id,
+          purchase_price: newProduct.purchase_price,
+        });
+      }
+      setIsAddProductDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to create product:', error);
+    }
+  };
+
+  const handleCreateSupplier = async (data: CreateSupplierData) => {
+    try {
+      const newSupplier = await createSupplier(data).unwrap();
+      // Refresh suppliers list in parent
+      onSuppliersRefetch?.();
+      // Auto-select the newly created supplier directly
+      if (newSupplier) {
+        updateFormData({ supplier_id: newSupplier.id });
+      }
+      setIsAddSupplierDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to create supplier:', error);
+    }
   };
 
   return (
@@ -99,6 +160,22 @@ export const CreateOrderDialog = ({
                     {product.name} - {product.sku}
                   </SelectItem>
                 ))}
+                <div className="border-t pt-1 mt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsAddProductDialogOpen(true);
+                    }}
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add New Product
+                  </Button>
+                </div>
               </SelectContent>
             </Select>
             {errors.product_id && <p className="text-sm text-red-500">{errors.product_id}</p>}
@@ -119,6 +196,22 @@ export const CreateOrderDialog = ({
                     {supplier.name}
                   </SelectItem>
                 ))}
+                <div className="border-t pt-1 mt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsAddSupplierDialogOpen(true);
+                    }}
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add New Supplier
+                  </Button>
+                </div>
               </SelectContent>
             </Select>
             {errors.supplier_id && <p className="text-sm text-red-500">{errors.supplier_id}</p>}
@@ -182,6 +275,30 @@ export const CreateOrderDialog = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Add New Product Dialog */}
+      <ProductFormDialog
+        isOpen={isAddProductDialogOpen}
+        isEditMode={false}
+        selectedProduct={null}
+        suppliers={suppliers}
+        thirdPartyProducts={[]}
+        isLoadingThirdParty={false}
+        isSubmitting={isCreatingProduct}
+        onClose={() => setIsAddProductDialogOpen(false)}
+        onSubmit={handleCreateProduct}
+        onSupplierChange={() => {}}
+      />
+
+      {/* Add New Supplier Dialog */}
+      <SupplierFormDialog
+        isOpen={isAddSupplierDialogOpen}
+        isEditMode={false}
+        selectedSupplier={null}
+        isSubmitting={isCreatingSupplier}
+        onClose={() => setIsAddSupplierDialogOpen(false)}
+        onSubmit={handleCreateSupplier}
+      />
     </Dialog>
   );
 };

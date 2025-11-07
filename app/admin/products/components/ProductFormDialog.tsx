@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PlusIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,8 +27,11 @@ import {
   Supplier,
   ThirdPartyProduct,
   CreateProductData,
+  useCreateSupplierMutation,
+  CreateSupplierData,
 } from '@/lib/redux/features';
 import { useProductForm } from './useProductForm';
+import { SupplierFormDialog } from '@/app/admin/suppliers/components/SupplierFormDialog';
 
 interface ProductFormDialogProps {
   isOpen: boolean;
@@ -40,6 +44,7 @@ interface ProductFormDialogProps {
   onClose: () => void;
   onSubmit: (data: CreateProductData) => void;
   onSupplierChange: (supplierId: number, isExternal: boolean, slug: string | null) => void;
+  onSuppliersRefetch?: () => void;
 }
 
 export const ProductFormDialog = ({
@@ -53,12 +58,17 @@ export const ProductFormDialog = ({
   onClose,
   onSubmit,
   onSupplierChange,
+  onSuppliersRefetch,
 }: ProductFormDialogProps) => {
   const { formData, setFormData, errors, validateForm, resetForm, updateFormData } = useProductForm(isEditMode);
-  
+
   const [selectedSupplierSlug, setSelectedSupplierSlug] = useState<string | null>(null);
   const [selectedThirdPartyProduct, setSelectedThirdPartyProduct] = useState<string>('');
   const [isExternalSupplier, setIsExternalSupplier] = useState(false);
+  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
+
+  // Mutation for creating new supplier
+  const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
 
   // Initialize form when editing
   useEffect(() => {
@@ -77,6 +87,7 @@ export const ProductFormDialog = ({
       setSelectedSupplierSlug(null);
       setSelectedThirdPartyProduct('');
       setIsExternalSupplier(false);
+      setIsAddSupplierDialogOpen(false);
     }
   }, [isEditMode, selectedProduct, isOpen]);
 
@@ -136,7 +147,23 @@ export const ProductFormDialog = ({
     setSelectedSupplierSlug(null);
     setSelectedThirdPartyProduct('');
     setIsExternalSupplier(false);
+    setIsAddSupplierDialogOpen(false);
     onClose();
+  };
+
+  const handleCreateSupplier = async (data: CreateSupplierData) => {
+    try {
+      const newSupplier = await createSupplier(data).unwrap();
+      // Refresh suppliers list in parent
+      onSuppliersRefetch?.();
+      // Auto-select the newly created supplier directly
+      if (newSupplier) {
+        handleSupplierChange(newSupplier.id.toString());
+      }
+      setIsAddSupplierDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to create supplier:', error);
+    }
   };
 
   return (
@@ -166,6 +193,24 @@ export const ProductFormDialog = ({
                     {supplier.name} {supplier.type === 'external' && '(External)'}
                   </SelectItem>
                 ))}
+                {!isEditMode && (
+                  <div className="border-t pt-1 mt-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsAddSupplierDialogOpen(true);
+                      }}
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Add New Supplier
+                    </Button>
+                  </div>
+                )}
               </SelectContent>
             </Select>
             {errors.supplier_id && <p className="text-sm text-red-500">{errors.supplier_id}</p>}
@@ -281,8 +326,8 @@ export const ProductFormDialog = ({
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status *</Label>
-            <Select 
-              value={formData.status} 
+            <Select
+              value={formData.status}
               onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
             >
               <SelectTrigger>
@@ -306,6 +351,18 @@ export const ProductFormDialog = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Add New Supplier Dialog */}
+      {!isEditMode && (
+        <SupplierFormDialog
+          isOpen={isAddSupplierDialogOpen}
+          isEditMode={false}
+          selectedSupplier={null}
+          isSubmitting={isCreatingSupplier}
+          onClose={() => setIsAddSupplierDialogOpen(false)}
+          onSubmit={handleCreateSupplier}
+        />
+      )}
     </Dialog>
   );
 };

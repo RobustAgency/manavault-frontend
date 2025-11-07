@@ -37,7 +37,7 @@ export default function ProductsPage() {
     status: statusFilter === 'all' ? undefined : statusFilter,
     name: nameSearch || undefined,
   });
-  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
+  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
@@ -191,6 +191,7 @@ export default function ProductsPage() {
         }}
         onSubmit={isEditDialogOpen ? handleEdit : handleCreate}
         onSupplierChange={handleSupplierChange}
+        onSuppliersRefetch={refetchSuppliers}
       />
 
       {/* Delete Confirmation Dialog */}
