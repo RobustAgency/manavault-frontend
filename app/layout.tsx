@@ -8,7 +8,7 @@ import StoreProvider from "@/providers/StoreProvider";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  let initialProfile: { id: string; full_name?: string | null; avatar_url?: string | null } | null = null;
+  let initialProfile: { id: string; full_name?: string | null; avatar_url?: string | null; email: string; plan_id: number | null } | null = null;
   if (user?.id) {
     try {
       const { data, error } = await supabase
