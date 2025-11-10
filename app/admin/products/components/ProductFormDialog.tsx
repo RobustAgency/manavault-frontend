@@ -78,8 +78,8 @@ export const ProductFormDialog = ({
         name: selectedProduct.name,
         description: selectedProduct.description || '',
         sku: selectedProduct.sku,
-        purchase_price: selectedProduct.purchase_price,
-        selling_price: selectedProduct.selling_price,
+        purchase_price: selectedProduct.purchase_price?.toString() ?? '',
+        selling_price: selectedProduct.selling_price?.toString() ?? '',
         status: selectedProduct.status,
       });
     } else {
@@ -112,7 +112,8 @@ export const ProductFormDialog = ({
           name: '',
           description: '',
           sku: '',
-          purchase_price: 0,
+          purchase_price: '',
+          selling_price: '',
         });
       }
     } else {
@@ -136,14 +137,22 @@ export const ProductFormDialog = ({
         name: product.name || '',
         description: product.description || '',
         sku: product.sku || '',
-        purchase_price: product.price || 0,
+        purchase_price: product.price !== undefined && product.price !== null ? String(product.price) : '',
       });
     }
   };
 
   const handleSubmit = () => {
     if (validateForm(isExternalSupplier, selectedThirdPartyProduct)) {
-      onSubmit(formData);
+      onSubmit({
+        supplier_id: formData.supplier_id,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        sku: formData.sku.trim(),
+        purchase_price: parseFloat(formData.purchase_price),
+        selling_price: parseFloat(formData.selling_price),
+        status: formData.status,
+      });
     }
   };
 
@@ -324,7 +333,7 @@ export const ProductFormDialog = ({
                 step="0.01"
                 min="0"
                 value={formData.purchase_price}
-                onChange={(e) => updateFormData({ purchase_price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => updateFormData({ purchase_price: e.target.value })}
                 placeholder="0.00"
                 disabled={!isEditMode && isExternalSupplier && !!selectedThirdPartyProduct}
               />
@@ -345,7 +354,7 @@ export const ProductFormDialog = ({
                 step="0.01"
                 min="0"
                 value={formData.selling_price}
-                onChange={(e) => updateFormData({ selling_price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => updateFormData({ selling_price: e.target.value })}
                 placeholder="0.00"
               />
               <div className="min-h-[20px]">

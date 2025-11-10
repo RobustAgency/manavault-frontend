@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Supplier, CreateSupplierData } from '@/lib/redux/features';
+import { Supplier, CreateSupplierData, SupplierStatus, SupplierType } from '@/lib/redux/features';
 import { useSupplierForm } from './useSupplierForm';
 
 interface SupplierFormDialogProps {
@@ -59,7 +59,27 @@ export const SupplierFormDialog = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      onSubmit(formData);
+      const trimmedName = formData.name.trim();
+      const trimmedSlug = formData.slug.trim();
+      const trimmedEmail = formData.contact_email.trim();
+      const trimmedPhone = formData.contact_phone.trim();
+
+      const payload: CreateSupplierData = {
+        name: trimmedName,
+        slug: trimmedSlug,
+        type: formData.type as SupplierType,
+        status: formData.status as SupplierStatus,
+      };
+
+      if (trimmedEmail) {
+        payload.contact_email = trimmedEmail;
+      }
+
+      if (trimmedPhone) {
+        payload.contact_phone = trimmedPhone;
+      }
+
+      onSubmit(payload);
     }
   };
 
@@ -103,6 +123,23 @@ export const SupplierFormDialog = ({
           </div>
 
           <div className="grid gap-2">
+            <Label htmlFor="type">Supplier Type *</Label>
+            <Select
+              value={formData.type || undefined}
+              onValueChange={(value: SupplierType) => updateFormData({ type: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select supplier type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="internal">Internal</SelectItem>
+                <SelectItem value="external">External</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
+          </div>
+
+          <div className="grid gap-2">
             <Label htmlFor="contact_email">Contact Email</Label>
             <Input
               id="contact_email"
@@ -126,18 +163,19 @@ export const SupplierFormDialog = ({
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status *</Label>
-            <Select 
-              value={formData.status} 
-              onValueChange={(value: 'active' | 'inactive') => updateFormData({ status: value })}
+            <Select
+              value={formData.status || undefined}
+              onValueChange={(value: SupplierStatus) => updateFormData({ status: value })}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
+            {errors.status && <p className="text-sm text-red-500">{errors.status}</p>}
           </div>
         </div>
 

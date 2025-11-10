@@ -1,20 +1,31 @@
 import { useState } from 'react';
-import { CreateSupplierData } from '@/lib/redux/features';
+import { CreateSupplierData, SupplierStatus, SupplierType } from '@/lib/redux/features';
 
 export interface SupplierFormErrors {
   name?: string;
   slug?: string;
   contact_email?: string;
+  type?: string;
+  status?: string;
+}
+
+export interface SupplierFormState {
+  name: string;
+  slug: string;
+  type: '' | SupplierType;
+  contact_email: string;
+  contact_phone: string;
+  status: '' | SupplierStatus;
 }
 
 export const useSupplierForm = () => {
-  const [formData, setFormData] = useState<CreateSupplierData>({
+  const [formData, setFormData] = useState<SupplierFormState>({
     name: '',
     slug: '',
-    type: 'internal',
+    type: '',
     contact_email: '',
     contact_phone: '',
-    status: 'active',
+    status: '',
   });
 
   const [errors, setErrors] = useState<SupplierFormErrors>({});
@@ -38,6 +49,14 @@ export const useSupplierForm = () => {
       newErrors.contact_email = 'Invalid email format';
     }
 
+    if (!formData.type) {
+      newErrors.type = 'Supplier type is required';
+    }
+
+    if (!formData.status) {
+      newErrors.status = 'Status is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -46,15 +65,15 @@ export const useSupplierForm = () => {
     setFormData({
       name: '',
       slug: '',
-      type: 'internal',
+      type: '',
       contact_email: '',
       contact_phone: '',
-      status: 'active',
+      status: '',
     });
     setErrors({});
   };
 
-  const updateFormData = (updates: Partial<CreateSupplierData>) => {
+  const updateFormData = (updates: Partial<SupplierFormState>) => {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 

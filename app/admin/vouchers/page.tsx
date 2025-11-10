@@ -77,7 +77,7 @@ export default function VouchersPage() {
         purchase_order_id: purchaseOrderId,
       }).unwrap();
 
-      setImportResult(result);
+      // setImportResult(result);
 
       // Reset form on success
       if (result.success) {
