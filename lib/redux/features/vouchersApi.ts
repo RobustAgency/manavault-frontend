@@ -4,11 +4,13 @@ import { apiClient } from "@/lib/api";
 import { AxiosRequestConfig, AxiosError } from "axios";
 
 export interface ImportVouchersResponse {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   imported_count?: number;
   failed_count?: number;
   errors?: string[];
+  error?: boolean;
+  data?: unknown;
 }
 
 export interface ImportVouchersData {
@@ -97,10 +99,12 @@ export const vouchersApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          if (data.success) {
-            toast.success(
-              data.message || "Vouchers imported successfully"
-            );
+          const isSuccess =
+            typeof data.success === "boolean"
+              ? data.success
+              : data.error === false;
+          if (isSuccess) {
+            toast.success(data.message || "Vouchers imported successfully");
           } else {
             toast.warning(data.message || "Import completed with warnings");
           }
@@ -119,4 +123,3 @@ export const vouchersApi = createApi({
 });
 
 export const { useImportVouchersMutation } = vouchersApi;
-

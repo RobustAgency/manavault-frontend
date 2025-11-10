@@ -185,6 +185,7 @@ export const ProductFormDialog = ({
           <div className="grid gap-2">
             <Label htmlFor="supplier_id">Supplier *</Label>
             <Select
+              required
               value={formData.supplier_id.toString()}
               onValueChange={handleSupplierChange}
               disabled={isEditMode}
@@ -226,6 +227,7 @@ export const ProductFormDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="third_party_product">Third-Party Product *</Label>
               <Select
+                required
                 value={
                   selectedThirdPartyProduct &&
                     thirdPartyProducts.some(p => p.sku === selectedThirdPartyProduct)
@@ -316,6 +318,7 @@ export const ProductFormDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="purchase_price">Purchase Price *</Label>
               <Input
+                required
                 id="purchase_price"
                 type="number"
                 step="0.01"
@@ -336,6 +339,7 @@ export const ProductFormDialog = ({
             <div className="grid gap-2">
               <Label htmlFor="selling_price">Selling Price *</Label>
               <Input
+                required
                 id="selling_price"
                 type="number"
                 step="0.01"
@@ -353,6 +357,7 @@ export const ProductFormDialog = ({
           <div className="grid gap-2">
             <Label htmlFor="status">Status *</Label>
             <Select
+              required
               value={formData.status}
               onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
             >

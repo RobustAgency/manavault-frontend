@@ -1,19 +1,37 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, PackageIcon, Building2Icon, DollarSignIcon, CalendarIcon } from 'lucide-react';
+import {
+  ArrowLeftIcon,
+  Building2Icon,
+  CalendarIcon,
+  DollarSignIcon,
+  PackageIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useGetPurchaseOrderQuery } from '@/lib/redux/features';
 import { formatCurrency, formatDate } from '../components/orderColumns';
+import { ImportVouchersDialog, PurchaseOrderVouchersCard } from '../components';
 
 export default function PurchaseOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = parseInt(params.id as string, 10);
 
-  const { data: order, isLoading, error } = useGetPurchaseOrderQuery(orderId, {
+  const {
+    data: order,
+    isLoading,
+    error,
+    refetch: refetchOrder,
+  } = useGetPurchaseOrderQuery(orderId, {
     skip: !orderId || isNaN(orderId),
   });
 
@@ -86,13 +104,17 @@ export default function PurchaseOrderDetailPage() {
           <ArrowLeftIcon className="h-4 w-4 mr-2" />
           Back to Purchase Orders
         </Button>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold">Purchase Order Details</h1>
             <p className="text-muted-foreground mt-1">
-              Order Number: <code className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-semibold">{order.order_number}</code>
+              Order Number:{" "}
+              <code className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-semibold">
+                {order.order_number}
+              </code>
             </p>
           </div>
+          <ImportVouchersDialog order={order} onSuccess={() => refetchOrder()} />
         </div>
       </div>
 
@@ -222,12 +244,12 @@ export default function PurchaseOrderDetailPage() {
                   <p className="text-lg font-semibold">{order.supplier.name}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-muted-foreground mb-1">Slug</p>
                     <code className="text-sm bg-gray-100 px-2 py-1 rounded font-semibold">
                       {order.supplier.slug}
                     </code>
-                  </div>
+                  </div> */}
                   {order.supplier.type && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Type</p>
@@ -280,6 +302,9 @@ export default function PurchaseOrderDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Voucher Codes Card */}
+        <PurchaseOrderVouchersCard vouchers={order.vouchers} />
       </div>
     </div>
   );
