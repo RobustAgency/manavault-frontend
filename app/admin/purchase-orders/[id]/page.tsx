@@ -35,6 +35,9 @@ export default function PurchaseOrderDetailPage() {
     skip: !orderId || isNaN(orderId),
   });
 
+  const isExternalSupplier =
+    order?.supplier?.type?.toLowerCase?.() === 'external';
+
   const getUnitPrice = () => {
     if (!order) return 0;
     const unitPrice = order.purchase_price;
@@ -114,7 +117,9 @@ export default function PurchaseOrderDetailPage() {
               </code>
             </p>
           </div>
-          <ImportVouchersDialog order={order} onSuccess={() => refetchOrder()} />
+          {!isExternalSupplier && (
+            <ImportVouchersDialog order={order} onSuccess={() => refetchOrder()} />
+          )}
         </div>
       </div>
 
@@ -304,7 +309,10 @@ export default function PurchaseOrderDetailPage() {
         </Card>
 
         {/* Voucher Codes Card */}
-        <PurchaseOrderVouchersCard vouchers={order.vouchers} />
+        <PurchaseOrderVouchersCard
+          vouchers={order.vouchers}
+          isExternalSupplier={isExternalSupplier}
+        />
       </div>
     </div>
   );

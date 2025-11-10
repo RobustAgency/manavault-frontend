@@ -33,14 +33,12 @@ export default function VouchersPage() {
     clearFile,
     reset,
   } = useVoucherImport();
-  console.log("🚀 ~ VouchersPage ~ file:", file, "purchaseOrderId:", purchaseOrderId)
 
   const { data: purchaseOrdersData } = useGetPurchaseOrdersQuery({ per_page: 100 });
   const [importVouchers, { isLoading: isImporting }] = useImportVouchersMutation();
 
   // Memoize the file change handler to prevent unnecessary re-renders
   const handleFileChange = React.useCallback((selectedFile: File | null) => {
-    console.log('📋 Parent handleFileChange called:', selectedFile?.name || 'null');
     setFile(selectedFile);
   }, [setFile]);
 

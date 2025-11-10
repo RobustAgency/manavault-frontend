@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ClipboardIcon, ClipboardCheckIcon } from 'lucide-react';
+import { ClipboardIcon, ClipboardCheckIcon, InfoIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { PurchaseOrder } from '@/lib/redux/features';
@@ -9,10 +9,12 @@ import { formatDate } from './orderColumns';
 
 interface PurchaseOrderVouchersCardProps {
   vouchers?: PurchaseOrder['vouchers'];
+  isExternalSupplier?: boolean;
 }
 
 export const PurchaseOrderVouchersCard = ({
   vouchers = [],
+  isExternalSupplier = false,
 }: PurchaseOrderVouchersCardProps) => {
   const [copiedVoucherId, setCopiedVoucherId] = useState<number | null>(null);
 
@@ -40,10 +42,20 @@ export const PurchaseOrderVouchersCard = ({
           )}
         </CardTitle>
         <CardDescription>
-          All vouchers imported for this purchase order.
+          {isExternalSupplier
+            ? 'Vouchers are synced automatically for external suppliers.'
+            : 'All vouchers imported for this purchase order.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="max-h-[300px] overflow-y-auto">
+        {isExternalSupplier && (
+          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <InfoIcon className="mt-0.5 h-4 w-4 text-amber-500" aria-hidden="true" />
+            <p className="leading-relaxed">
+              The voucher functionality for external suppliers is currently in progress.
+            </p>
+          </div>
+        )}
         {!hasVouchers ? (
           <p className="text-sm text-muted-foreground">
             No vouchers have been imported for this purchase order yet.
