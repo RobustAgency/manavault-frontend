@@ -310,7 +310,7 @@ export default function PurchaseOrderDetailPage() {
 
         {/* Voucher Codes Card */}
         <PurchaseOrderVouchersCard
-          vouchers={order.vouchers}
+          purchaseOrderId={order.id}
           isExternalSupplier={isExternalSupplier}
         />
       </div>

@@ -33,6 +33,9 @@ export type {
 export type {
   ImportVouchersResponse,
   ImportVouchersData,
+  Voucher,
+  GetVouchersParams,
+  GetVouchersResponse,
 } from "./vouchersApi";
 
 // Export all hooks
@@ -60,6 +63,7 @@ export {
 } from "./purchaseOrdersApi";
 
 export {
+  useGetVouchersQuery,
   useImportVouchersMutation,
 } from "./vouchersApi";
 
