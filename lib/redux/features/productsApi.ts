@@ -204,12 +204,25 @@ export const productsApi = createApi({
       }),
       providesTags: [{ type: "ThirdPartyProduct", id: "LIST" }],
       transformResponse: (response: {
-        data: ThirdPartyProduct[];
+        data:
+          | ThirdPartyProduct[]
+          | {
+              data?: ThirdPartyProduct[];
+              limit?: number | string;
+              offset?: number | string;
+            };
         error?: boolean;
         message?: string;
       }) => {
-        if (response.data && Array.isArray(response.data)) {
+        if (Array.isArray(response.data)) {
           return response.data;
+        }
+        if (
+          response.data &&
+          "data" in response.data &&
+          Array.isArray(response.data.data)
+        ) {
+          return response.data.data;
         }
         return [];
       },
