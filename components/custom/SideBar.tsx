@@ -1,11 +1,26 @@
 import Link from "next/link";
-import { LayoutDashboard, Settings as SettingsIcon, LogOut, CreditCard, FileChartColumnIncreasing } from "lucide-react";
+import {
+    LayoutDashboard,
+    Settings as SettingsIcon,
+    LogOut,
+    CreditCard,
+    FileChartColumnIncreasing,
+    Users,
+    Package,
+    ShoppingCart,
+    FileText,
+    Upload
+} from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const adminRoutes = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/suppliers", label: "Suppliers", icon: Package },
+    { href: "/admin/products", label: "Products", icon: ShoppingCart },
+    { href: "/admin/purchase-orders", label: "Purchase Orders", icon: FileText },
+    // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -14,7 +29,7 @@ const userRoutes = [
 ];
 
 const baseRoutes = [
-    { href: "/settings", label: "Settings", icon: SettingsIcon },
+    // { href: "/settings", label: "Settings", icon: SettingsIcon },
     { href: "/logout", label: "Logout", icon: LogOut },
 ];
 
@@ -27,7 +42,15 @@ export function Sidebar({
 }) {
     const { user } = useAuth();
     const role = user?.user_metadata?.role ?? "user"
-    const navigationRoutes = role === "admin" ? adminRoutes : userRoutes;
+
+    // Determine base routes based on role
+    let navigationRoutes = (role === "admin" || role === "super_admin") ? adminRoutes : userRoutes;
+
+    // Filter out Users route if not super_admin
+    if (role === "admin") {
+        navigationRoutes = navigationRoutes.filter(route => route.href !== "/admin/users");
+    }
+
     const pathname = usePathname();
     return (
         <div className="flex h-full flex-col overflow-hidden">
@@ -35,7 +58,7 @@ export function Sidebar({
                 aria-details="logo"
                 className="flex items-center justify-between md:hidden">
                 <Link href="/">
-                    <Image src="/logo.png" alt="logo" width={100} height={100} className='object-cover object-start w-30 h-14' />
+                    <div className='text-2xl font-bold'>Mana Vault</div>
                 </Link>
             </div>
 

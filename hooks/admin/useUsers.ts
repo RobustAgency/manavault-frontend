@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { usersService } from '@/service/admin/users'
-import { UserFilters, User } from '@/interfaces/User'
+import { getUsers } from '@/lib/admin-actions'
+import { UserFilters } from '@/interfaces/User'
 import { toast } from 'react-toastify'
 
 export type TableUser = {
@@ -46,11 +46,11 @@ export const useUsers = (): UseUsersReturn => {
         totalPages: 0
     })
 
-    const transformUserToTableUser = (user: User): TableUser => ({
-        id: user.id.toString(),
-        full_name: user.name || 'N/A',
-        email: user.email,
-        status: user.is_approved ? 'approved' : 'pending'
+    const transformUserToTableUser = (user: any): TableUser => ({
+        id: user.id,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'N/A',
+        email: user.email || 'N/A',
+        status: user.confirmed_at ? 'approved' : 'pending'
     })
 
     const fetchUsers = useCallback(async () => {
@@ -58,22 +58,33 @@ export const useUsers = (): UseUsersReturn => {
             setLoading(true)
             setError(null)
 
-            const response = await usersService.getUsers(filters)
-            if (response.error) {
-                toast.error(response.message)
-                setError(response.message)
+            const result = await getUsers({
+                page: filters.page || 1,
+                limit: 10,
+                search: filters.search
+            })
+
+            if (!result.success) {
+                toast.error(result.message || 'Failed to fetch users')
+                setError(result.message || 'Failed to fetch users')
                 return
             }
 
-            const transformedUsers: TableUser[] = response.data.data.map(transformUserToTableUser)
+            if (!result.data) {
+                toast.error('No data returned from server')
+                setError('No data returned from server')
+                return
+            }
+
+            const transformedUsers: TableUser[] = result.data.users.map(transformUserToTableUser)
 
             setUsers(transformedUsers)
 
             setPagination({
-                page: response.data.current_page,
-                limit: response.data.per_page,
-                total: response.data.total,
-                totalPages: response.data.last_page
+                page: result.data.page,
+                limit: result.data.limit,
+                total: result.data.total,
+                totalPages: result.data.totalPages
             })
         } catch (err) {
             const errorMessage = 'Error fetching users'

@@ -42,6 +42,7 @@ export function SignUpForm() {
         async (_prevState: unknown, formData: FormData) => {
             const result = await signup(formData);
             return result;
+
         },
         null as null | { success: boolean; message?: string }
     );
@@ -94,7 +95,7 @@ export function SignUpForm() {
                     </div>
                 </form>
                 <div className="mt-4">
-                    <SignInWithGoogleButton />
+                    {/* <SignInWithGoogleButton /> */}
                 </div>
                 <div className="mt-4 text-center text-sm">
                     Already have an account?{" "}

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useImperativeHandle, forwardRef } from 'react'
 import { DataTable } from '@/components/custom/DataTable'
 import { createColumns } from './columns'
 import TableCard from '@/components/custom/TableCard'
@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw, AlertCircle } from 'lucide-react'
 import { useUsers } from '@/hooks/admin/useUsers'
 
-const UsersTable = () => {
+export interface UsersTableRef {
+    refresh: () => void;
+}
+
+const UsersTable = forwardRef<UsersTableRef>((props, ref) => {
     const {
         users,
         loading,
@@ -18,6 +22,10 @@ const UsersTable = () => {
         handlePageChange,
         handleRefresh
     } = useUsers()
+
+    useImperativeHandle(ref, () => ({
+        refresh: handleRefresh
+    }));
 
     const columns = useMemo(() => createColumns(handleRefresh), [handleRefresh])
 
@@ -51,6 +59,8 @@ const UsersTable = () => {
             />
         </TableCard>
     )
-}
+})
+
+UsersTable.displayName = 'UsersTable'
 
 export default UsersTable
