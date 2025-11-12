@@ -34,7 +34,6 @@ export function SetupMFA() {
             setIsLoading(true);
             setError("");
 
-            // First check if MFA is already enrolled
             const supabase = createClient();
 
             try {
@@ -42,20 +41,41 @@ export function SetupMFA() {
 
                 if (factorsError) {
                     console.error("Error listing factors:", factorsError);
-                    // Continue with enrollment attempt if we can't check
-                } else {
-                    const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0;
+                } else if (factorsData) {
+                    // Use 'all' array which contains all factors regardless of type
+                    const allFactors = factorsData.all || [];
 
-                    if (hasMFAEnrolled) {
+                    // Check for verified factors
+                    const verifiedFactors = allFactors.filter(
+                        (factor) => factor.status === 'verified' && factor.factor_type === 'totp'
+                    );
+
+                    // Check for unverified factors (incomplete enrollments)
+                    const unverifiedFactors = allFactors.filter(
+                        (factor) => factor.status === 'unverified' && factor.factor_type === 'totp'
+                    );
+
+                    // Clean up any unverified factors from previous incomplete enrollments
+                    if (unverifiedFactors.length > 0) {
+                        console.log(`Found ${unverifiedFactors.length} unverified factor(s), cleaning up...`);
+                        for (const factor of unverifiedFactors) {
+                            try {
+                                await supabase.auth.mfa.unenroll({ factorId: factor.id });
+                                console.log(`Unenrolled factor: ${factor.id}`);
+                            } catch (unenrollError) {
+                                console.error(`Failed to unenroll factor ${factor.id}:`, unenrollError);
+                            }
+                        }
+                    }
+
+                    if (verifiedFactors.length > 0) {
                         console.log("MFA already enrolled, redirecting...");
-                        // User already has MFA enrolled, redirect to verify or dashboard
                         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
                         const needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
 
                         if (needsMFAVerification) {
                             router.push("/verify-mfa");
                         } else {
-                            // MFA is already set up and verified, go to dashboard
                             const { data: { user } } = await supabase.auth.getUser();
                             const userRole = user?.user_metadata?.role;
                             const isAdmin = userRole === "admin" || userRole === "super_admin";
@@ -67,7 +87,6 @@ export function SetupMFA() {
                 }
             } catch (error) {
                 console.error("Error checking MFA status:", error);
-                // Continue with enrollment attempt
             }
 
             // No MFA enrolled, proceed with enrollment
@@ -76,7 +95,6 @@ export function SetupMFA() {
                 console.log("EnrollMFA result:", result);
 
                 if (result.success) {
-                    // Verify we got the required data
                     if (!result.factorId || !result.qrCode || !result.secret) {
                         const errorMsg = "Failed to get MFA enrollment data. The server did not return a QR code or secret.";
                         setError(errorMsg);
@@ -91,12 +109,10 @@ export function SetupMFA() {
                         setFactorId(result.factorId);
                         setQrCode(result.qrCode);
                         setSecret(result.secret);
-                        setError(""); // Clear any previous errors
+                        setError("");
                     }
                 } else {
-                    // Check if error is because factor already exists
                     if (result.message?.includes("already exists")) {
-                        // MFA was enrolled between check and enrollment, redirect appropriately
                         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
                         const needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
 
@@ -147,12 +163,10 @@ export function SetupMFA() {
         if (result.success) {
             toast.success("MFA enabled successfully!");
 
-            // Get user role to redirect appropriately
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             const isAdmin = user?.user_metadata?.role === "admin";
 
-            // Redirect to dashboard after successful setup
             if (isAdmin) {
                 router.push("/admin/dashboard");
             } else {
@@ -172,7 +186,6 @@ export function SetupMFA() {
             const result = await signout();
             if (result.success) {
                 toast.success("Logged out successfully");
-                // Use window.location for a full page reload to clear all state
                 window.location.href = "/login";
             } else {
                 toast.error(result.message || "Failed to logout");
@@ -181,6 +194,43 @@ export function SetupMFA() {
             console.error("Logout error:", error);
             toast.error("An error occurred during logout");
         }
+    };
+
+    const handleRetry = async () => {
+        setError("");
+        setIsLoading(true);
+
+        const supabase = createClient();
+        try {
+            const { data: factorsData } = await supabase.auth.mfa.listFactors();
+            const unverifiedFactors = factorsData?.all?.filter(
+                (factor) => factor.status === 'unverified' && factor.factor_type === 'totp'
+            ) || [];
+
+            for (const factor of unverifiedFactors) {
+                await supabase.auth.mfa.unenroll({ factorId: factor.id });
+            }
+        } catch (cleanupError) {
+            console.error("Cleanup error:", cleanupError);
+        }
+
+        try {
+            const result = await enrollMFA();
+            console.log("Retry result:", result);
+            if (result.success && result.factorId && result.qrCode && result.secret) {
+                setFactorId(result.factorId);
+                setQrCode(result.qrCode);
+                setSecret(result.secret);
+                setError("");
+            } else {
+                setError(result.message || "Failed to start MFA enrollment. Please check console for details.");
+            }
+        } catch (err) {
+            console.error("Retry error:", err);
+            setError(err instanceof Error ? err.message : "An error occurred");
+        }
+
+        setIsLoading(false);
     };
 
     if (isLoading) {
@@ -212,21 +262,7 @@ export function SetupMFA() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                    setError("");
-                                    setIsLoading(true);
-                                    // Retry enrollment
-                                    enrollMFA().then((result) => {
-                                        if (result.success && result.factorId && result.qrCode && result.secret) {
-                                            setFactorId(result.factorId);
-                                            setQrCode(result.qrCode);
-                                            setSecret(result.secret);
-                                        } else {
-                                            setError(result.message || "Failed to start MFA enrollment");
-                                        }
-                                        setIsLoading(false);
-                                    });
-                                }}
+                                onClick={handleRetry}
                             >
                                 Retry
                             </Button>
@@ -249,27 +285,7 @@ export function SetupMFA() {
                             variant="outline"
                             size="sm"
                             className="mt-2"
-                            onClick={() => {
-                                setError("");
-                                setIsLoading(true);
-                                // Retry enrollment
-                                enrollMFA().then((result) => {
-                                    console.log("Retry result:", result);
-                                    if (result.success && result.factorId && result.qrCode && result.secret) {
-                                        setFactorId(result.factorId);
-                                        setQrCode(result.qrCode);
-                                        setSecret(result.secret);
-                                        setError("");
-                                    } else {
-                                        setError(result.message || "Failed to start MFA enrollment. Please check console for details.");
-                                    }
-                                    setIsLoading(false);
-                                }).catch((err) => {
-                                    console.error("Retry error:", err);
-                                    setError(err instanceof Error ? err.message : "An error occurred");
-                                    setIsLoading(false);
-                                });
-                            }}
+                            onClick={handleRetry}
                         >
                             Retry Enrollment
                         </Button>
@@ -354,7 +370,6 @@ export function SetupMFA() {
                     </div>
                 )}
 
-                {/* Logout button at the bottom */}
                 <div className="pt-4 border-t">
                     <Button
                         type="button"
@@ -371,4 +386,3 @@ export function SetupMFA() {
         </Card>
     );
 }
-

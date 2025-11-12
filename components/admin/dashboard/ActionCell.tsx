@@ -103,20 +103,24 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
 
     return (
         <>
-            <DropdownMenu>
+            <Button
+                color="red"
+                onClick={() => handleActionClick("delete")}
+            >Delete</Button>
+            {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                         <MoreVertical className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem
+                     <DropdownMenuItem
                         onClick={() => handleActionClick("approve")}
                         disabled={isApproved}
                         className={`${!isApproved && 'cursor-pointer'}`}
                     >
                         {isApproved ? "Approved" : "Approve"}
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={() => handleActionClick("delete")}
@@ -125,7 +129,7 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                         Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu>  */}
 
             {currentAction && (
                 <ConfirmationDialog
