@@ -78,7 +78,7 @@ export default function VouchersPage() {
       // setImportResult(result);
 
       // Reset form on success
-      if (result.success) {
+      if (!result.error) {
         setFile(null);
         setPurchaseOrderId(0);
       }
