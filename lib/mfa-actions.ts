@@ -47,7 +47,79 @@ export async function getAAL() {
 }
 
 /**
+ * Unenroll ALL existing MFA factors (both verified and unverified)
+ * This is used when we want to force a fresh enrollment
+ */
+export async function unenrollAllFactors() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return {
+      success: false,
+      message: userError?.message || "Not authenticated",
+    } as const;
+  }
+
+  try {
+    const { data: factorsData, error: factorsError } =
+      await supabase.auth.mfa.listFactors();
+
+    if (factorsError) {
+      console.error("Error listing factors for cleanup:", factorsError);
+      return { success: false, message: factorsError.message } as const;
+    }
+
+    // Unenroll ALL existing TOTP factors
+    if (factorsData?.totp && factorsData.totp.length > 0) {
+      let unenrolledCount = 0;
+      const errors: string[] = [];
+
+      for (const factor of factorsData.totp) {
+        const { error: unenrollError } = await supabase.auth.mfa.unenroll({
+          factorId: factor.id,
+        });
+
+        if (unenrollError) {
+          console.error(
+            `Error unenrolling factor ${factor.id}:`,
+            unenrollError
+          );
+          errors.push(`Factor ${factor.id}: ${unenrollError.message}`);
+        } else {
+          console.log(`Successfully unenrolled factor ${factor.id}`);
+          unenrolledCount++;
+        }
+      }
+
+      if (errors.length > 0) {
+        return {
+          success: false,
+          message: `Failed to unenroll some factors: ${errors.join(", ")}`,
+          unenrolledCount,
+        } as const;
+      }
+
+      return { success: true, unenrolledCount } as const;
+    }
+
+    return { success: true, unenrolledCount: 0 } as const;
+  } catch (error) {
+    console.error("Error handling factor cleanup:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to unenroll factors",
+    } as const;
+  }
+}
+
+/**
  * Start MFA enrollment - returns QR code
+ * Automatically cleans up existing factors before enrolling
  */
 export async function enrollMFA() {
   const supabase = await createClient();
@@ -63,12 +135,50 @@ export async function enrollMFA() {
     } as const;
   }
 
+  // First, check if there are any existing factors
+  const { data: existingFactors } = await supabase.auth.mfa.listFactors();
+  const hasExistingFactors =
+    existingFactors?.totp && existingFactors.totp.length > 0;
+
+  if (hasExistingFactors) {
+    console.log("Found existing factors, cleaning up...");
+    const cleanupResult = await unenrollAllFactors();
+
+    if (!cleanupResult.success) {
+      console.error(
+        "Failed to cleanup existing factors:",
+        cleanupResult.message
+      );
+      return {
+        success: false,
+        message: `Cannot enroll: ${cleanupResult.message}. Please try logging out and back in.`,
+      } as const;
+    }
+
+    if (cleanupResult.unenrolledCount > 0) {
+      console.log(
+        `Cleaned up ${cleanupResult.unenrolledCount} existing factor(s)`
+      );
+    }
+  }
+
+  // Now try to enroll
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: "totp",
   });
 
   if (error) {
     console.error("MFA enrollment error:", error);
+
+    // If we still get a conflict error after cleanup, something is wrong
+    if (error.code === "mfa_factor_name_conflict") {
+      return {
+        success: false,
+        message:
+          "MFA factor conflict detected. Please log out and log back in to reset your MFA setup.",
+      } as const;
+    }
+
     return { success: false, message: error.message } as const;
   }
 
@@ -82,9 +192,6 @@ export async function enrollMFA() {
 
   // Log the data structure for debugging
   console.log("MFA enrollment data:", JSON.stringify(data, null, 2));
-  console.log("MFA enrollment data keys:", Object.keys(data || {}));
-  console.log("MFA enrollment data.totp:", data?.totp);
-  console.log("MFA enrollment data.id:", data?.id);
 
   // Extract QR code and secret from the totp object
   const qrCode = data.totp?.qr_code || "";
@@ -112,16 +219,11 @@ export async function enrollMFA() {
       qrCode: !!qrCode,
       secret: !!secret,
       data,
-      dataKeys: Object.keys(data || {}),
-      totpKeys: data?.totp ? Object.keys(data.totp) : [],
     });
     return {
       success: false,
-      message: `Failed to get QR code or secret from enrollment. QR Code: ${
-        qrCode ? "present" : "missing"
-      }, Secret: ${
-        secret ? "present" : "missing"
-      }. Please check the server logs.`,
+      message:
+        "Failed to get QR code or secret from enrollment. Please try again.",
     } as const;
   }
 

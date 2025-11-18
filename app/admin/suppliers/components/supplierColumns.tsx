@@ -61,6 +61,7 @@ export const createSupplierColumns = ({ onEdit, onDelete }: SupplierColumnsProps
             <PencilIcon className="h-4 w-4" />
           </Button>
         )}
+        {row.original.type === 'internal' && (
         <Button
           variant="outline"
           size="sm"
@@ -68,6 +69,7 @@ export const createSupplierColumns = ({ onEdit, onDelete }: SupplierColumnsProps
         >
           <TrashIcon className="h-4 w-4 text-red-500" />
         </Button>
+        )}
       </div>
     ),
   },

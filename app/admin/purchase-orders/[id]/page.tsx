@@ -38,32 +38,33 @@ export default function PurchaseOrderDetailPage() {
   const isExternalSupplier =
     order?.supplier?.type?.toLowerCase?.() === 'external';
 
+  const getTotalQuantity = () => {
+    if (!order || !order.items || order.items.length === 0) return 0;
+    return order.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  };
+
   const getUnitPrice = () => {
-    if (!order) return 0;
-    const unitPrice = order.purchase_price;
-    if (unitPrice == null || isNaN(unitPrice)) {
-      const totalPrice = parseFloat(order.total_price || '0');
-      const quantity = order.quantity || 1;
-      return quantity > 0 ? totalPrice / quantity : 0;
-    }
-    return unitPrice;
+    if (!order || !order.items || order.items.length === 0) return 0;
+    const totalCost = order.items.reduce((sum, item) => {
+      return sum + parseFloat(item.subtotal || '0');
+    }, 0);
+    const quantity = getTotalQuantity();
+    return quantity > 0 ? totalCost / quantity : 0;
   };
 
   const getTotalAmount = () => {
-    if (!order) return 0;
-    const totalAmount = order.total_amount;
-    if (totalAmount == null || isNaN(totalAmount)) {
-      return parseFloat(order.total_price || '0');
-    }
-    return totalAmount;
+    if (!order || !order.items || order.items.length === 0) return 0;
+    return order.items.reduce((sum, item) => {
+      return sum + parseFloat(item.subtotal || '0');
+    }, 0);
   };
 
   const getStatusBadgeVariant = (status?: string) => {
-    if (!status) return 'secondary';
+    if (!status) return 'outlined';
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus === 'active') return 'default';
-    if (lowerStatus === 'inactive' || lowerStatus === 'in_active') return 'secondary';
-    return 'outline';
+    if (lowerStatus === 'completed' || lowerStatus === 'active') return 'filled';
+    if (lowerStatus === 'inactive' || lowerStatus === 'in_active') return 'outlined';
+    return 'outlined';
   };
 
   if (isLoading) {
@@ -109,7 +110,14 @@ export default function PurchaseOrderDetailPage() {
         </Button>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Purchase Order Details</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Purchase Order Details</h1>
+              {order.status && (
+                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">
+                  {order.status}
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground mt-1">
               Order Number:{" "}
               <code className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-semibold">
@@ -136,11 +144,11 @@ export default function PurchaseOrderDetailPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Quantity</p>
-                <p className="text-2xl font-bold">{order.quantity} units</p>
+                <p className="text-sm text-muted-foreground mb-1">Total Quantity</p>
+                <p className="text-2xl font-bold">{getTotalQuantity()} units</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Unit Price</p>
+                <p className="text-sm text-muted-foreground mb-1">Average Unit Price</p>
                 <p className="text-2xl font-bold">{formatCurrency(getUnitPrice())}</p>
               </div>
               <div>
@@ -168,66 +176,86 @@ export default function PurchaseOrderDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Product Information Card */}
+        {/* Order Items Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PackageIcon className="h-5 w-5" />
-              Product Information
+              Order Items
             </CardTitle>
-            <CardDescription>Details about the product in this order</CardDescription>
+            <CardDescription>
+              {order.items && order.items.length > 0
+                ? `${order.items.length} item${order.items.length > 1 ? 's' : ''} in this order`
+                : 'Items in this purchase order'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {order.product ? (
-              <div className="grid gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Product Name</p>
-                  <p className="text-lg font-semibold">{order.product.name}</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">SKU</p>
-                    <code className="text-sm bg-gray-100 px-2 py-1 rounded font-semibold">
-                      {order.product.sku}
-                    </code>
+            {order.items && order.items.length > 0 ? (
+              <div className="space-y-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {order.items.map((item, index) => (
+                  <div
+                    key={item.id || index}
+                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        {item.digital_product ? (
+                          <>
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="text-lg font-semibold">{item.digital_product.name}</p>
+                              {item.digital_product.status && (
+                                <Badge variant="outlined" className="text-xs">
+                                  {item.digital_product.status}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                              <code className="bg-gray-100 px-2 py-1 rounded">
+                                {item.digital_product.sku}
+                              </code>
+                              {item.digital_product.brand && (
+                                <span>{item.digital_product.brand}</span>
+                              )}
+                            </div>
+                            {item.digital_product.description && (
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {item.digital_product.description}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Digital Product ID</p>
+                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                              {item.digital_product_id}
+                            </code>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2 text-right">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Quantity</p>
+                          <p className="text-lg font-semibold">{item.quantity}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Unit Cost</p>
+                          <p className="text-base font-medium">
+                            {formatCurrency(parseFloat(item.unit_cost || '0'))}
+                          </p>
+                        </div>
+                        <div className="border-t pt-2 mt-1">
+                          <p className="text-xs text-muted-foreground">Subtotal</p>
+                          <p className="text-xl font-bold text-primary">
+                            {formatCurrency(parseFloat(item.subtotal || '0'))}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {order.product.status && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Status</p>
-                      <Badge variant={'filled'}>
-                        {order.product.status}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                {order.product.description && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Description</p>
-                    <p className="text-sm">{order.product.description}</p>
-                  </div>
-                )}
-                <div className="border-t my-4" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {order.product.purchase_price && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Purchase Price</p>
-                      <p className="text-lg font-semibold">
-                        {formatCurrency(parseFloat(order.product.purchase_price))}
-                      </p>
-                    </div>
-                  )}
-                  {order.product.selling_price && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Selling Price</p>
-                      <p className="text-lg font-semibold text-green-600">
-                        {formatCurrency(parseFloat(order.product.selling_price))}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">Product information not available</p>
+              <p className="text-muted-foreground">No items found in this order</p>
             )}
           </CardContent>
         </Card>

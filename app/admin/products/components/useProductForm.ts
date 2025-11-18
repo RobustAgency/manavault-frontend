@@ -2,43 +2,45 @@ import { useState } from 'react';
 import { ProductStatus } from '@/lib/redux/features';
 
 export interface ProductFormErrors {
-  supplier_id?: string;
   third_party_product?: string;
   name?: string;
   sku?: string;
-  purchase_price?: string;
   selling_price?: string;
 }
 
 export interface ProductFormState {
-  supplier_id: number;
   name: string;
+  brand: string;
   description: string;
+  short_description: string;
+  long_description: string;
   sku: string;
-  purchase_price: string;
   selling_price: string;
   status: ProductStatus;
+  tags: string;
+  image: string;
+  regions: string;
 }
 
 export const useProductForm = (isEditMode: boolean) => {
   const [formData, setFormData] = useState<ProductFormState>({
-    supplier_id: 0,
     name: '',
+    brand: '',
     description: '',
+    short_description: '',
+    long_description: '',
     sku: '',
-    purchase_price: '',
     selling_price: '',
     status: 'active',
+    tags: '',
+    image: '',
+    regions: '',
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
 
   const validateForm = (isExternalSupplier: boolean, selectedThirdPartyProduct: string): boolean => {
     const newErrors: ProductFormErrors = {};
-
-    if (!formData.supplier_id || formData.supplier_id === 0) {
-      newErrors.supplier_id = 'Supplier is required';
-    }
 
     // For external suppliers during creation, ensure third-party product is selected
     if (!isEditMode && isExternalSupplier && !selectedThirdPartyProduct) {
@@ -59,17 +61,6 @@ export const useProductForm = (isEditMode: boolean) => {
       }
     }
 
-    if (!formData.purchase_price.trim()) {
-      newErrors.purchase_price = 'Purchase price is required';
-    } else {
-      const purchasePriceValue = parseFloat(formData.purchase_price);
-      if (Number.isNaN(purchasePriceValue)) {
-        newErrors.purchase_price = 'Purchase price must be a valid number';
-      } else if (purchasePriceValue < 0) {
-        newErrors.purchase_price = 'Purchase price must be 0 or greater';
-      }
-    }
-
     if (!formData.selling_price.trim()) {
       newErrors.selling_price = 'Selling price is required';
     } else {
@@ -87,13 +78,17 @@ export const useProductForm = (isEditMode: boolean) => {
 
   const resetForm = () => {
     setFormData({
-      supplier_id: 0,
       name: '',
+      brand: '',
       description: '',
+      short_description: '',
+      long_description: '',
       sku: '',
-      purchase_price: '',
       selling_price: '',
       status: 'active',
+      tags: '',
+      image: '',
+      regions: '',
     });
     setErrors({});
   };

@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/select';
 import {
   useGetProductsQuery,
-  useGetSuppliersQuery,
-  useGetThirdPartyProductsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
@@ -29,6 +27,7 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
+  const [brandSearch, setBrandSearch] = useState('');
   const perPage = 10;
 
   const { data, isLoading } = useGetProductsQuery({
@@ -36,8 +35,8 @@ export default function ProductsPage() {
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
     name: nameSearch || undefined,
+    brand: brandSearch || undefined,
   });
-  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
@@ -47,16 +46,6 @@ export default function ProductsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  // Third-party product selection
-  const [selectedSupplierSlug, setSelectedSupplierSlug] = useState<string | null>(null);
-  const [isExternalSupplier, setIsExternalSupplier] = useState(false);
-
-  // Fetch third-party products when external supplier is selected
-  const { data: thirdPartyProducts, isLoading: isLoadingThirdParty } = useGetThirdPartyProductsQuery(
-    { slug: selectedSupplierSlug!, limit: 100, offset: 1 },
-    { skip: !selectedSupplierSlug || !isExternalSupplier }
-  );
 
   const handleCreate = async (data: any) => {
     try {
@@ -72,7 +61,7 @@ export default function ProductsPage() {
 
     try {
       // Don't send SKU on update (it can't be updated)
-      const { sku, supplier_id, ...updateData } = data;
+      const { sku, ...updateData } = data;
       await updateProduct({
         id: selectedProduct.id,
         data: updateData,
@@ -104,11 +93,6 @@ export default function ProductsPage() {
   const openDeleteDialog = (product: Product) => {
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleSupplierChange = (supplierId: number, isExternal: boolean, slug: string | null) => {
-    setIsExternalSupplier(isExternal);
-    setSelectedSupplierSlug(slug);
   };
 
   const columns = createProductColumns({
@@ -157,6 +141,13 @@ export default function ProductsPage() {
             onChange={(e) => setNameSearch(e.target.value)}
           />
         </div>
+        <div className="flex-1">
+          <Input
+            placeholder="Search by brand..."
+            value={brandSearch}
+            onChange={(e) => setBrandSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <DataTable
@@ -178,20 +169,13 @@ export default function ProductsPage() {
         isOpen={isCreateDialogOpen || isEditDialogOpen}
         isEditMode={isEditDialogOpen}
         selectedProduct={selectedProduct}
-        suppliers={suppliersData?.data || []}
-        thirdPartyProducts={thirdPartyProducts}
-        isLoadingThirdParty={isLoadingThirdParty}
         isSubmitting={isCreating || isUpdating}
         onClose={() => {
           setIsCreateDialogOpen(false);
           setIsEditDialogOpen(false);
           setSelectedProduct(null);
-          setSelectedSupplierSlug(null);
-          setIsExternalSupplier(false);
         }}
         onSubmit={isEditDialogOpen ? handleEdit : handleCreate}
-        onSupplierChange={handleSupplierChange}
-        onSuppliersRefetch={refetchSuppliers}
       />
 
       {/* Delete Confirmation Dialog */}

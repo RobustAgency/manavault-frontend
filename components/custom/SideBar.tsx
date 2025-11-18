@@ -9,17 +9,19 @@ import {
     Package,
     ShoppingCart,
     FileText,
-    Upload
+    Upload,
+    Gift
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
 
 const adminRoutes = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/suppliers", label: "Suppliers", icon: Package },
     { href: "/admin/products", label: "Products", icon: ShoppingCart },
+    { href: "/admin/digital-stock", label: "Digital Stock", icon: Gift },
     { href: "/admin/purchase-orders", label: "Purchase Orders", icon: FileText },
+    { href: "/admin/users", label: "Users", icon: Users },
     // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [

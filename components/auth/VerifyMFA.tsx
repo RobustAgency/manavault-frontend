@@ -33,16 +33,25 @@ export function VerifyMFA() {
         setError("");
 
         const result = await verifyMFALogin(verifyCode);
-        
+
         if (result.success) {
             toast.success("Verified successfully!");
-            
+
+            // Check for return URL (e.g., from update-password page)
+            const returnUrl = sessionStorage.getItem('returnUrl');
+            if (returnUrl) {
+                sessionStorage.removeItem('returnUrl');
+                router.push(returnUrl);
+                router.refresh();
+                return;
+            }
+
             // Get user role to redirect appropriately
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             const userRole = user?.user_metadata?.role;
             const isAdmin = userRole === "admin" || userRole === "super_admin";
-            
+
             if (isAdmin) {
                 router.push("/admin/dashboard");
             } else {
@@ -54,7 +63,7 @@ export function VerifyMFA() {
             toast.error(result.message || "Verification failed");
             setVerifyCode("");
         }
-        
+
         setIsVerifying(false);
     };
 

@@ -1,10 +1,9 @@
 'use client';
 
-import { PackageIcon, ShoppingCartIcon, FileTextIcon, UploadIcon } from 'lucide-react';
+import { PackageIcon, ShoppingCartIcon, FileTextIcon } from 'lucide-react';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
@@ -59,8 +58,8 @@ export default function AdminDashboard() {
             items: [
                 { label: 'Manage Suppliers', href: '/admin/suppliers' },
                 { label: 'Manage Products', href: '/admin/products' },
+                { label: 'Digital Stock', href: '/admin/digital-stock' },
                 { label: 'Purchase Orders', href: '/admin/purchase-orders' },
-                { label: 'Import Vouchers', href: '/admin/vouchers' },
             ],
         },
     ];
@@ -120,68 +119,6 @@ export default function AdminDashboard() {
                                 </Button>
                             ))}
                         </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Recent Activity / System Status */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>System Status</CardTitle>
-                        <CardDescription>Current system health</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm">API Connection</span>
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 bg-green-500 rounded-full" />
-                                    <span className="text-sm font-medium text-green-600">Active</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm">Database</span>
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 bg-green-500 rounded-full" />
-                                    <span className="text-sm font-medium text-green-600">Connected</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm">Cache</span>
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 bg-green-500 rounded-full" />
-                                    <span className="text-sm font-medium text-green-600">Operational</span>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Quick Tips</CardTitle>
-                        <CardDescription>Get the most out of the admin panel</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-2 text-sm">
-                            <li className="flex items-start gap-2">
-                                <span className="text-primary">•</span>
-                                <span>Use filters and search to find items quickly</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-primary">•</span>
-                                <span>All changes are saved automatically with notifications</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-primary">•</span>
-                                <span>Import vouchers in CSV, Excel, or ZIP format</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                                <span className="text-primary">•</span>
-                                <span>View third-party products from external suppliers</span>
-                            </li>
-                        </ul>
                     </CardContent>
                 </Card>
             </div>

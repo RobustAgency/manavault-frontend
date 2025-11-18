@@ -32,15 +32,23 @@ interface PaginatedPayload<T> {
 }
 
 export interface ImportVouchersResponse extends ApiResponse<unknown> {
-  success?: boolean;
-  imported_count?: number;
-  failed_count?: number;
-  errors?: string[];
+  error?: boolean;
+  message?: string;
 }
 
 export interface ImportVouchersData {
   file: File;
   purchase_order_id: number;
+}
+
+export interface StoreVouchersData {
+  purchase_order_id: number;
+  voucher_codes: string[];
+}
+
+export interface StoreVouchersResponse extends ApiResponse<unknown> {
+  error?: boolean;
+  message?: string;
 }
 
 export interface GetVouchersParams {
@@ -174,7 +182,7 @@ export const vouchersApi = createApi({
         formData.append("purchase_order_id", purchase_order_id.toString());
 
         return {
-          url: "/admin/vouchers/import",
+          url: "/admin/vouchers/store",
           method: "POST",
           data: formData,
           headers: {
@@ -186,14 +194,11 @@ export const vouchersApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const isSuccess =
-            typeof data.success === "boolean"
-              ? data.success
-              : data.error === false;
+          const isSuccess = data.error === false;
           if (isSuccess) {
             toast.success(data.message || "Vouchers imported successfully");
           } else {
-            toast.warning(data.message || "Import completed with warnings");
+            toast.error(data.message || "Failed to import vouchers");
           }
         } catch (error) {
           const mutationError = error as MutationError;
@@ -206,7 +211,45 @@ export const vouchersApi = createApi({
         }
       },
     }),
+    storeVouchers: builder.mutation<StoreVouchersResponse, StoreVouchersData>({
+      query: ({ purchase_order_id, voucher_codes }) => {
+        return {
+          url: "/admin/vouchers/store",
+          method: "POST",
+          data: {
+            purchase_order_id,
+            voucher_codes,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+      },
+      invalidatesTags: [{ type: "Voucher", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const isSuccess = data.error === false;
+          if (isSuccess) {
+            toast.success(data.message || "Vouchers stored successfully");
+          } else {
+            toast.error(data.message || "Failed to store vouchers");
+          }
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message || "Failed to store vouchers";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
   }),
 });
 
-export const { useGetVouchersQuery, useImportVouchersMutation } = vouchersApi;
+export const {
+  useGetVouchersQuery,
+  useImportVouchersMutation,
+  useStoreVouchersMutation,
+} = vouchersApi;

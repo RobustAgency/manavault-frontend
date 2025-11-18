@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { PencilIcon, TrashIcon } from 'lucide-react';
+import Link from 'next/link';
+import { PencilIcon, TrashIcon, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Product, ProductStatus } from '@/lib/redux/features';
@@ -33,21 +34,24 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
   {
     accessorKey: 'name',
     header: 'Name',
+    cell: ({ row }) => (
+      <Link
+        href={`/admin/products/${row.original.id}`}
+        className="font-medium text-primary hover:underline"
+      >
+        {row.original.name}
+      </Link>
+    ),
+  },
+  {
+    accessorKey: 'brand',
+    header: 'Brand',
+    cell: ({ row }) => row.original.brand || '-',
   },
   {
     accessorKey: 'sku',
     header: 'SKU',
     cell: ({ row }) => <code className="text-xs bg-gray-100 px-2 py-1 rounded">{row.original.sku}</code>,
-  },
-  {
-    accessorKey: 'supplier',
-    header: 'Supplier',
-    cell: ({ row }) => row.original.supplier?.name || '-',
-  },
-  {
-    accessorKey: 'purchase_price',
-    header: 'Purchase Price',
-    cell: ({ row }) => formatCurrency(row.original.purchase_price),
   },
   {
     accessorKey: 'selling_price',
@@ -68,6 +72,15 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
     header: 'Actions',
     cell: ({ row }) => (
       <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+        >
+          <Link href={`/admin/products/${row.original.id}`}>
+            <EyeIcon className="h-4 w-4" />
+          </Link>
+        </Button>
         <Button
           variant="outline"
           size="sm"

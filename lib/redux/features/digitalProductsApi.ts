@@ -12,78 +12,69 @@ interface PaginationMeta {
   to: number;
 }
 
-export type ProductStatus = "in_active" | "active" | "archived";
+export type DigitalProductStatus = "active" | "inactive";
 
-export interface Product {
+export interface DigitalProduct {
   id: number;
+  supplier_id: number;
   name: string;
+  sku: string;
   brand?: string | null;
   description?: string | null;
-  short_description?: string | null;
-  long_description?: string | null;
-  sku: string;
-  selling_price: number;
-  status: ProductStatus;
-  tags?: string[];
+  tags?: string[] | null;
   image?: string | null;
-  regions?: string[];
+  cost_price: number;
+  status: DigitalProductStatus;
+  regions?: string[] | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   supplier?: {
     id: number;
     name: string;
     slug: string;
+    type?: string;
+    status?: string;
   };
 }
 
-export interface ThirdPartyProduct {
-  id: string | number;
-  name: string;
-  description?: string;
-  sku?: string;
-  price?: number;
-  [key: string]: unknown; // For additional fields from third-party APIs
-}
-
-export interface ProductFilters {
+export interface DigitalProductFilters {
   page?: number;
   per_page?: number;
   name?: string;
   brand?: string;
-  status?: ProductStatus;
+  supplier_id?: number;
+  status?: DigitalProductStatus;
 }
 
-export interface ThirdPartyProductFilters {
-  slug: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface CreateProductData {
+export interface CreateDigitalProductData {
+  supplier_id: number;
   name: string;
   sku: string;
   brand?: string;
   description?: string;
-  short_description?: string;
-  long_description?: string;
   tags?: string[];
   image?: string;
-  selling_price: number;
-  status: ProductStatus;
+  cost_price: number;
+  status: DigitalProductStatus;
   regions?: string[];
+  metadata?: Record<string, unknown>;
 }
 
-export interface UpdateProductData {
+export interface BulkCreateDigitalProductsData {
+  products: CreateDigitalProductData[];
+}
+
+export interface UpdateDigitalProductData {
   name?: string;
   brand?: string;
   description?: string;
-  short_description?: string;
-  long_description?: string;
   tags?: string[];
   image?: string;
-  selling_price?: number;
-  status?: ProductStatus;
+  cost_price?: number;
+  status?: DigitalProductStatus;
   regions?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 // Custom base query using existing Axios client
@@ -138,17 +129,17 @@ interface MutationError {
   };
 }
 
-export const productsApi = createApi({
-  reducerPath: "productsApi",
+export const digitalProductsApi = createApi({
+  reducerPath: "digitalProductsApi",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Product", "ThirdPartyProduct"],
+  tagTypes: ["DigitalProduct"],
   endpoints: (builder) => ({
-    getProducts: builder.query<
-      { data: Product[]; pagination: PaginationMeta },
-      ProductFilters | void
+    getDigitalProducts: builder.query<
+      { data: DigitalProduct[]; pagination: PaginationMeta },
+      DigitalProductFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/products",
+        url: "/admin/digital-products",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -156,15 +147,15 @@ export const productsApi = createApi({
         result?.data
           ? [
               ...result.data.map(({ id }) => ({
-                type: "Product" as const,
+                type: "DigitalProduct" as const,
                 id: String(id),
               })),
-              { type: "Product", id: "LIST" },
+              { type: "DigitalProduct", id: "LIST" },
             ]
-          : [{ type: "Product", id: "LIST" }],
+          : [{ type: "DigitalProduct", id: "LIST" }],
       transformResponse: (response: {
         data: {
-          data: Product[];
+          data: DigitalProduct[];
           current_page: number;
           per_page: number;
           total: number;
@@ -202,161 +193,115 @@ export const productsApi = createApi({
       },
     }),
 
-    getThirdPartyProducts: builder.query<
-      ThirdPartyProduct[],
-      ThirdPartyProductFilters
-    >({
-      query: (filters) => ({
-        url: "/admin/products/third-party",
-        method: "GET",
-        params: {
-          slug: filters.slug,
-          limit: filters.limit,
-          offset: filters.offset ?? 1,
-        },
-      }),
-      providesTags: [{ type: "ThirdPartyProduct", id: "LIST" }],
-      transformResponse: (response: {
-        data:
-          | ThirdPartyProduct[]
-          | {
-              data?: ThirdPartyProduct[];
-              limit?: number | string;
-              offset?: number | string;
-            };
-        error?: boolean;
-        message?: string;
-      }) => {
-        if (Array.isArray(response.data)) {
-          return response.data;
-        }
-        if (
-          response.data &&
-          "data" in response.data &&
-          Array.isArray(response.data.data)
-        ) {
-          return response.data.data;
-        }
-        return [];
-      },
-    }),
-
-    getProduct: builder.query<Product, number>({
+    getDigitalProduct: builder.query<DigitalProduct, number>({
       query: (id) => ({
-        url: `/admin/products/${id}`,
+        url: `/admin/digital-products/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
-        { type: "Product", id: String(id) },
+        { type: "DigitalProduct", id: String(id) },
       ],
       transformResponse: (response: {
-        data: Product;
+        data: DigitalProduct;
         error?: boolean;
         message?: string;
       }) => {
         if (response.data) {
           return response.data;
         }
-        return response as unknown as Product;
+        return response as unknown as DigitalProduct;
       },
     }),
 
-    createProduct: builder.mutation<Product, CreateProductData>({
+    createDigitalProducts: builder.mutation<
+      DigitalProduct[],
+      BulkCreateDigitalProductsData
+    >({
       query: (data) => ({
-        url: "/admin/products",
+        url: "/admin/digital-products",
         method: "POST",
         data: data,
       }),
-      invalidatesTags: [{ type: "Product", id: "LIST" }],
+      invalidatesTags: [{ type: "DigitalProduct", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
-          await queryFulfilled;
-          toast.success("Product created successfully");
-        } catch (error) {
-          const mutationError = error as MutationError;
-          if (!mutationError?.error?.data?.errors) {
-            const errorMessage =
-              mutationError?.error?.data?.message || "Failed to create product";
-            toast.error(errorMessage);
-          }
-        }
-      },
-    }),
-
-    updateProduct: builder.mutation<
-      Product,
-      { id: number; data: UpdateProductData }
-    >({
-      query: ({ id, data }) => ({
-        url: `/admin/products/${id}`,
-        method: "POST",
-        data: data,
-      }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Product", id: String(id) },
-        { type: "Product", id: "LIST" },
-      ],
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          toast.success("Product updated successfully");
-        } catch (error) {
-          const mutationError = error as MutationError;
-          if (!mutationError?.error?.data?.errors) {
-            const errorMessage =
-              mutationError?.error?.data?.message || "Failed to update product";
-            toast.error(errorMessage);
-          }
-        }
-      },
-    }),
-
-    deleteProduct: builder.mutation<void, number>({
-      query: (id) => ({
-        url: `/admin/products/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: (result, error, id) => [
-        { type: "Product", id: String(id) },
-        { type: "Product", id: "LIST" },
-      ],
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          toast.success("Product deleted successfully");
-        } catch (error) {
-          const mutationError = error as MutationError;
-          const errorMessage =
-            mutationError?.error?.data?.message || "Failed to delete product";
-          toast.error(errorMessage);
-        }
-      },
-    }),
-
-    assignDigitalProducts: builder.mutation<
-      { error: boolean; message: string },
-      { productId: number; digitalProductIds: number[] }
-    >({
-      query: ({ productId, digitalProductIds }) => ({
-        url: `/admin/products/${productId}/digital_products`,
-        method: "POST",
-        data: { digital_product_ids: digitalProductIds },
-      }),
-      invalidatesTags: (result, error, { productId }) => [
-        { type: "Product", id: String(productId) },
-      ],
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          toast.success("Digital products assigned successfully");
+          const { data } = await queryFulfilled;
+          const count = Array.isArray(data) ? data.length : 1;
+          toast.success(
+            `${count} digital product${
+              count > 1 ? "s" : ""
+            } created successfully`
+          );
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
-              "Failed to assign digital products";
+              "Failed to create digital products";
             toast.error(errorMessage);
           }
+        }
+      },
+      transformResponse: (response: {
+        data: DigitalProduct | DigitalProduct[];
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+        return [response.data];
+      },
+    }),
+
+    updateDigitalProduct: builder.mutation<
+      DigitalProduct,
+      { id: number; data: UpdateDigitalProductData }
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/digital-products/${id}`,
+        method: "POST",
+        data: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "DigitalProduct", id: String(id) },
+        { type: "DigitalProduct", id: "LIST" },
+      ],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Digital product updated successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message ||
+              "Failed to update digital product";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
+
+    deleteDigitalProduct: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/admin/digital-products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: "DigitalProduct", id: String(id) },
+        { type: "DigitalProduct", id: "LIST" },
+      ],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Digital product deleted successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          const errorMessage =
+            mutationError?.error?.data?.message ||
+            "Failed to delete digital product";
+          toast.error(errorMessage);
         }
       },
     }),
@@ -364,11 +309,9 @@ export const productsApi = createApi({
 });
 
 export const {
-  useGetProductsQuery,
-  useGetThirdPartyProductsQuery,
-  useGetProductQuery,
-  useCreateProductMutation,
-  useUpdateProductMutation,
-  useDeleteProductMutation,
-  useAssignDigitalProductsMutation,
-} = productsApi;
+  useGetDigitalProductsQuery,
+  useGetDigitalProductQuery,
+  useCreateDigitalProductsMutation,
+  useUpdateDigitalProductMutation,
+  useDeleteDigitalProductMutation,
+} = digitalProductsApi;

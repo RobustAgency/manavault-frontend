@@ -12,15 +12,36 @@ interface PaginationMeta {
   to: number;
 }
 
+export interface PurchaseOrderItemDetail {
+  id: number;
+  purchase_order_id: number;
+  digital_product_id: number;
+  quantity: number;
+  unit_cost: string;
+  subtotal: string;
+  created_at: string;
+  updated_at: string;
+  digital_product?: {
+    id: number;
+    name: string;
+    sku: string;
+    brand?: string | null;
+    description?: string | null;
+    cost_price: number;
+    status?: string;
+  };
+}
+
 export interface PurchaseOrder {
   id: number;
   order_number: string;
-  product_id: number;
+  product_id?: number; // Optional for backward compatibility
   supplier_id: number;
-  purchase_price: number;
-  quantity: number;
-  total_amount: number;
+  purchase_price?: number; // Calculated field
+  quantity?: number; // Calculated from items
+  total_amount?: number; // Calculated field
   total_price?: string; // API returns this as string
+  status?: string;
   created_at: string;
   updated_at: string;
   product?: {
@@ -35,10 +56,11 @@ export interface PurchaseOrder {
     created_at?: string;
     updated_at?: string;
   };
+  items?: PurchaseOrderItemDetail[];
   supplier?: {
     id: number;
     name: string;
-    slug: string;
+    slug?: string;
     type?: string;
     contact_email?: string | null;
     contact_phone?: string | null;
@@ -60,11 +82,14 @@ export interface PurchaseOrderFilters {
   per_page?: number;
 }
 
-export interface CreatePurchaseOrderData {
-  product_id: number;
-  supplier_id: number;
-  purchase_price: number;
+export interface PurchaseOrderItem {
+  digital_product_id: number;
   quantity: number;
+}
+
+export interface CreatePurchaseOrderData {
+  supplier_id: number;
+  items: PurchaseOrderItem[];
 }
 
 // Custom base query using existing Axios client
@@ -160,12 +185,14 @@ export const purchaseOrdersApi = createApi({
           // Transform the data to map API fields to expected interface
           const transformedData = response.data.data.map((order: any) => {
             // API returns total_price as string, convert to number for total_amount
-            const totalPrice = parseFloat(String(order.total_price || '0'));
+            const totalPrice = parseFloat(String(order.total_price || "0"));
             const quantity = order.quantity || 1;
             // Calculate unit price from total_price / quantity, or use product.purchase_price if available
             const unitPrice = order.product?.purchase_price
               ? parseFloat(String(order.product.purchase_price))
-              : quantity > 0 ? totalPrice / quantity : 0;
+              : quantity > 0
+              ? totalPrice / quantity
+              : 0;
 
             return {
               ...order,
@@ -216,17 +243,38 @@ export const purchaseOrdersApi = createApi({
         if (response.data) {
           const order = response.data;
           // API returns total_price as string, convert to number for total_amount
-          const totalPrice = parseFloat(String(order.total_price || '0'));
-          const quantity = order.quantity || 1;
-          // Calculate unit price from total_price / quantity, or use product.purchase_price if available
-          const unitPrice = order.product?.purchase_price
-            ? parseFloat(String(order.product.purchase_price))
-            : quantity > 0 ? totalPrice / quantity : 0;
+          const totalPrice = parseFloat(String(order.total_price || "0"));
+          
+          // Calculate quantity and unit price from items if available
+          let quantity = 0;
+          let unitPrice = 0;
+          
+          if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+            // Calculate total quantity from items
+            quantity = order.items.reduce((sum: number, item: any) => {
+              return sum + (item.quantity || 0);
+            }, 0);
+            
+            // Calculate average unit price from items
+            const totalCost = order.items.reduce((sum: number, item: any) => {
+              return sum + parseFloat(String(item.subtotal || "0"));
+            }, 0);
+            unitPrice = quantity > 0 ? totalCost / quantity : 0;
+          } else {
+            // Fallback to old structure
+            quantity = order.quantity || 1;
+            unitPrice = order.product?.purchase_price
+              ? parseFloat(String(order.product.purchase_price))
+              : quantity > 0
+              ? totalPrice / quantity
+              : 0;
+          }
 
           return {
             ...order,
             total_amount: totalPrice,
             purchase_price: unitPrice,
+            quantity: quantity,
           } as PurchaseOrder;
         }
         return response as unknown as PurchaseOrder;
@@ -266,4 +314,3 @@ export const {
   useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
 } = purchaseOrdersApi;
-
