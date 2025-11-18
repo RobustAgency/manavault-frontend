@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { PlusIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,160 +23,84 @@ import {
 import {
   Product,
   ProductStatus,
-  Supplier,
-  ThirdPartyProduct,
   CreateProductData,
-  useCreateSupplierMutation,
-  CreateSupplierData,
 } from '@/lib/redux/features';
 import { useProductForm } from './useProductForm';
-import { SupplierFormDialog } from '@/app/admin/suppliers/components/SupplierFormDialog';
 
 interface ProductFormDialogProps {
   isOpen: boolean;
   isEditMode: boolean;
   selectedProduct: Product | null;
-  suppliers: Supplier[];
-  thirdPartyProducts?: ThirdPartyProduct[];
-  isLoadingThirdParty: boolean;
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (data: CreateProductData) => void;
-  onSupplierChange: (supplierId: number, isExternal: boolean, slug: string | null) => void;
-  onSuppliersRefetch?: () => void;
 }
 
 export const ProductFormDialog = ({
   isOpen,
   isEditMode,
   selectedProduct,
-  suppliers,
-  thirdPartyProducts = [],
-  isLoadingThirdParty,
   isSubmitting,
   onClose,
   onSubmit,
-  onSupplierChange,
-  onSuppliersRefetch,
 }: ProductFormDialogProps) => {
   const { formData, setFormData, errors, validateForm, resetForm, updateFormData } = useProductForm(isEditMode);
-
-  const [selectedSupplierSlug, setSelectedSupplierSlug] = useState<string | null>(null);
-  const [selectedThirdPartyProduct, setSelectedThirdPartyProduct] = useState<string>('');
-  const [isExternalSupplier, setIsExternalSupplier] = useState(false);
-  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
-
-  // Mutation for creating new supplier
-  const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
 
   // Initialize form when editing
   useEffect(() => {
     if (isEditMode && selectedProduct) {
       setFormData({
-        supplier_id: selectedProduct.supplier_id,
         name: selectedProduct.name,
+        brand: selectedProduct.brand || '',
         description: selectedProduct.description || '',
+        short_description: selectedProduct.short_description || '',
+        long_description: selectedProduct.long_description || '',
         sku: selectedProduct.sku,
-        purchase_price: selectedProduct.purchase_price?.toString() ?? '',
         selling_price: selectedProduct.selling_price?.toString() ?? '',
         status: selectedProduct.status,
+        tags: selectedProduct.tags?.join(', ') || '',
+        image: selectedProduct.image || '',
+        regions: selectedProduct.regions?.join(', ') || '',
       });
     } else {
       resetForm();
-      setSelectedSupplierSlug(null);
-      setSelectedThirdPartyProduct('');
-      setIsExternalSupplier(false);
-      setIsAddSupplierDialogOpen(false);
     }
   }, [isEditMode, selectedProduct, isOpen]);
 
-  const handleSupplierChange = (supplierId: string) => {
-    const id = parseInt(supplierId);
-    const supplier = suppliers.find(s => s.id === id);
-
-    updateFormData({ supplier_id: id });
-
-    if (supplier) {
-      const isExternal = supplier.type === 'external';
-      setIsExternalSupplier(isExternal);
-      setSelectedSupplierSlug(isExternal ? supplier.slug : null);
-      setSelectedThirdPartyProduct('');
-
-      // Notify parent about supplier change
-      onSupplierChange(id, isExternal, isExternal ? supplier.slug : null);
-
-      // Clear form fields that will be auto-filled from third-party
-      if (isExternal) {
-        updateFormData({
-          name: '',
-          description: '',
-          sku: '',
-          purchase_price: '',
-          selling_price: '',
-        });
-      }
-    } else {
-      setIsExternalSupplier(false);
-      setSelectedSupplierSlug(null);
-      setSelectedThirdPartyProduct('');
-    }
-  };
-
-  const handleThirdPartyProductSelect = (productSku: string) => {
-    if (productSku === 'none') {
-      setSelectedThirdPartyProduct('');
-      return;
-    }
-
-    setSelectedThirdPartyProduct(productSku);
-
-    const product = thirdPartyProducts.find(p => p.sku === productSku);
-    if (product) {
-      updateFormData({
-        name: product.name || '',
-        description: product.description || '',
-        sku: product.sku || '',
-        purchase_price: product.price !== undefined && product.price !== null ? String(product.price) : '',
-      });
-    }
-  };
 
   const handleSubmit = () => {
-    if (validateForm(isExternalSupplier, selectedThirdPartyProduct)) {
-      onSubmit({
-        supplier_id: formData.supplier_id,
+    if (validateForm(false, '')) {
+      const submitData: any = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
         sku: formData.sku.trim(),
-        purchase_price: parseFloat(formData.purchase_price),
         selling_price: parseFloat(formData.selling_price),
         status: formData.status,
-      });
+      };
+
+      // Add optional fields only if they have values
+      if (formData.brand.trim()) submitData.brand = formData.brand.trim();
+      if (formData.description.trim()) submitData.description = formData.description.trim();
+      if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
+      if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
+      if (formData.image.trim()) submitData.image = formData.image.trim();
+
+      // Parse tags from comma-separated string
+      if (formData.tags.trim()) {
+        submitData.tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+
+      // Parse regions from comma-separated string
+      if (formData.regions.trim()) {
+        submitData.regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
+      }
+
+      onSubmit(submitData);
     }
   };
 
   const handleClose = () => {
     resetForm();
-    setSelectedSupplierSlug(null);
-    setSelectedThirdPartyProduct('');
-    setIsExternalSupplier(false);
-    setIsAddSupplierDialogOpen(false);
     onClose();
-  };
-
-  const handleCreateSupplier = async (data: CreateSupplierData) => {
-    try {
-      const newSupplier = await createSupplier(data).unwrap();
-      // Refresh suppliers list in parent
-      onSuppliersRefetch?.();
-      // Auto-select the newly created supplier directly
-      if (newSupplier) {
-        handleSupplierChange(newSupplier.id.toString());
-      }
-      setIsAddSupplierDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create supplier:', error);
-    }
   };
 
   return (
@@ -192,101 +115,14 @@ export const ProductFormDialog = ({
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="supplier_id">Supplier *</Label>
-            <Select
-              required
-              value={formData.supplier_id.toString()}
-              onValueChange={handleSupplierChange}
-              disabled={isEditMode}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a supplier" />
-              </SelectTrigger>
-              <SelectContent>
-                {suppliers.map((supplier) => (
-                  <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                    {supplier.name} {supplier.type === 'external' && '(External)'}
-                  </SelectItem>
-                ))}
-                {!isEditMode && (
-                  <div className="border-t pt-1 mt-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsAddSupplierDialogOpen(true);
-                      }}
-                    >
-                      <PlusIcon className="h-4 w-4 mr-2" />
-                      Add New Supplier
-                    </Button>
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-            {errors.supplier_id && <p className="text-sm text-red-500">{errors.supplier_id}</p>}
-          </div>
-
-          {/* Third-Party Product Selection */}
-          {!isEditMode && isExternalSupplier && (
-            <div className="grid gap-2">
-              <Label htmlFor="third_party_product">Third-Party Product *</Label>
-              <Select
-                required
-                value={
-                  selectedThirdPartyProduct &&
-                    thirdPartyProducts.some(p => p.sku === selectedThirdPartyProduct)
-                    ? selectedThirdPartyProduct
-                    : undefined
-                }
-                onValueChange={handleThirdPartyProductSelect}
-                disabled={isLoadingThirdParty}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={isLoadingThirdParty ? "Loading products..." : "Select a product"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {thirdPartyProducts.length > 0 ? (
-                    thirdPartyProducts
-                      .filter((product): product is ThirdPartyProduct & { sku: string } => !!product.sku) // Filter out products without SKU
-                      .map((product) => (
-                        <SelectItem key={product.sku} value={product.sku}>
-                          {product.name} ({product.sku})
-                        </SelectItem>
-                      ))
-                  ) : (
-                    <SelectItem key="no-products" value="none" disabled>
-                      No products available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {errors.third_party_product && <p className="text-sm text-red-500">{errors.third_party_product}</p>}
-              <p className="text-xs text-muted-foreground">
-                Select a product from the external supplier to auto-fill details
-              </p>
-            </div>
-          )}
-
-          <div className="grid gap-2">
             <Label htmlFor="name">Product Name *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => updateFormData({ name: e.target.value })}
               placeholder="Product Name"
-              disabled={!isEditMode && isExternalSupplier && !!selectedThirdPartyProduct}
             />
-            <div className="min-h-[20px]">
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-              {!errors.name && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-              )}
-            </div>
+            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
           <div className="grid gap-2">
@@ -296,15 +132,21 @@ export const ProductFormDialog = ({
               value={formData.sku}
               onChange={(e) => updateFormData({ sku: e.target.value })}
               placeholder="PROD-001"
-              disabled={isEditMode || (isExternalSupplier && !!selectedThirdPartyProduct)}
+              disabled={isEditMode}
             />
-            <div className="min-h-[20px]">
-              {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
-              {!errors.sku && isEditMode && <p className="text-xs text-muted-foreground">SKU cannot be updated</p>}
-              {!errors.sku && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-              )}
-            </div>
+            {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
+            {!errors.sku && isEditMode && <p className="text-xs text-muted-foreground">SKU cannot be updated</p>}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="brand">Brand</Label>
+            <Input
+              id="brand"
+              value={formData.brand}
+              onChange={(e) => updateFormData({ brand: e.target.value })}
+              placeholder="Brand name"
+              maxLength={255}
+            />
           </div>
 
           <div className="grid gap-2">
@@ -316,51 +158,77 @@ export const ProductFormDialog = ({
               placeholder="Product description..."
               rows={3}
             />
-            <div className="min-h-[20px]">
-              {!isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-                <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-              )}
-            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="purchase_price">Purchase Price *</Label>
-              <Input
-                required
-                id="purchase_price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.purchase_price}
-                onChange={(e) => updateFormData({ purchase_price: e.target.value })}
-                placeholder="0.00"
-                disabled={!isEditMode && isExternalSupplier && !!selectedThirdPartyProduct}
-              />
-              <div className="min-h-[20px]">
-                {errors.purchase_price && <p className="text-sm text-red-500">{errors.purchase_price}</p>}
-                {!errors.purchase_price && !isEditMode && isExternalSupplier && selectedThirdPartyProduct && (
-                  <p className="text-xs text-blue-600">Auto-filled from third-party product</p>
-                )}
-              </div>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="short_description">Short Description</Label>
+            <Textarea
+              id="short_description"
+              value={formData.short_description}
+              onChange={(e) => updateFormData({ short_description: e.target.value })}
+              placeholder="Brief product description..."
+              rows={2}
+            />
+          </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="selling_price">Selling Price *</Label>
-              <Input
-                required
-                id="selling_price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.selling_price}
-                onChange={(e) => updateFormData({ selling_price: e.target.value })}
-                placeholder="0.00"
-              />
-              <div className="min-h-[20px]">
-                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
-              </div>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="long_description">Long Description</Label>
+            <Textarea
+              id="long_description"
+              value={formData.long_description}
+              onChange={(e) => updateFormData({ long_description: e.target.value })}
+              placeholder="Detailed product description..."
+              rows={4}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="image">Image URL</Label>
+            <Input
+              id="image"
+              type="url"
+              value={formData.image}
+              onChange={(e) => updateFormData({ image: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+              maxLength={255}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="tags">Tags (comma-separated)</Label>
+            <Input
+              id="tags"
+              value={formData.tags}
+              onChange={(e) => updateFormData({ tags: e.target.value })}
+              placeholder="tag1, tag2, tag3"
+            />
+            <p className="text-xs text-muted-foreground">Separate multiple tags with commas</p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="regions">Regions (comma-separated)</Label>
+            <Input
+              id="regions"
+              value={formData.regions}
+              onChange={(e) => updateFormData({ regions: e.target.value })}
+              placeholder="US, CA, UK"
+            />
+            <p className="text-xs text-muted-foreground">Separate multiple regions with commas (e.g., US, CA, UK)</p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="selling_price">Selling Price *</Label>
+            <Input
+              required
+              id="selling_price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.selling_price}
+              onChange={(e) => updateFormData({ selling_price: e.target.value })}
+              placeholder="0.00"
+            />
+            {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
           </div>
 
           <div className="grid gap-2">
@@ -392,17 +260,6 @@ export const ProductFormDialog = ({
         </DialogFooter>
       </DialogContent>
 
-      {/* Add New Supplier Dialog */}
-      {!isEditMode && (
-        <SupplierFormDialog
-          isOpen={isAddSupplierDialogOpen}
-          isEditMode={false}
-          selectedSupplier={null}
-          isSubmitting={isCreatingSupplier}
-          onClose={() => setIsAddSupplierDialogOpen(false)}
-          onSubmit={handleCreateSupplier}
-        />
-      )}
     </Dialog>
   );
 };

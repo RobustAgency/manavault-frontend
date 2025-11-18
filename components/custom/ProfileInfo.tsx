@@ -28,7 +28,10 @@ const ProfileInfo = () => {
             </Link>
             <div className="min-w-0">
                 <div className="truncate text-sm font-medium">{displayName}</div>
-                <div className="text-xs capitalize text-muted-foreground">{role}</div>
+                <div className="text-xs capitalize text-muted-foreground">
+                    {role.replace(/_/g, " ")}
+
+                </div>
             </div>
         </div>
     )
