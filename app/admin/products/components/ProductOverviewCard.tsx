@@ -1,6 +1,7 @@
 'use client';
 
 import { PackageIcon } from 'lucide-react';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Card,
   CardContent,
@@ -9,9 +10,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Product } from '@/lib/redux/features';
+import { Product, DigitalProduct as DigitalProductType } from '@/lib/redux/features/productsApi';
 import { formatCurrency, getStatusColor } from './productColumns';
 import { ProductImage } from './ProductImage';
+
+const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
 interface ProductOverviewCardProps {
   product: Product;
@@ -82,7 +85,7 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
             {product.image && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-3">Product Image</p>
-                <ProductImage src={product.image} alt={product.name} />
+                <ProductImage src={`${IMAGEPREFIX}${product.image}`} alt={product.name} />
               </div>
             )}
 
@@ -102,6 +105,7 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
             </div>
           </div>
         </div>
+
       </CardContent>
     </Card>
   );

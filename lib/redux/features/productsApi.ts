@@ -14,6 +14,53 @@ interface PaginationMeta {
 
 export type ProductStatus = "in_active" | "active" | "archived";
 
+export interface DigitalProduct {
+  id: number;
+  supplier_id: number;
+  name: string;
+  sku: string;
+  brand: string;
+  description?: string | null;
+  cost_price: string;
+  status: string;
+  metadata?: {
+    sku: string;
+    name: string;
+    brand: string;
+    types?: string[];
+    format?: string;
+    prices?: Array<{
+      price: string;
+      toQuantity: number | null;
+      fromQuantity: number;
+    }>;
+    country?: string;
+    currency?: string;
+    imageUrl?: string;
+    faceValue?: string;
+    descriptions?: string[];
+    instructions?: string[];
+    brandCategory?: string | null;
+    termConditions?: string[];
+    brandSubCategory?: string | null;
+    percentageOffFaceValue?: string;
+    isInstantDeliverySupported?: boolean;
+  };
+  last_synced_at: string;
+  created_at: string;
+  updated_at: string;
+  supplier?: {
+    id: number;
+    name: string;
+    type: string;
+    contact_email: string;
+    contact_phone?: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -29,6 +76,7 @@ export interface Product {
   regions?: string[];
   created_at: string;
   updated_at: string;
+  digital_products?: DigitalProduct[];
   supplier?: {
     id: number;
     name: string;
@@ -261,13 +309,23 @@ export const productsApi = createApi({
       },
     }),
 
-    createProduct: builder.mutation<Product, CreateProductData>({
+    createProduct: builder.mutation<Product, CreateProductData | FormData>({
       query: (data) => ({
         url: "/admin/products",
         method: "POST",
         data: data,
       }),
       invalidatesTags: [{ type: "Product", id: "LIST" }],
+      transformResponse: (response: {
+        data: Product;
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Product;
+      },
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -285,7 +343,7 @@ export const productsApi = createApi({
 
     updateProduct: builder.mutation<
       Product,
-      { id: number; data: UpdateProductData }
+      { id: number; data: UpdateProductData | FormData }
     >({
       query: ({ id, data }) => ({
         url: `/admin/products/${id}`,

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/lib/redux/features';
 import { getStatusColor } from './productColumns';
+import Link from 'next/link';
 
 interface ProductDetailHeaderProps {
   product: Product;
@@ -19,21 +20,21 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
 
   return (
     <div className="mb-8">
-      <Button 
-        variant="ghost" 
-        onClick={() => router.back()} 
+      <Button
+        variant="ghost"
+        onClick={() => router.back()}
         className="mb-6 -ml-2"
       >
         <ArrowLeftIcon className="h-4 w-4 mr-2" />
         Back to Products
       </Button>
-      
+
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex-1">
           <div className="flex items-start gap-4 mb-3">
             <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-            <Badge 
-              variant="filled" 
+            <Badge
+              variant="filled"
               color={getStatusColor(product.status)}
               className="shrink-0"
             >
@@ -52,7 +53,7 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
             </p>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
@@ -62,14 +63,16 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
             <LinkIcon className="h-4 w-4" />
             Associate Digital Products
           </Button>
-          <Button
-            variant="outline"
-            onClick={onEdit}
-            className="gap-2"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Edit
-          </Button>
+          <Link href={`/admin/products/edit/${product.id}`}>
+            <Button
+              variant="outline"
+              // onClick={onEdit}
+              className="gap-2"
+            >
+              <PencilIcon className="h-4 w-4" />
+              Edit
+            </Button>
+          </Link>
           <Button
             variant="outline"
             onClick={onDelete}

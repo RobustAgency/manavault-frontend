@@ -39,8 +39,22 @@ export const useBulkProductForm = () => {
 
   const addProduct = useCallback((supplierId: number) => {
     const newForm = createInitialForm(supplierId);
-    setProductForms((prev) => [...prev, newForm]);
-    setExpandedItems((prev) => new Set([...prev, newForm.id]));
+    setProductForms((prev) => {
+      const updated = [...prev, newForm];
+      // Collapse the previous last item when adding a new one
+      if (prev.length > 0) {
+        const prevLastId = prev[prev.length - 1].id;
+        setExpandedItems((current) => {
+          const newSet = new Set(current);
+          newSet.delete(prevLastId);
+          newSet.add(newForm.id);
+          return newSet;
+        });
+      } else {
+        setExpandedItems(new Set([newForm.id]));
+      }
+      return updated;
+    });
   }, []);
 
   const removeProduct = useCallback((id: string) => {

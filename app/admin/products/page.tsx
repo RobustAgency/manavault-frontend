@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { PlusIcon, ExternalLinkIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,16 +15,15 @@ import {
 } from '@/components/ui/select';
 import {
   useGetProductsQuery,
-  useCreateProductMutation,
-  useUpdateProductMutation,
   useDeleteProductMutation,
   type Product,
   type ProductStatus,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
-import { ProductFormDialog, createProductColumns } from './components';
+import { createProductColumns } from './components';
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
@@ -37,41 +37,11 @@ export default function ProductsPage() {
     name: nameSearch || undefined,
     brand: brandSearch || undefined,
   });
-  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
-  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
   // Dialog states
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  const handleCreate = async (data: any) => {
-    try {
-      await createProduct(data).unwrap();
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create product:', error);
-    }
-  };
-
-  const handleEdit = async (data: any) => {
-    if (!selectedProduct) return;
-
-    try {
-      // Don't send SKU on update (it can't be updated)
-      const { sku, ...updateData } = data;
-      await updateProduct({
-        id: selectedProduct.id,
-        data: updateData,
-      }).unwrap();
-      setIsEditDialogOpen(false);
-      setSelectedProduct(null);
-    } catch (error) {
-      console.error('Failed to update product:', error);
-    }
-  };
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
@@ -85,9 +55,8 @@ export default function ProductsPage() {
     }
   };
 
-  const openEditDialog = (product: Product) => {
-    setSelectedProduct(product);
-    setIsEditDialogOpen(true);
+  const openEditPage = (product: Product) => {
+    router.push(`/admin/products/edit/${product.id}`);
   };
 
   const openDeleteDialog = (product: Product) => {
@@ -96,7 +65,7 @@ export default function ProductsPage() {
   };
 
   const columns = createProductColumns({
-    onEdit: openEditDialog,
+    onEdit: openEditPage,
     onDelete: openDeleteDialog,
   });
 
@@ -108,11 +77,7 @@ export default function ProductsPage() {
           <p className="text-muted-foreground mt-1">Manage your product inventory</p>
         </div>
         <div className="flex gap-2">
-          {/* <Button variant="outline" onClick={() => window.location.href = '/admin/products/third-party'}>
-            <ExternalLinkIcon className="h-4 w-4 mr-2" />
-            Third-Party Products
-          </Button> */}
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={() => router.push('/admin/products/create')}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -141,13 +106,13 @@ export default function ProductsPage() {
             onChange={(e) => setNameSearch(e.target.value)}
           />
         </div>
-        <div className="flex-1">
+        {/* <div className="flex-1">
           <Input
             placeholder="Search by brand..."
             value={brandSearch}
             onChange={(e) => setBrandSearch(e.target.value)}
           />
-        </div>
+        </div> */}
       </div>
 
       <DataTable
@@ -162,20 +127,6 @@ export default function ProductsPage() {
           totalPages: data?.pagination.last_page || 1,
         }}
         onPageChange={setPage}
-      />
-
-      {/* Create/Edit Dialog */}
-      <ProductFormDialog
-        isOpen={isCreateDialogOpen || isEditDialogOpen}
-        isEditMode={isEditDialogOpen}
-        selectedProduct={selectedProduct}
-        isSubmitting={isCreating || isUpdating}
-        onClose={() => {
-          setIsCreateDialogOpen(false);
-          setIsEditDialogOpen(false);
-          setSelectedProduct(null);
-        }}
-        onSubmit={isEditDialogOpen ? handleEdit : handleCreate}
       />
 
       {/* Delete Confirmation Dialog */}

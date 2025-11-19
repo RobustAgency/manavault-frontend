@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     useGetProductQuery,
     useUpdateProductMutation,
@@ -20,11 +20,13 @@ import {
 } from '../components';
 import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
+import { DataTable } from '@/components/custom/DataTable';
+import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 
-export default function ProductDetailPage() {
-    const params = useParams();
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const router = useRouter();
-    const productId = parseInt(params.id as string, 10);
+    const productId = parseInt(id, 10);
 
     const {
         data: product,
@@ -109,6 +111,7 @@ export default function ProductDetailPage() {
 
             <div className="grid gap-6">
                 <ProductOverviewCard product={product} />
+                <ProductAssociatedDigitalStock product={product} />
                 <ProductTagsRegionsCard product={product} />
                 <ProductTimestampsCard product={product} />
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
@@ -15,19 +16,15 @@ import {
 import {
   useGetDigitalProductsQuery,
   useGetSuppliersQuery,
-  useCreateDigitalProductsMutation,
-  useUpdateDigitalProductMutation,
   useDeleteDigitalProductMutation,
   type DigitalProduct,
   type DigitalProductStatus,
-  type CreateDigitalProductData,
-  type BulkCreateDigitalProductsData,
-  type UpdateDigitalProductData,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
-import { DigitalProductFormDialog, createDigitalProductColumns } from './components';
+import { createDigitalProductColumns } from './components';
 
 export default function DigitalProductsPage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<DigitalProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
@@ -44,46 +41,12 @@ export default function DigitalProductsPage() {
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
   });
 
-  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
-  const [createDigitalProducts, { isLoading: isCreating }] = useCreateDigitalProductsMutation();
-  const [updateDigitalProduct, { isLoading: isUpdating }] = useUpdateDigitalProductMutation();
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
   const [deleteDigitalProduct, { isLoading: isDeleting }] = useDeleteDigitalProductMutation();
 
   // Dialog states
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<DigitalProduct | null>(null);
-
-  const handleCreate = async (data: CreateDigitalProductData | BulkCreateDigitalProductsData | UpdateDigitalProductData) => {
-    try {
-      // Check if it's bulk create format
-      if ('products' in data) {
-        await createDigitalProducts(data).unwrap();
-      } else {
-        // Single create - wrap in products array
-        await createDigitalProducts({ products: [data as CreateDigitalProductData] }).unwrap();
-      }
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create digital product:', error);
-    }
-  };
-
-  const handleEdit = async (data: CreateDigitalProductData | BulkCreateDigitalProductsData | UpdateDigitalProductData) => {
-    if (!selectedProduct) return;
-
-    try {
-      await updateDigitalProduct({
-        id: selectedProduct.id,
-        data: data as UpdateDigitalProductData,
-      }).unwrap();
-      setIsEditDialogOpen(false);
-      setSelectedProduct(null);
-    } catch (error) {
-      console.error('Failed to update digital product:', error);
-    }
-  };
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
@@ -97,9 +60,8 @@ export default function DigitalProductsPage() {
     }
   };
 
-  const openEditDialog = (product: DigitalProduct) => {
-    setSelectedProduct(product);
-    setIsEditDialogOpen(true);
+  const openEditPage = (product: DigitalProduct) => {
+    router.push(`/admin/digital-stock/edit/${product.id}`);
   };
 
   const openDeleteDialog = (product: DigitalProduct) => {
@@ -108,7 +70,7 @@ export default function DigitalProductsPage() {
   };
 
   const columns = createDigitalProductColumns({
-    onEdit: openEditDialog,
+    onEdit: openEditPage,
     onDelete: openDeleteDialog,
   });
 
@@ -119,7 +81,7 @@ export default function DigitalProductsPage() {
           <h1 className="text-3xl font-bold">Digital Stock</h1>
           <p className="text-muted-foreground mt-1">Manage digital stock from external suppliers</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => router.push('/admin/digital-stock/create')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Add Digital Stock
         </Button>
@@ -188,22 +150,6 @@ export default function DigitalProductsPage() {
           totalPages: data?.pagination.last_page || 1,
         }}
         onPageChange={setPage}
-      />
-
-      {/* Create/Edit Dialog */}
-      <DigitalProductFormDialog
-        isOpen={isCreateDialogOpen || isEditDialogOpen}
-        isEditMode={isEditDialogOpen}
-        selectedProduct={selectedProduct}
-        suppliers={suppliersData?.data || []}
-        isSubmitting={isCreating || isUpdating}
-        onClose={() => {
-          setIsCreateDialogOpen(false);
-          setIsEditDialogOpen(false);
-          setSelectedProduct(null);
-        }}
-        onSubmit={isEditDialogOpen ? handleEdit : handleCreate}
-        onSuppliersRefetch={refetchSuppliers}
       />
 
       {/* Delete Confirmation Dialog */}

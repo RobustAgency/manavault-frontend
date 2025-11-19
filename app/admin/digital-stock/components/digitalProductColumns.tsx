@@ -112,33 +112,41 @@ export const createDigitalProductColumns = ({
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-          >
-            <Link href={`/admin/digital-stock/${row.original.id}`}>
-              <EyeIcon className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(row.original)}
-          >
-            <PencilIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(row.original)}
-          >
-            <TrashIcon className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isExternal = row.original.supplier?.type === 'external';
+
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+            >
+              <Link href={`/admin/digital-stock/${row.original.id}`}>
+                <EyeIcon className="h-4 w-4" />
+              </Link>
+            </Button>
+            {!isExternal && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(row.original)}
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(row.original)}
+                >
+                  <TrashIcon className="h-4 w-4 text-red-500" />
+                </Button>
+              </>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
