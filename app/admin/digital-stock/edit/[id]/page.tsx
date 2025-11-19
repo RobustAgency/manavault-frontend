@@ -11,8 +11,6 @@ import {
     type UpdateDigitalProductData,
 } from '@/lib/redux/features';
 import { toast } from 'react-toastify';
-// import { useDigitalProductForm } from '../components/useDigitalProductForm';
-// import { ProductFormFields } from '../components/ProductFormFields';
 import { ProductFormFields, useDigitalProductForm } from '../../components';
 
 export default function EditDigitalProductPage({ params }: { params: Promise<{ id: string }> }) {
