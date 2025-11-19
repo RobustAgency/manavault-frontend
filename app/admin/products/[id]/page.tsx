@@ -7,6 +7,7 @@ import {
     useUpdateProductMutation,
     useDeleteProductMutation,
     useAssignDigitalProductsMutation,
+    useGetSuppliersQuery,
 } from '@/lib/redux/features';
 import {
     ProductDetailHeader,
@@ -31,6 +32,11 @@ export default function ProductDetailPage() {
         error,
     } = useGetProductQuery(productId, {
         skip: !productId || isNaN(productId),
+    });
+
+    const { data: suppliersData } = useGetSuppliersQuery({
+        page: 1,
+        per_page: 100,
     });
 
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
@@ -133,6 +139,7 @@ export default function ProductDetailPage() {
             <AssignDigitalProductsDialog
                 isOpen={isAssignDialogOpen}
                 productId={product.id}
+                suppliers={suppliersData?.data || []}
                 isSubmitting={isAssigning}
                 onClose={() => setIsAssignDialogOpen(false)}
                 onSubmit={handleAssignDigitalProducts}

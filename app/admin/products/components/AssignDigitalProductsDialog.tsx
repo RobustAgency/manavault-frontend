@@ -12,13 +12,21 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useGetDigitalProductsQuery } from '@/lib/redux/features';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useGetDigitalProductsQuery, Supplier } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AssignDigitalProductsDialogProps {
     isOpen: boolean;
     productId: number;
+    suppliers: Supplier[];
     isSubmitting: boolean;
     onClose: () => void;
     onSubmit: (digitalProductIds: number[]) => void;
@@ -27,10 +35,12 @@ interface AssignDigitalProductsDialogProps {
 export const AssignDigitalProductsDialog = ({
     isOpen,
     productId,
+    suppliers,
     isSubmitting,
     onClose,
     onSubmit,
 }: AssignDigitalProductsDialogProps) => {
+    const [supplierId, setSupplierId] = useState<number>(0);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -65,10 +75,11 @@ export const AssignDigitalProductsDialog = ({
             page: currentPage,
             per_page: perPage,
             status: 'active',
+            supplier_id: supplierId > 0 ? supplierId : undefined,
             ...getSearchFilters(),
         },
         {
-            skip: !isOpen, // Only fetch when dialog is open
+            skip: !isOpen || supplierId === 0, // Only fetch when dialog is open and supplier is selected
         }
     );
 
@@ -78,12 +89,21 @@ export const AssignDigitalProductsDialog = ({
     // Reset selection and search when dialog closes
     useEffect(() => {
         if (!isOpen) {
+            setSupplierId(0);
             setSelectedIds(new Set());
             setSearchQuery('');
             setDebouncedSearch('');
             setCurrentPage(1);
         }
     }, [isOpen]);
+
+    // Reset selection when supplier changes
+    useEffect(() => {
+        setSelectedIds(new Set());
+        setSearchQuery('');
+        setDebouncedSearch('');
+        setCurrentPage(1);
+    }, [supplierId]);
 
     const handlePageChange = (newPage: number) => {
         if (pagination && newPage >= 1 && newPage <= pagination.last_page) {
@@ -142,19 +162,46 @@ export const AssignDigitalProductsDialog = ({
                 </DialogHeader>
 
                 <div className="flex-1 overflow-hidden flex flex-col gap-4">
-                    {/* Search Input */}
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by product name..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9"
-                        />
+                    {/* Supplier Select */}
+                    <div className="grid gap-2">
+                        <Label htmlFor="supplier_id">Supplier *</Label>
+                        <Select
+                            value={supplierId > 0 ? supplierId.toString() : undefined}
+                            onValueChange={(value) => setSupplierId(parseInt(value))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a supplier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {suppliers.map((supplier) => (
+                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                        {supplier.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {supplierId > 0 && !isLoading && products.length === 0 && !debouncedSearch && (
+                            <p className="text-xs text-muted-foreground">
+                                No digital products found for this supplier.
+                            </p>
+                        )}
                     </div>
 
+                    {/* Search Input */}
+                    {supplierId > 0 && (
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by product name..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                    )}
+
                     {/* Select All Button */}
-                    {products.length > 0 && (
+                    {supplierId > 0 && products.length > 0 && (
                         <div className="flex items-center justify-between">
                             <Label className="text-sm font-medium">
                                 {selectedIds.size} selected
@@ -177,72 +224,74 @@ export const AssignDigitalProductsDialog = ({
                     )}
 
                     {/* Products List */}
-                    <div className="flex-1 overflow-y-auto border rounded-md">
-                        {isLoading ? (
-                            <div className="flex items-center justify-center h-32">
-                                <p className="text-sm text-muted-foreground">Loading digital products...</p>
-                            </div>
-                        ) : products.length === 0 ? (
-                            <div className="flex items-center justify-center h-32">
-                                <p className="text-sm text-muted-foreground">
-                                    {debouncedSearch ? 'No products found matching your search.' : 'No digital products available.'}
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="divide-y">
-                                {products.map((product) => {
-                                    const isSelected = selectedIds.has(product.id);
-                                    return (
-                                        <label
-                                            key={product.id}
-                                            className={cn(
-                                                'flex items-start gap-3 p-3 cursor-pointer hover:bg-accent transition-colors',
-                                                isSelected && 'bg-accent'
-                                            )}
-                                        >
-                                            <div className="relative flex items-center justify-center mt-0.5">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={() => handleToggle(product.id)}
-                                                    className={cn(
-                                                        "h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer",
-                                                        isSelected && "bg-primary"
-                                                    )}
-                                                />
-                                                {isSelected && (
-                                                    <CheckIcon className="absolute h-4 w-4 text-primary-foreground pointer-events-none" />
+                    {supplierId > 0 && (
+                        <div className="flex-1 overflow-y-auto border rounded-md">
+                            {isLoading ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <p className="text-sm text-muted-foreground">Loading digital products...</p>
+                                </div>
+                            ) : products.length === 0 ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <p className="text-sm text-muted-foreground">
+                                        {debouncedSearch ? 'No products found matching your search.' : 'No digital products available.'}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="divide-y">
+                                    {products.map((product) => {
+                                        const isSelected = selectedIds.has(product.id);
+                                        return (
+                                            <label
+                                                key={product.id}
+                                                className={cn(
+                                                    'flex items-start gap-3 p-3 cursor-pointer hover:bg-accent transition-colors',
+                                                    isSelected && 'bg-accent'
                                                 )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium truncate">{product.name}</p>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                                                                {product.sku}
-                                                            </code>
-                                                            {product.brand && (
-                                                                <span className="text-xs text-muted-foreground">{product.brand}</span>
-                                                            )}
+                                            >
+                                                <div className="relative flex items-center justify-center mt-0.5">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => handleToggle(product.id)}
+                                                        className={cn(
+                                                            "h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer",
+                                                            isSelected && "bg-primary"
+                                                        )}
+                                                    />
+                                                    {isSelected && (
+                                                        <CheckIcon className="absolute h-4 w-4 text-primary-foreground pointer-events-none" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium truncate">{product.name}</p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                                                                    {product.sku}
+                                                                </code>
+                                                                {product.brand && (
+                                                                    <span className="text-xs text-muted-foreground">{product.brand}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right shrink-0">
+                                                            <p className="text-sm font-medium">
+                                                                ${Number(product.cost_price).toFixed(2)}
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right shrink-0">
-                                                        <p className="text-sm font-medium">
-                                                            ${Number(product.cost_price).toFixed(2)}
-                                                        </p>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Pagination Controls */}
-                    {pagination && pagination.last_page > 1 && (
+                    {supplierId > 0 && pagination && pagination.last_page > 1 && (
                         <div className="flex items-center justify-between border-t pt-4">
                             <Button
                                 variant="outline"
