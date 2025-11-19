@@ -82,7 +82,11 @@ export const ProductFormDialog = ({
       if (formData.description.trim()) submitData.description = formData.description.trim();
       if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
       if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
-      if (formData.image.trim()) submitData.image = formData.image.trim();
+      if (typeof formData.image === 'string' && formData.image.trim()) {
+        submitData.image = formData.image.trim();
+      } else if (formData.image instanceof File) {
+        submitData.image = formData.image; // or handle file upload logic here
+      }
 
       // Parse tags from comma-separated string
       if (formData.tags.trim()) {
@@ -187,7 +191,7 @@ export const ProductFormDialog = ({
             <Input
               id="image"
               type="url"
-              value={formData.image}
+              value={typeof formData.image === 'string' ? formData.image : ''}
               onChange={(e) => updateFormData({ image: e.target.value })}
               placeholder="https://example.com/image.jpg"
               maxLength={255}
