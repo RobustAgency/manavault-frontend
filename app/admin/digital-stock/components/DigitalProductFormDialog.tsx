@@ -72,15 +72,21 @@ export const DigitalProductFormDialog = ({
 
   const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
   const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Initialize with one empty form for create mode
   useEffect(() => {
-    if (!isEditMode && isOpen) {
+    if (!isEditMode && isOpen && !hasInitialized) {
       initializeForms(0);
       setSelectedSupplierId(0);
       setSupplierError('');
+      setHasInitialized(true);
     }
-  }, [isOpen, isEditMode, initializeForms]);
+
+    if (!isOpen && hasInitialized) {
+      setHasInitialized(false);
+    }
+  }, [isOpen, isEditMode, hasInitialized, initializeForms]);
 
   // Initialize form when editing
   useEffect(() => {
@@ -98,11 +104,8 @@ export const DigitalProductFormDialog = ({
         regions: selectedProduct.regions?.join(', ') || '',
         metadata: selectedProduct.metadata ? JSON.stringify(selectedProduct.metadata, null, 2) : '',
       });
-    } else if (!isEditMode && isOpen) {
-      resetForm();
-      setIsAddSupplierDialogOpen(false);
     }
-  }, [isEditMode, selectedProduct, isOpen, setFormData, resetForm]);
+  }, [isEditMode, selectedProduct, isOpen, setFormData]);
 
   const handleSupplierChange = (supplierId: number) => {
     setSelectedSupplierId(supplierId);
@@ -145,6 +148,7 @@ export const DigitalProductFormDialog = ({
     setSelectedSupplierId(0);
     setSupplierError('');
     setIsAddSupplierDialogOpen(false);
+    setHasInitialized(false);
     onClose();
   };
 

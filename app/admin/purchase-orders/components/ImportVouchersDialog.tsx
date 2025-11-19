@@ -291,7 +291,16 @@ export const ImportVouchersDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="voucher-file">Vouchers File</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="voucher-file">Vouchers File</Label>
+              <a
+                href="/sample-csv/sample_vouchers.csv"
+                download
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Download sample CSV
+              </a>
+            </div>
             <Input
               ref={fileInputRef}
               id="voucher-file"
