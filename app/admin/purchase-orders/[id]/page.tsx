@@ -1,6 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeftIcon,
   Building2Icon,
@@ -21,10 +22,10 @@ import { useGetPurchaseOrderQuery } from '@/lib/redux/features';
 import { formatCurrency, formatDate } from '../components/orderColumns';
 import { ImportVouchersDialog, PurchaseOrderVouchersCard } from '../components';
 
-export default function PurchaseOrderDetailPage() {
-  const params = useParams();
+export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const orderId = parseInt(params.id as string, 10);
+  const orderId = parseInt(id, 10);
 
   const {
     data: order,

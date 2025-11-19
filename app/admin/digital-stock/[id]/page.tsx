@@ -1,6 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     ArrowLeftIcon,
     Building2Icon,
@@ -32,10 +33,10 @@ const formatDate = (dateString: string) => {
     });
 };
 
-export default function DigitalProductDetailPage() {
-    const params = useParams();
+export default function DigitalProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const router = useRouter();
-    const productId = parseInt(params.id as string, 10);
+    const productId = parseInt(id, 10);
 
     const {
         data: product,

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { type DigitalProductFormState } from './useDigitalProductForm';
+import { useState, useCallback } from "react";
+import { type DigitalProductFormState } from "./useDigitalProductForm";
 
 export interface ProductFormItem {
   id: string;
@@ -16,43 +16,57 @@ export const useBulkProductForm = () => {
     id: `product-${Date.now()}-${Math.random()}`,
     formData: {
       supplier_id: supplierId,
-      name: '',
-      sku: '',
-      brand: '',
-      description: '',
-      tags: '',
-      image: '',
-      cost_price: '',
-      status: 'active',
-      regions: '',
-      metadata: '',
+      name: "",
+      sku: "",
+      brand: "",
+      description: "",
+      tags: "",
+      image: "",
+      cost_price: "",
+      status: "active",
+      regions: "",
+      metadata: "",
     },
     errors: {},
     isExpanded: true,
   });
 
-  const initializeForms = (supplierId: number = 0) => {
+  const initializeForms = useCallback((supplierId: number = 0) => {
     const initialForm = createInitialForm(supplierId);
     setProductForms([initialForm]);
     setExpandedItems(new Set([initialForm.id]));
-  };
+  }, []);
 
-  const addProduct = (supplierId: number) => {
+  const addProduct = useCallback((supplierId: number) => {
     const newForm = createInitialForm(supplierId);
-    setProductForms((prev) => [...prev, newForm]);
-    setExpandedItems((prev) => new Set([...prev, newForm.id]));
-  };
+    setProductForms((prev) => {
+      const updated = [...prev, newForm];
+      // Collapse the previous last item when adding a new one
+      if (prev.length > 0) {
+        const prevLastId = prev[prev.length - 1].id;
+        setExpandedItems((current) => {
+          const newSet = new Set(current);
+          newSet.delete(prevLastId);
+          newSet.add(newForm.id);
+          return newSet;
+        });
+      } else {
+        setExpandedItems(new Set([newForm.id]));
+      }
+      return updated;
+    });
+  }, []);
 
-  const removeProduct = (id: string) => {
+  const removeProduct = useCallback((id: string) => {
     setProductForms((prev) => prev.filter((form) => form.id !== id));
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
       newSet.delete(id);
       return newSet;
     });
-  };
+  }, []);
 
-  const toggleAccordion = (id: string) => {
+  const toggleAccordion = useCallback((id: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
@@ -62,48 +76,53 @@ export const useBulkProductForm = () => {
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const updateProductForm = (id: string, updates: Partial<DigitalProductFormState>) => {
-    setProductForms((prev) =>
-      prev.map((form) =>
-        form.id === id ? { ...form, formData: { ...form.formData, ...updates } } : form
-      )
-    );
-  };
+  const updateProductForm = useCallback(
+    (id: string, updates: Partial<DigitalProductFormState>) => {
+      setProductForms((prev) =>
+        prev.map((form) =>
+          form.id === id
+            ? { ...form, formData: { ...form.formData, ...updates } }
+            : form
+        )
+      );
+    },
+    []
+  );
 
-  const updateAllSuppliers = (supplierId: number) => {
+  const updateAllSuppliers = useCallback((supplierId: number) => {
     setProductForms((prev) =>
       prev.map((form) => ({
         ...form,
         formData: { ...form.formData, supplier_id: supplierId },
       }))
     );
-  };
+  }, []);
 
-  const validateProductForm = (form: ProductFormItem): boolean => {
+  const validateProductForm = useCallback((form: ProductFormItem): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!form.formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     } else if (form.formData.name.length > 255) {
-      newErrors.name = 'Name must be 255 characters or less';
+      newErrors.name = "Name must be 255 characters or less";
     }
 
     if (!form.formData.sku.trim()) {
-      newErrors.sku = 'SKU is required';
+      newErrors.sku = "SKU is required";
     } else if (form.formData.sku.length > 100) {
-      newErrors.sku = 'SKU must be 100 characters or less';
+      newErrors.sku = "SKU must be 100 characters or less";
     }
 
     if (!form.formData.cost_price.trim()) {
-      newErrors.cost_price = 'Cost price is required';
+      newErrors.cost_price = "Cost price is required";
     } else {
       const costPriceValue = parseFloat(form.formData.cost_price);
       if (Number.isNaN(costPriceValue)) {
-        newErrors.cost_price = 'Cost price must be a valid number';
+        newErrors.cost_price = "Cost price must be a valid number";
       } else if (costPriceValue < 0) {
-        newErrors.cost_price = 'Cost price must be 0 or greater';
+        newErrors.cost_price = "Cost price must be 0 or greater";
       }
     }
 
@@ -111,7 +130,7 @@ export const useBulkProductForm = () => {
       try {
         JSON.parse(form.formData.metadata);
       } catch {
-        newErrors.metadata = 'Metadata must be valid JSON';
+        newErrors.metadata = "Metadata must be valid JSON";
       }
     }
 
@@ -120,12 +139,12 @@ export const useBulkProductForm = () => {
     );
 
     return Object.keys(newErrors).length === 0;
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setProductForms([]);
     setExpandedItems(new Set());
-  };
+  }, []);
 
   return {
     productForms,
@@ -140,4 +159,3 @@ export const useBulkProductForm = () => {
     reset,
   };
 };
-
