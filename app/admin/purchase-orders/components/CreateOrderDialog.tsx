@@ -308,7 +308,8 @@ export const CreateOrderDialog = ({
                 {formData.items.map((item, index) => {
                   const product = getProductDetails(item.digital_product_id);
                   if (!product) return null;
-                  const subtotal = product.cost_price * item.quantity;
+                  const costPrice = typeof product.cost_price === 'string' ? parseFloat(product.cost_price) : product.cost_price;
+                  const subtotal = (costPrice || 0) * item.quantity;
                   return (
                     <div key={index} className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">
@@ -324,7 +325,9 @@ export const CreateOrderDialog = ({
                     {formatCurrency(
                       formData.items.reduce((total, item) => {
                         const product = getProductDetails(item.digital_product_id);
-                        return total + (product ? product.cost_price * item.quantity : 0);
+                        if (!product) return total;
+                        const costPrice = typeof product.cost_price === 'string' ? parseFloat(product.cost_price) : product.cost_price;
+                        return total + ((costPrice || 0) * item.quantity);
                       }, 0)
                     )}
                   </span>

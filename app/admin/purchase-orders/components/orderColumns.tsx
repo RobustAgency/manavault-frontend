@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { PurchaseOrder } from '@/lib/redux/features';
 import Link from 'next/link';
 
-export const formatCurrency = (amount: number) => {
+export const formatCurrency = (amount: number | string) => {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numAmount)) return '$0.00';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+  }).format(numAmount);
 };
 
 export const formatDate = (dateString: string) => {
