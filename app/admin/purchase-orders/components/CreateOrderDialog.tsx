@@ -25,7 +25,7 @@ import {
   CreatePurchaseOrderData,
   useCreateDigitalProductsMutation,
   useCreateSupplierMutation,
-  useGetDigitalProductsQuery,
+  useGetDigitalProductsListQuery,
   BulkCreateDigitalProductsData,
   CreateDigitalProductData,
   UpdateDigitalProductData,
@@ -67,7 +67,7 @@ export const CreateOrderDialog = ({
   const [isSelectProductsDialogOpen, setIsSelectProductsDialogOpen] = useState(false);
 
   // Fetch digital products for selected supplier (for the add product dialog)
-  const { data: digitalProductsData, isLoading: isLoadingProducts, refetch: refetchProducts } = useGetDigitalProductsQuery(
+  const { data: digitalProductsData, isLoading: isLoadingProducts, refetch: refetchProducts } = useGetDigitalProductsListQuery(
     {
       supplier_id: formData.supplier_id > 0 ? formData.supplier_id : undefined,
       per_page: 100,

@@ -199,6 +199,65 @@ export const digitalProductsApi = createApi({
       },
     }),
 
+    getDigitalProductsList: builder.query<
+      { data: DigitalProduct[]; pagination: PaginationMeta },
+      DigitalProductFilters | void
+    >({
+      query: (filters) => ({
+        url: "/admin/digital-products",
+        method: "GET",
+        params: filters ?? undefined,
+      }),
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: "DigitalProduct" as const,
+                id: String(id),
+              })),
+              { type: "DigitalProduct", id: "LIST" },
+            ]
+          : [{ type: "DigitalProduct", id: "LIST" }],
+      transformResponse: (response: {
+        error?: boolean;
+        data?: {
+          data: DigitalProduct[];
+          current_page: number;
+          per_page: number;
+          total: number;
+          last_page: number;
+          from: number;
+          to: number;
+        };
+        message?: string;
+      }) => {
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return {
+            data: response.data.data,
+            pagination: {
+              current_page: response.data.current_page,
+              per_page: response.data.per_page,
+              total: response.data.total,
+              last_page: response.data.last_page,
+              from: response.data.from,
+              to: response.data.to,
+            },
+          };
+        }
+        return {
+          data: [],
+          pagination: {
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            last_page: 1,
+            from: 0,
+            to: 0,
+          },
+        };
+      },
+    }),
+
     getDigitalProduct: builder.query<DigitalProduct, number>({
       query: (id) => ({
         url: `/admin/digital-products/${id}`,
@@ -316,6 +375,7 @@ export const digitalProductsApi = createApi({
 
 export const {
   useGetDigitalProductsQuery,
+  useGetDigitalProductsListQuery,
   useGetDigitalProductQuery,
   useCreateDigitalProductsMutation,
   useUpdateDigitalProductMutation,

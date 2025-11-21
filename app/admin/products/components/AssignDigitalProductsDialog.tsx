@@ -19,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useGetDigitalProductsQuery, Supplier } from '@/lib/redux/features';
+import { useGetDigitalProductsListQuery, Supplier } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -70,7 +70,7 @@ export const AssignDigitalProductsDialog = ({
     }, [debouncedSearch]);
 
     // Fetch digital products with pagination and search
-    const { data: digitalProductsData, isLoading } = useGetDigitalProductsQuery(
+    const { data: digitalProductsData, isLoading } = useGetDigitalProductsListQuery(
         {
             page: currentPage,
             per_page: perPage,
