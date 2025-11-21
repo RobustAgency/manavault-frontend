@@ -26,7 +26,7 @@ interface SelectDigitalProductsDialogProps {
     supplierId: number;
     isSubmitting: boolean;
     onClose: () => void;
-    onSubmit: (products: Array<{ digital_product_id: number; quantity: number }>) => void;
+    onSubmit: (products: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct }>) => void;
     onAddNewProduct?: () => void;
 }
 
@@ -42,6 +42,7 @@ export const SelectDigitalProductsDialog = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [lastSupplierId, setLastSupplierId] = useState<number | null>(null);
 
     const perPage = 100;
 
@@ -65,7 +66,7 @@ export const SelectDigitalProductsDialog = ({
     }, [debouncedSearch]);
 
     // Fetch digital products with pagination and search
-    const { data: digitalProductsData, isLoading, refetch } = useGetDigitalProductsListQuery(
+    const { data: digitalProductsData, isLoading, isFetching, refetch } = useGetDigitalProductsListQuery(
         {
             page: currentPage,
             per_page: perPage,
@@ -78,6 +79,17 @@ export const SelectDigitalProductsDialog = ({
         }
     );
 
+    // Track when supplier changes and reset state
+    useEffect(() => {
+        if (isOpen && supplierId !== lastSupplierId) {
+            setLastSupplierId(supplierId);
+            setSelectedProducts(new Map());
+            setSearchQuery('');
+            setDebouncedSearch('');
+            setCurrentPage(1);
+        }
+    }, [isOpen, supplierId, lastSupplierId]);
+
     // Refetch when dialog opens to get latest products
     useEffect(() => {
         if (isOpen && supplierId > 0) {
@@ -88,6 +100,10 @@ export const SelectDigitalProductsDialog = ({
     const products = digitalProductsData?.data || [];
     const pagination = digitalProductsData?.pagination;
 
+    // Determine if we're showing loading state
+    // Show loading if: currently loading OR fetching OR supplier changed (showing stale data)
+    const isShowingLoading = isLoading || isFetching || (lastSupplierId !== supplierId && supplierId > 0);
+
     // Reset selection and search when dialog closes
     useEffect(() => {
         if (!isOpen) {
@@ -95,6 +111,7 @@ export const SelectDigitalProductsDialog = ({
             setSearchQuery('');
             setDebouncedSearch('');
             setCurrentPage(1);
+            setLastSupplierId(null);
         }
     }, [isOpen]);
 
@@ -149,13 +166,18 @@ export const SelectDigitalProductsDialog = ({
     };
 
     const handleSubmit = () => {
-        if (selectedProducts.size === 0) {
+        if (selectedProducts.size === 0 || supplierId === 0) {
             return;
         }
-        const items = Array.from(selectedProducts.entries()).map(([digital_product_id, quantity]) => ({
-            digital_product_id,
-            quantity,
-        }));
+        const items = Array.from(selectedProducts.entries()).map(([digital_product_id, quantity]) => {
+            const product = products.find(p => p.id === digital_product_id);
+            return {
+                supplier_id: supplierId,
+                digital_product_id,
+                quantity,
+                product, // Include product details
+            };
+        });
         onSubmit(items);
     };
 
@@ -209,9 +231,10 @@ export const SelectDigitalProductsDialog = ({
 
                     {/* Products List */}
                     <div className="flex-1 overflow-y-auto border rounded-md">
-                        {isLoading ? (
-                            <div className="flex items-center justify-center h-32">
-                                <p className="text-sm text-muted-foreground">Loading digital products...</p>
+                        {isShowingLoading ? (
+                            <div className="flex flex-col items-center justify-center h-32 gap-2">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                <p className="text-sm text-muted-foreground">Loading products...</p>
                             </div>
                         ) : products.length === 0 ? (
                             <div className="flex items-center justify-center h-32">
@@ -292,13 +315,13 @@ export const SelectDigitalProductsDialog = ({
                     </div>
 
                     {/* Pagination Controls */}
-                    {pagination && pagination.last_page > 1 && (
+                    {pagination && pagination.last_page > 1 && !isShowingLoading && (
                         <div className="flex items-center justify-between border-t pt-4">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1 || isLoading}
+                                disabled={currentPage === 1 || isShowingLoading}
                                 className="gap-2"
                             >
                                 <ChevronLeftIcon className="h-4 w-4" />
@@ -311,7 +334,7 @@ export const SelectDigitalProductsDialog = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === pagination.last_page || isLoading}
+                                disabled={currentPage === pagination.last_page || isShowingLoading}
                                 className="gap-2"
                             >
                                 Next

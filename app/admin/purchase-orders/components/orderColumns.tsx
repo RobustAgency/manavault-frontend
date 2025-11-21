@@ -25,12 +25,12 @@ export const formatDate = (dateString: string) => {
 const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'default' => {
   if (!status) return 'default';
   const lowerStatus = status.toLowerCase();
-  
+
   if (lowerStatus === 'completed') return 'success';
   if (lowerStatus === 'pending') return 'warning';
   if (lowerStatus === 'processing') return 'info';
   if (lowerStatus === 'cancelled') return 'error';
-  
+
   return 'default';
 };
 
@@ -48,23 +48,6 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
       </code>
     ),
   },
-  // {
-  //   accessorKey: 'product',
-  //   header: 'Product',
-  //   cell: ({ row }) => (
-  //     <div>
-  //       <div className="font-medium">{row.original.product?.name || '-'}</div>
-  //       {row.original.product?.sku && (
-  //         <code className="text-xs text-muted-foreground">{row.original.product.sku}</code>
-  //       )}
-  //     </div>
-  //   ),
-  // },
-  {
-    accessorKey: 'supplier',
-    header: 'Supplier',
-    cell: ({ row }) => row.original.supplier?.name || '-',
-  },
   {
     accessorKey: 'status',
     header: 'Status',
@@ -74,28 +57,6 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
       </Badge>
     ),
   },
-  // {
-  //   accessorKey: 'quantity',
-  //   header: 'Quantity',
-  //   cell: ({ row }) => (
-  //     <Badge variant="filled" color="info">{row.original.quantity} units</Badge>
-  //   ),
-  // },
-  // {
-  //   accessorKey: 'purchase_price',
-  //   header: 'Unit Price',
-  //   cell: ({ row }) => {
-  //     const unitPrice = row.original.purchase_price;
-  //     if (unitPrice == null || isNaN(unitPrice)) {
-  //       // Fallback: calculate from total_price / quantity if purchase_price is not available
-  //       const totalPrice = parseFloat(row.original.total_price || '0');
-  //       const quantity = row.original.quantity || 1;
-  //       const calculatedPrice = quantity > 0 ? totalPrice / quantity : 0;
-  //       return formatCurrency(calculatedPrice);
-  //     }
-  //     return formatCurrency(unitPrice);
-  //   },
-  // },
   {
     accessorKey: 'total_amount',
     header: 'Total Amount',

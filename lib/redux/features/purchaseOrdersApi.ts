@@ -68,6 +68,17 @@ export interface PurchaseOrder {
     created_at?: string;
     updated_at?: string;
   };
+  suppliers?: {
+    id: number;
+    name: string;
+    slug?: string;
+    type?: string;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    status?: string;
+    created_at?: string;
+    updated_at?: string;
+  }[];
   vouchers?: {
     id: number;
     code: string;
@@ -86,12 +97,12 @@ export interface PurchaseOrderFilters {
 }
 
 export interface PurchaseOrderItem {
+  supplier_id: number;
   digital_product_id: number;
   quantity: number;
 }
 
 export interface CreatePurchaseOrderData {
-  supplier_id: number;
   items: PurchaseOrderItem[];
 }
 

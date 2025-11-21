@@ -37,7 +37,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
   });
 
   const isExternalSupplier =
-    order?.supplier?.type?.toLowerCase?.() === 'external';
+    order?.suppliers?.some((supplier: any) => supplier?.type?.toLowerCase?.() === 'external');
 
   const getTotalQuantity = () => {
     if (!order || !order.items || order.items.length === 0) return 0;
@@ -268,22 +268,78 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
               <Building2Icon className="h-5 w-5" />
               Supplier Information
             </CardTitle>
-            <CardDescription>Details about the supplier for this order</CardDescription>
+            <CardDescription>
+              {order.suppliers && order.suppliers.length > 0
+                ? `${order.suppliers.length} supplier${order.suppliers.length > 1 ? 's' : ''} for this order`
+                : 'Details about the supplier for this order'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {order.supplier ? (
+            {order.suppliers && order.suppliers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {order.suppliers.map((supplier) => (
+                  <div key={supplier.id} className="border rounded-lg p-4 space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Supplier Name</p>
+                      <p className="text-lg font-semibold">{supplier.name}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {supplier.type && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Type</p>
+                          <Badge variant="outlined" className="capitalize">
+                            {supplier.type}
+                          </Badge>
+                        </div>
+                      )}
+                      {supplier.status && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Status</p>
+                          <Badge variant="outlined">
+                            {supplier.status}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                    {(supplier.contact_email || supplier.contact_phone) && (
+                      <>
+                        <div className="border-t pt-3" />
+                        <div className="space-y-2">
+                          {supplier.contact_email && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Contact Email</p>
+                              <a
+                                href={`mailto:${supplier.contact_email}`}
+                                className="text-sm text-blue-600 hover:underline break-all"
+                              >
+                                {supplier.contact_email}
+                              </a>
+                            </div>
+                          )}
+                          {supplier.contact_phone && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Contact Phone</p>
+                              <a
+                                href={`tel:${supplier.contact_phone}`}
+                                className="text-sm text-blue-600 hover:underline"
+                              >
+                                {supplier.contact_phone}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : order.supplier ? (
               <div className="grid gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Supplier Name</p>
                   <p className="text-lg font-semibold">{order.supplier.name}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* <div>
-                    <p className="text-sm text-muted-foreground mb-1">Slug</p>
-                    <code className="text-sm bg-gray-100 px-2 py-1 rounded font-semibold">
-                      {order.supplier.slug}
-                    </code>
-                  </div> */}
                   {order.supplier.type && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Type</p>
