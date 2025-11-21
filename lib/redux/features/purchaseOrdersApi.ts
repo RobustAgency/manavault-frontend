@@ -80,6 +80,9 @@ export interface PurchaseOrder {
 export interface PurchaseOrderFilters {
   page?: number;
   per_page?: number;
+  supplier_id?: number;
+  status?: string;
+  order_number?: string;
 }
 
 export interface PurchaseOrderItem {
@@ -244,17 +247,21 @@ export const purchaseOrdersApi = createApi({
           const order = response.data;
           // API returns total_price as string, convert to number for total_amount
           const totalPrice = parseFloat(String(order.total_price || "0"));
-          
+
           // Calculate quantity and unit price from items if available
           let quantity = 0;
           let unitPrice = 0;
-          
-          if (order.items && Array.isArray(order.items) && order.items.length > 0) {
+
+          if (
+            order.items &&
+            Array.isArray(order.items) &&
+            order.items.length > 0
+          ) {
             // Calculate total quantity from items
             quantity = order.items.reduce((sum: number, item: any) => {
               return sum + (item.quantity || 0);
             }, 0);
-            
+
             // Calculate average unit price from items
             const totalCost = order.items.reduce((sum: number, item: any) => {
               return sum + parseFloat(String(item.subtotal || "0"));

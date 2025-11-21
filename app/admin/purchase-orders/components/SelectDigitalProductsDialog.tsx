@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useGetDigitalProductsQuery, type DigitalProduct } from '@/lib/redux/features';
+import { useGetDigitalProductsListQuery, type DigitalProduct } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,7 +65,7 @@ export const SelectDigitalProductsDialog = ({
     }, [debouncedSearch]);
 
     // Fetch digital products with pagination and search
-    const { data: digitalProductsData, isLoading, refetch } = useGetDigitalProductsQuery(
+    const { data: digitalProductsData, isLoading, refetch } = useGetDigitalProductsListQuery(
         {
             page: currentPage,
             per_page: perPage,

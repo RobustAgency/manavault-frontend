@@ -1,9 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   useGetPurchaseOrdersQuery,
   useGetPurchaseOrderQuery,
@@ -14,11 +22,25 @@ import { CreateOrderDialog, ViewOrderDialog, createOrderColumns } from './compon
 
 export default function PurchaseOrdersPage() {
   const [page, setPage] = useState(1);
+  const [supplierFilter, setSupplierFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [orderNumberSearch, setOrderNumberSearch] = useState('');
   const perPage = 10;
 
-  const { data, isLoading } = useGetPurchaseOrdersQuery({ page, per_page: perPage });
+  const { data, isLoading } = useGetPurchaseOrdersQuery({
+    page,
+    per_page: perPage,
+    supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    order_number: orderNumberSearch || undefined,
+  });
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [supplierFilter, statusFilter, orderNumberSearch]);
 
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -62,6 +84,52 @@ export default function PurchaseOrdersPage() {
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Purchase Order
         </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-4 mb-4 flex-wrap">
+        <div className="w-48">
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="processing">Processing</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Select
+            value={supplierFilter}
+            onValueChange={setSupplierFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by supplier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Suppliers</SelectItem>
+              {suppliersData?.data.map((supplier) => (
+                <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                  {supplier.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Search by order number..."
+            value={orderNumberSearch}
+            onChange={(e) => setOrderNumberSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <DataTable

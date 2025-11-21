@@ -22,6 +22,18 @@ export const formatDate = (dateString: string) => {
   });
 };
 
+const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'default' => {
+  if (!status) return 'default';
+  const lowerStatus = status.toLowerCase();
+  
+  if (lowerStatus === 'completed') return 'success';
+  if (lowerStatus === 'pending') return 'warning';
+  if (lowerStatus === 'processing') return 'info';
+  if (lowerStatus === 'cancelled') return 'error';
+  
+  return 'default';
+};
+
 interface OrderColumnsProps {
   onView?: (orderId: number) => void; // Optional, for backward compatibility
 }
@@ -52,6 +64,15 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
     accessorKey: 'supplier',
     header: 'Supplier',
     cell: ({ row }) => row.original.supplier?.name || '-',
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => (
+      <Badge variant="filled" color={getStatusColor(row.original.status)} className="capitalize">
+        {row.original.status || '-'}
+      </Badge>
+    ),
   },
   // {
   //   accessorKey: 'quantity',

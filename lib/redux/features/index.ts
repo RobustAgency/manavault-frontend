@@ -85,6 +85,7 @@ export {
 
 export {
   useGetDigitalProductsQuery,
+  useGetDigitalProductsListQuery,
   useGetDigitalProductQuery,
   useCreateDigitalProductsMutation,
   useUpdateDigitalProductMutation,

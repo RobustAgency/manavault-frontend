@@ -14,8 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { verifyMFALogin } from "@/lib/mfa-actions";
+import { signout } from "@/lib/auth-actions";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 
 export function VerifyMFA() {
     const router = useRouter();
@@ -73,6 +74,21 @@ export function VerifyMFA() {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            const result = await signout();
+            if (result.success) {
+                toast.success("Logged out successfully");
+                window.location.href = "/login";
+            } else {
+                toast.error(result.message || "Failed to logout");
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+            toast.error("An error occurred during logout");
+        }
+    };
+
     return (
         <Card className="min-w-sm mx-auto max-w-md">
             <CardHeader>
@@ -124,6 +140,19 @@ export function VerifyMFA() {
                         "Verify"
                     )}
                 </Button>
+
+                <div className="pt-4 border-t">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLogout}
+                        className="w-full text-muted-foreground hover:text-foreground"
+                    >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout instead
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     );
