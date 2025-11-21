@@ -34,7 +34,10 @@ export default function PurchaseOrdersPage() {
     status: statusFilter === 'all' ? undefined : statusFilter,
     order_number: orderNumberSearch || undefined,
   });
-  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
+  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({
+    per_page: 100,
+    status: 'active'
+  });
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
 
   // Reset page to 1 when filters change

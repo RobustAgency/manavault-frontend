@@ -1,9 +1,7 @@
 "use client"
-import Link from "next/link"
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +15,6 @@ import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { login } from "@/lib/auth-actions"
-import SignInWithGoogleButton from "@/components/auth/SignInWithGoogleButton"
-import { createClient } from "@/lib/supabase/client"
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -30,8 +26,9 @@ function SubmitButton() {
 }
 
 export function LoginForm() {
-    const router = useRouter();
-    const formRef = useRef<HTMLFormElement | null>(null);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
     const [state, formAction] = useActionState(
         async (_prev: null | { success: false; message: string } | { success: true; data: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null }, formData: FormData) => {
             try {
@@ -52,10 +49,10 @@ export function LoginForm() {
         if (!state) return;
         if (state.success) {
             toast.success("Logged in successfully");
-            formRef.current?.reset();
+            // Clear inputs only on success
+            setEmail("");
+            setPassword("");
 
-            // Redirect to dashboard - middleware will handle MFA checks and redirects
-            // This ensures proper server-side session context
             const userRole = state.data?.user_metadata?.role;
             const redirectPath = (userRole === "admin" || userRole === "super_admin")
                 ? "/admin/dashboard"
@@ -63,6 +60,7 @@ export function LoginForm() {
             window.location.href = redirectPath;
         } else if (state.message) {
             toast.error(state.message);
+            // Inputs remain unchanged on error
         }
     }, [state]);
 
@@ -75,7 +73,7 @@ export function LoginForm() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form ref={formRef} action={formAction}>
+                <form action={formAction}>
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
@@ -84,20 +82,24 @@ export function LoginForm() {
                                 name="email"
                                 type="email"
                                 placeholder="m@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
                         <div className="grid gap-2">
                             <div className="flex items-center">
                                 <Label htmlFor="password">Password</Label>
-                                {/* <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
-                                    Forgot your password?
-                                </Link> */}
                             </div>
-                            <PasswordInput id="password" name="password" required />
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
                         </div>
                         <SubmitButton />
-                        {/* <SignInWithGoogleButton /> */}
                     </div>
                 </form>
             </CardContent>
