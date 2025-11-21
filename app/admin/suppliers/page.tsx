@@ -29,23 +29,36 @@ export default function SuppliersPage() {
   const [nameSearch, setNameSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Debounced search state for API query
+  const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const perPage = 10;
+
+  // Debounce name search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNameSearch(nameSearch);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [nameSearch]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [typeFilter, statusFilter]);
 
   const { data, isLoading } = useGetSuppliersQuery({
     page,
     per_page: perPage,
-    name: nameSearch || undefined,
+    name: debouncedNameSearch || undefined,
     type: typeFilter === 'all' ? undefined : (typeFilter as SupplierType),
     status: statusFilter === 'all' ? undefined : (statusFilter as SupplierStatus),
   });
   const [createSupplier, { isLoading: isCreating }] = useCreateSupplierMutation();
   const [updateSupplier, { isLoading: isUpdating }] = useUpdateSupplierMutation();
   const [deleteSupplier, { isLoading: isDeleting }] = useDeleteSupplierMutation();
-
-  // Reset page to 1 when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [nameSearch, typeFilter, statusFilter]);
 
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

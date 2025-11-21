@@ -8,11 +8,10 @@ import {
     useGetSuppliersQuery,
     useCreateDigitalProductsMutation,
     useCreateSupplierMutation,
-    type CreateDigitalProductData,
     type CreateSupplierData,
 } from '@/lib/redux/features';
 import { toast } from 'react-toastify';
-import { useBulkProductForm, type ProductFormItem } from '../components/useBulkProductForm';
+import { useBulkProductForm } from '../components/useBulkProductForm';
 import { GlobalSupplierSelector } from '../components/GlobalSupplierSelector';
 import { ProductFormFields } from '../components/ProductFormFields';
 import { ProductAccordionItem } from '../components/ProductAccordionItem';
@@ -21,7 +20,7 @@ import { SupplierFormDialog } from '@/app/admin/suppliers/components/SupplierFor
 
 export default function CreateDigitalProductPage() {
     const router = useRouter();
-    const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
+    const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100, status: 'active' });
     const [createDigitalProducts, { isLoading, isSuccess, isError, error, data: createdProducts }] = useCreateDigitalProductsMutation();
     const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
 
