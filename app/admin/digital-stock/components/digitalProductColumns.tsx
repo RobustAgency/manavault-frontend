@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { DigitalProduct, DigitalProductStatus } from '@/lib/redux/features';
 import Link from 'next/link';
 
-export const formatCurrency = (amount: number) => {
+export const formatCurrency = (amount: number | string) => {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numAmount)) return '$0.00';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+  }).format(numAmount);
 };
 
 export const getStatusColor = (status: DigitalProductStatus): 'success' | 'default' => {
@@ -47,14 +49,24 @@ export const createDigitalProductColumns = ({
       cell: ({ row }) => row.original.brand || '-',
     },
     {
-      accessorKey: 'supplier',
+      accessorKey: 'supplier_name',
       header: 'Supplier',
-      cell: ({ row }) => row.original.supplier?.name || '-',
+      cell: ({ row }) => row.original.supplier_name || '-',
     },
     {
       accessorKey: 'cost_price',
       header: 'Cost Price',
       cell: ({ row }) => formatCurrency(row.original.cost_price),
+    },
+    {
+      accessorKey: 'quantity',
+      header: 'Quantity',
+      cell: ({ row }) => {
+        const quantity = row.original.quantity;
+        if (quantity === null || quantity === undefined || quantity === '') return '-';
+        const numQuantity = typeof quantity === 'string' ? parseInt(quantity, 10) : quantity;
+        return isNaN(numQuantity) ? '-' : numQuantity.toString();
+      },
     },
     {
       accessorKey: 'tags',
@@ -113,7 +125,7 @@ export const createDigitalProductColumns = ({
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
-        const isExternal = row.original.supplier?.type === 'external';
+        const isExternal = row.original.supplier_type === 'external';
 
         return (
           <div className="flex gap-2">

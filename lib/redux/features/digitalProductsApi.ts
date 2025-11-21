@@ -23,12 +23,18 @@ export interface DigitalProduct {
   description?: string | null;
   tags?: string[] | null;
   image?: string | null;
-  cost_price: number;
+  cost_price: string | number;
   status: DigitalProductStatus;
   regions?: string[] | null;
   metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  supplier_name?: string | null;
+  supplier_type?: string | null;
+  quantity?: string | null;
+  last_synced_at?: string | null;
+  source?: string | null;
+  // Legacy nested supplier object (for backward compatibility)
   supplier?: {
     id: number;
     name: string;
@@ -139,7 +145,7 @@ export const digitalProductsApi = createApi({
       DigitalProductFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/digital-products",
+        url: "/admin/digital-stocks",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -154,7 +160,8 @@ export const digitalProductsApi = createApi({
             ]
           : [{ type: "DigitalProduct", id: "LIST" }],
       transformResponse: (response: {
-        data: {
+        error?: boolean;
+        data?: {
           data: DigitalProduct[];
           current_page: number;
           per_page: number;
@@ -163,7 +170,6 @@ export const digitalProductsApi = createApi({
           from: number;
           to: number;
         };
-        error?: boolean;
         message?: string;
       }) => {
         if (response.data?.data && Array.isArray(response.data.data)) {
