@@ -1,27 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   useGetSuppliersQuery,
   useCreateSupplierMutation,
   useUpdateSupplierMutation,
   useDeleteSupplierMutation,
   type Supplier,
+  type SupplierType,
+  type SupplierStatus,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { SupplierFormDialog, createSupplierColumns } from './components';
 
 export default function SuppliersPage() {
   const [page, setPage] = useState(1);
+  const [nameSearch, setNameSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const perPage = 10;
 
-  const { data, isLoading } = useGetSuppliersQuery({ page, per_page: perPage });
+  const { data, isLoading } = useGetSuppliersQuery({
+    page,
+    per_page: perPage,
+    name: nameSearch || undefined,
+    type: typeFilter === 'all' ? undefined : (typeFilter as SupplierType),
+    status: statusFilter === 'all' ? undefined : (statusFilter as SupplierStatus),
+  });
   const [createSupplier, { isLoading: isCreating }] = useCreateSupplierMutation();
   const [updateSupplier, { isLoading: isUpdating }] = useUpdateSupplierMutation();
   const [deleteSupplier, { isLoading: isDeleting }] = useDeleteSupplierMutation();
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [nameSearch, typeFilter, statusFilter]);
 
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -91,6 +115,47 @@ export default function SuppliersPage() {
           <PlusIcon className="h-4 w-4 mr-2" />
           Add Supplier
         </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-4 mb-4 flex-wrap">
+        <div className="w-48">
+          <Select
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="internal">Internal</SelectItem>
+              <SelectItem value="external">External</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Search by name..."
+            value={nameSearch}
+            onChange={(e) => setNameSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <DataTable

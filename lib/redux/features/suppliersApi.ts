@@ -30,6 +30,9 @@ export interface Supplier {
 export interface SupplierFilters {
   page?: number;
   per_page?: number;
+  name?: string;
+  type?: SupplierType;
+  status?: SupplierStatus;
 }
 
 export interface CreateSupplierData {
@@ -254,8 +257,7 @@ export const suppliersApi = createApi({
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
-            mutationError?.error?.data?.message ||
-            "Failed to delete supplier";
+            mutationError?.error?.data?.message || "Failed to delete supplier";
           toast.error(errorMessage);
         }
       },
@@ -270,4 +272,3 @@ export const {
   useUpdateSupplierMutation,
   useDeleteSupplierMutation,
 } = suppliersApi;
-
