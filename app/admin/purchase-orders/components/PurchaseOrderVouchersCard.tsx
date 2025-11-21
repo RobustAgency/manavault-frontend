@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ClipboardIcon,
-  ClipboardCheckIcon,
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Voucher } from '@/lib/redux/features';
 import { useGetVouchersQuery } from '@/lib/redux/features';
 import { formatDate } from './orderColumns';
+import { VoucherCodeDialog } from '@/components/admin/vouchers/VoucherCodeDialog';
 
 interface PurchaseOrderVouchersCardProps {
   purchaseOrderId: number;
@@ -27,10 +27,11 @@ export const PurchaseOrderVouchersCard = ({
   purchaseOrderId,
   isExternalSupplier = false,
 }: PurchaseOrderVouchersCardProps) => {
-  const [copiedVoucherId, setCopiedVoucherId] = useState<number | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [hasRetryFailure, setHasRetryFailure] = useState(false);
   const [page, setPage] = useState(1);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const shouldFetch = Number.isFinite(purchaseOrderId) && purchaseOrderId > 0;
   const {
     data,
@@ -55,16 +56,6 @@ export const PurchaseOrderVouchersCard = ({
     pagination?.to ??
     (remoteVouchers.length ? startEntry + remoteVouchers.length - 1 : 0);
   const vouchers: Voucher[] = useMemo(() => remoteVouchers, [remoteVouchers]);
-
-  const handleCopy = useCallback(async (code: string, voucherId: number) => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopiedVoucherId(voucherId);
-      setTimeout(() => setCopiedVoucherId(null), 2000);
-    } catch (error) {
-      console.error('Failed to copy voucher code:', error);
-    }
-  }, []);
 
   const hasVouchers = vouchers.length > 0;
   const isLoadingState = isLoading || isFetching;
@@ -170,6 +161,16 @@ export const PurchaseOrderVouchersCard = ({
     [currentPage, totalPages]
   );
 
+  const handleViewVoucher = useCallback((voucherId: number) => {
+    setSelectedVoucherId(voucherId);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setIsDialogOpen(false);
+    setSelectedVoucherId(null);
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -248,14 +249,15 @@ export const PurchaseOrderVouchersCard = ({
         {!isLoadingState && hasVouchers ? (
           <div className="space-y-3">
             {vouchers.map((voucher) => {
-              const isCopied = copiedVoucherId === voucher.id;
               return (
                 <div
                   key={voucher.id}
                   className="flex flex-col gap-2 rounded-lg border border-border/60 p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="font-mono text-sm font-semibold tracking-wide">
+                    <p
+                      title={voucher.code}
+                      className="text-sm font-semibold tracking-wide max-w-lg truncate">
                       {voucher.code}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -266,21 +268,11 @@ export const PurchaseOrderVouchersCard = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => handleCopy(voucher.code, voucher.id)}
+                    onClick={() => handleViewVoucher(voucher.id)}
                   >
-                    {isCopied ? (
-                      <>
-                        <ClipboardCheckIcon className="mr-2 h-4 w-4" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <ClipboardIcon className="mr-2 h-4 w-4" />
-                        Copy Code
-                      </>
-                    )}
+                    <Eye className="h-4 w-4" />
                   </Button>
+
                 </div>
               );
             })}
@@ -326,6 +318,11 @@ export const PurchaseOrderVouchersCard = ({
           </div>
         ) : null}
       </CardContent>
+      <VoucherCodeDialog
+        voucherId={selectedVoucherId}
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+      />
     </Card>
   );
 };

@@ -41,6 +41,7 @@ export type {
   Voucher,
   GetVouchersParams,
   GetVouchersResponse,
+  GetDecryptedVoucherResponse,
 } from "./vouchersApi";
 
 export type {
@@ -79,6 +80,7 @@ export {
 
 export {
   useGetVouchersQuery,
+  useLazyGetDecryptedVoucherQuery,
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } from "./vouchersApi";
