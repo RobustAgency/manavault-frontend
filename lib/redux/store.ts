@@ -5,6 +5,7 @@ import { productsApi } from "./features/productsApi";
 import { purchaseOrdersApi } from "./features/purchaseOrdersApi";
 import { vouchersApi } from "./features/vouchersApi";
 import { digitalProductsApi } from "./features/digitalProductsApi";
+import { brandsApi } from "./features/brandsApi";
 
 export const makeStore = () => {
   return configureStore({
@@ -14,6 +15,7 @@ export const makeStore = () => {
       [purchaseOrdersApi.reducerPath]: purchaseOrdersApi.reducer,
       [vouchersApi.reducerPath]: vouchersApi.reducer,
       [digitalProductsApi.reducerPath]: digitalProductsApi.reducer,
+      [brandsApi.reducerPath]: brandsApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(
@@ -21,7 +23,8 @@ export const makeStore = () => {
         productsApi.middleware,
         purchaseOrdersApi.middleware,
         vouchersApi.middleware,
-        digitalProductsApi.middleware
+        digitalProductsApi.middleware,
+        brandsApi.middleware
       ),
   });
 };

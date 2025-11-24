@@ -49,7 +49,9 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
               {product.brand && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-2">Brand</p>
-                  <p className="text-lg font-semibold">{product.brand}</p>
+                  <p className="text-lg font-semibold">
+                    {typeof product.brand === 'string' ? product.brand : product.brand.name}
+                  </p>
                 </div>
               )}
             </div>

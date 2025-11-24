@@ -49,7 +49,9 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
           </div>
           {product.brand && (
             <p className="text-sm text-muted-foreground mt-2">
-              Brand: <span className="font-medium text-foreground">{product.brand}</span>
+              Brand: <span className="font-medium text-foreground">
+                {typeof product.brand === 'string' ? product.brand : product.brand.name}
+              </span>
             </p>
           )}
         </div>

@@ -21,6 +21,7 @@ import { useProductForm } from '../components/useProductForm';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
+import { BrandSelector } from '../components/BrandSelector';
 
 export default function CreateProductPage() {
     const router = useRouter();
@@ -53,7 +54,12 @@ export default function CreateProductPage() {
             submitData.append('status', formData.status);
 
             // Add optional fields only if they have values
-            if (formData.brand.trim()) submitData.append('brand', formData.brand.trim());
+            if (formData.brand_id.trim()) {
+                const brandId = parseInt(formData.brand_id);
+                if (!isNaN(brandId)) {
+                    submitData.append('brand_id', brandId.toString());
+                }
+            }
             if (formData.description.trim()) submitData.append('description', formData.description.trim());
             if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
             if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
@@ -146,17 +152,11 @@ export default function CreateProductPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="brand" className="text-sm font-medium">Brand</Label>
-                                <Input
-                                    id="brand"
-                                    value={formData.brand}
-                                    onChange={(e) => updateFormData({ brand: e.target.value })}
-                                    placeholder="Enter brand name"
-                                    maxLength={255}
-                                    className="h-10"
-                                />
-                            </div>
+                            <BrandSelector
+                                value={formData.brand_id}
+                                onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
+                                error={errors.brand}
+                            />
 
                             <div className="space-y-2">
                                 <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>

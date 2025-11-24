@@ -24,8 +24,10 @@ import {
   Product,
   ProductStatus,
   CreateProductData,
+  useGetBrandsQuery,
 } from '@/lib/redux/features';
 import { useProductForm } from './useProductForm';
+import { BrandSelector } from './BrandSelector';
 
 interface ProductFormDialogProps {
   isOpen: boolean;
@@ -45,13 +47,31 @@ export const ProductFormDialog = ({
   onSubmit,
 }: ProductFormDialogProps) => {
   const { formData, setFormData, errors, validateForm, resetForm, updateFormData } = useProductForm(isEditMode);
+  const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
 
   // Initialize form when editing
   useEffect(() => {
     if (isEditMode && selectedProduct) {
+      // Get brand_id from product.brand_id or from brand object
+      let brandId = '';
+      if (selectedProduct.brand_id) {
+        brandId = String(selectedProduct.brand_id);
+      } else if (selectedProduct.brand && typeof selectedProduct.brand === 'object' && selectedProduct.brand.id) {
+        // Use brand object ID directly if available
+        brandId = String(selectedProduct.brand.id);
+      } else if (selectedProduct.brand && typeof selectedProduct.brand === 'string' && brandsData?.data) {
+        // Fallback: find by brand name if it's a string
+        const foundBrand = brandsData.data.find(
+          (brand) => brand.name === selectedProduct.brand
+        );
+        if (foundBrand) {
+          brandId = String(foundBrand.id);
+        }
+      }
+
       setFormData({
         name: selectedProduct.name,
-        brand: selectedProduct.brand || '',
+        brand_id: brandId,
         description: selectedProduct.description || '',
         short_description: selectedProduct.short_description || '',
         long_description: selectedProduct.long_description || '',
@@ -65,7 +85,7 @@ export const ProductFormDialog = ({
     } else {
       resetForm();
     }
-  }, [isEditMode, selectedProduct, isOpen]);
+  }, [isEditMode, selectedProduct, brandsData, isOpen]);
 
 
   const handleSubmit = () => {
@@ -78,7 +98,12 @@ export const ProductFormDialog = ({
       };
 
       // Add optional fields only if they have values
-      if (formData.brand.trim()) submitData.brand = formData.brand.trim();
+      if (formData.brand_id.trim()) {
+        const brandId = parseInt(formData.brand_id);
+        if (!isNaN(brandId)) {
+          submitData.brand_id = brandId;
+        }
+      }
       if (formData.description.trim()) submitData.description = formData.description.trim();
       if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
       if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
@@ -142,16 +167,11 @@ export const ProductFormDialog = ({
             {!errors.sku && isEditMode && <p className="text-xs text-muted-foreground">SKU cannot be updated</p>}
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="brand">Brand</Label>
-            <Input
-              id="brand"
-              value={formData.brand}
-              onChange={(e) => updateFormData({ brand: e.target.value })}
-              placeholder="Brand name"
-              maxLength={255}
-            />
-          </div>
+          <BrandSelector
+            value={formData.brand_id}
+            onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
+            error={errors.brand}
+          />
 
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>

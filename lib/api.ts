@@ -26,7 +26,7 @@ export class ApiError extends Error {
 
 const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
-  timeout: 60000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -34,7 +34,7 @@ const API_CONFIG = {
 
 // Retry configuration
 const RETRY_CONFIG = {
-  maxRetries: 3,
+  maxRetries: 0,
   retryDelay: 1000,
   retryableStatuses: [408, 429, 500, 502, 503, 504],
   retryableErrors: ["ECONNABORTED", "ETIMEDOUT", "NETWORK_ERROR"],

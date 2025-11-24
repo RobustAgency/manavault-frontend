@@ -6,11 +6,12 @@ export interface ProductFormErrors {
   name?: string;
   sku?: string;
   selling_price?: string;
+  brand?: string;
 }
 
 export interface ProductFormState {
   name: string;
-  brand: string;
+  brand_id: string;
   description: string;
   short_description: string;
   long_description: string;
@@ -25,7 +26,7 @@ export interface ProductFormState {
 export const useProductForm = (isEditMode: boolean) => {
   const [formData, setFormData] = useState<ProductFormState>({
     name: "",
-    brand: "",
+    brand_id: "",
     description: "",
     short_description: "",
     long_description: "",
@@ -82,7 +83,7 @@ export const useProductForm = (isEditMode: boolean) => {
   const resetForm = () => {
     setFormData({
       name: "",
-      brand: "",
+      brand_id: "",
       description: "",
       short_description: "",
       long_description: "",

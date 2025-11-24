@@ -46,7 +46,11 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
   {
     accessorKey: 'brand',
     header: 'Brand',
-    cell: ({ row }) => row.original.brand || '-',
+    cell: ({ row }) => {
+      const brand = row.original.brand;
+      if (!brand) return '-';
+      return typeof brand === 'string' ? brand : brand.name;
+    },
   },
   {
     accessorKey: 'sku',

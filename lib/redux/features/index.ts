@@ -4,6 +4,7 @@ export { productsApi } from "./productsApi";
 export { purchaseOrdersApi } from "./purchaseOrdersApi";
 export { vouchersApi } from "./vouchersApi";
 export { digitalProductsApi } from "./digitalProductsApi";
+export { brandsApi } from "./brandsApi";
 
 // Export all types
 export type {
@@ -41,6 +42,7 @@ export type {
   Voucher,
   GetVouchersParams,
   GetVouchersResponse,
+  GetDecryptedVoucherResponse,
 } from "./vouchersApi";
 
 export type {
@@ -51,6 +53,12 @@ export type {
   BulkCreateDigitalProductsData,
   UpdateDigitalProductData,
 } from "./digitalProductsApi";
+
+export type {
+  Brand,
+  BrandFilters,
+  CreateBrandData,
+} from "./brandsApi";
 
 // Export all hooks
 export {
@@ -79,6 +87,7 @@ export {
 
 export {
   useGetVouchersQuery,
+  useLazyGetDecryptedVoucherQuery,
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } from "./vouchersApi";
@@ -91,3 +100,8 @@ export {
   useUpdateDigitalProductMutation,
   useDeleteDigitalProductMutation,
 } from "./digitalProductsApi";
+
+export {
+  useGetBrandsQuery,
+  useCreateBrandMutation,
+} from "./brandsApi";

@@ -71,6 +71,13 @@ export interface GetVouchersResponse {
   error?: boolean;
 }
 
+export interface GetDecryptedVoucherResponse {
+  id: number;
+  code: string;
+  message?: string;
+  error?: boolean;
+}
+
 // Custom base query using existing Axios client
 const axiosBaseQuery =
   (): BaseQueryFn<
@@ -172,6 +179,22 @@ export const vouchersApi = createApi({
             ]
           : [{ type: "Voucher", id: "LIST" }],
     }),
+    getDecryptedVoucher: builder.query<GetDecryptedVoucherResponse, number>({
+      query: (voucherId) => ({
+        url: `/admin/vouchers/${voucherId}`,
+        method: "GET",
+      }),
+      transformResponse: (
+        response: ApiResponse<{ id: number; code: string }>
+      ): GetDecryptedVoucherResponse => {
+        return {
+          id: response?.data?.id ?? 0,
+          code: response?.data?.code ?? "",
+          message: response?.message,
+          error: response?.error,
+        };
+      },
+    }),
     importVouchers: builder.mutation<
       ImportVouchersResponse,
       ImportVouchersData
@@ -250,6 +273,7 @@ export const vouchersApi = createApi({
 
 export const {
   useGetVouchersQuery,
+  useLazyGetDecryptedVoucherQuery,
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } = vouchersApi;

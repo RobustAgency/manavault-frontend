@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
@@ -30,14 +30,37 @@ export default function DigitalProductsPage() {
   const [nameSearch, setNameSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
+
+  // Debounced search states for API queries
+  const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
+  const [debouncedBrandSearch, setDebouncedBrandSearch] = useState('');
   const perPage = 10;
+
+  // Debounce search inputs
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedNameSearch(nameSearch);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [nameSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBrandSearch(brandSearch);
+      setPage(1); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [brandSearch]);
 
   const { data, isLoading } = useGetDigitalProductsQuery({
     page,
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
-    name: nameSearch || undefined,
-    brand: brandSearch || undefined,
+    name: debouncedNameSearch || undefined,
+    brand: debouncedBrandSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
   });
 
