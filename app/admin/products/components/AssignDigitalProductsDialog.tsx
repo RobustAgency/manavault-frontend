@@ -272,7 +272,7 @@ export const AssignDigitalProductsDialog = ({
                                                                 </code>
                                                                 {product.brand && (
                                                                     <span className="text-xs text-muted-foreground">
-                                                                        {typeof product.brand === 'string' ? product.brand : product.brand.name}
+                                                                        {product.brand}
                                                                     </span>
                                                                 )}
                                                             </div>

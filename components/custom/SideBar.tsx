@@ -10,7 +10,9 @@ import {
     ShoppingCart,
     FileText,
     Upload,
-    Gift
+    Gift,
+    ShieldCheck,
+    ClipboardList
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
@@ -22,6 +24,8 @@ const adminRoutes = [
     { href: "/admin/digital-stock", label: "Digital Stock", icon: Gift },
     { href: "/admin/purchase-orders", label: "Purchase Orders", icon: FileText },
     { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/login-logs", label: "Login Logs", icon: ShieldCheck },
+    { href: "/admin/voucher-audit-logs", label: "Voucher Audit", icon: ClipboardList },
     // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [

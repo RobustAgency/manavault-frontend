@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Eye, XCircle } from 'lucide-react';
 import {
     Dialog,
@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useLazyGetDecryptedVoucherQuery } from '@/lib/redux/features';
+import { useGetDecryptedVoucherMutation } from '@/lib/redux/features';
 
 interface VoucherCodeDialogProps {
     voucherId: number | null;
@@ -18,19 +18,61 @@ interface VoucherCodeDialogProps {
     onClose: () => void;
 }
 
+/**
+ * Get user's IP address using a public API
+ * Falls back to 'unknown' if the API call fails
+ */
+async function getUserIPAddress(): Promise<string> {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip || 'unknown';
+    } catch (error) {
+        console.error('Failed to fetch IP address:', error);
+        return 'unknown';
+    }
+}
+
+/**
+ * Get user agent from browser
+ */
+function getUserAgent(): string {
+    if (typeof window === 'undefined') return '';
+    return window.navigator.userAgent || '';
+}
+
 export const VoucherCodeDialog = ({
     voucherId,
     isOpen,
     onClose,
 }: VoucherCodeDialogProps) => {
-    const [trigger, { data, isLoading, isError, reset }] =
-        useLazyGetDecryptedVoucherQuery();
+    const [getDecryptedVoucher, { data, isLoading, isError, reset }] =
+        useGetDecryptedVoucherMutation();
+    const [isFetchingClientInfo, setIsFetchingClientInfo] = useState(false);
 
     useEffect(() => {
         if (isOpen && voucherId) {
-            trigger(voucherId);
+            const fetchVoucherCode = async () => {
+                setIsFetchingClientInfo(true);
+                try {
+                    const ipAddress = await getUserIPAddress();
+                    const userAgent = getUserAgent();
+
+                    await getDecryptedVoucher({
+                        voucherId,
+                        ip_address: ipAddress,
+                        user_agent: userAgent,
+                    }).unwrap();
+                } catch (error) {
+                    console.error('Failed to get decrypted voucher:', error);
+                } finally {
+                    setIsFetchingClientInfo(false);
+                }
+            };
+
+            fetchVoucherCode();
         }
-    }, [isOpen, voucherId, trigger]);
+    }, [isOpen, voucherId, getDecryptedVoucher]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -41,6 +83,8 @@ export const VoucherCodeDialog = ({
     const handleClose = () => {
         onClose();
     };
+
+    const isProcessing = isLoading || isFetchingClientInfo;
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -55,13 +99,13 @@ export const VoucherCodeDialog = ({
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                    {isLoading && (
+                    {isProcessing && (
                         <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted p-6 text-sm text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
                             <span>Decrypting voucher code...</span>
                         </div>
                     )}
-                    {isError && (
+                    {isError && !isProcessing && (
                         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
                             <XCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                             <div>
@@ -70,7 +114,7 @@ export const VoucherCodeDialog = ({
                             </div>
                         </div>
                     )}
-                    {!isLoading && !isError && data && (
+                    {!isProcessing && !isError && data && (
                         <div className="space-y-3">
                             <div
                                 className="select-none rounded-lg border-2 border-primary/20 bg-primary/5 p-6 text-center"
