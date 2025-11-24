@@ -61,29 +61,40 @@ export function LoginForm() {
 
             toast.success("Logged in successfully");
 
-            // Create login log entry
+            // Create login log entry and wait for it to complete before redirecting
             const userEmail = state.data?.email || email;
             if (userEmail) {
-                createLoginLogData(userEmail, 'login').then((logData) => {
-                    createLoginLog(logData).catch((error) => {
+                // Use async IIFE to properly await the login log creation
+                (async () => {
+                    try {
+                        const logData = await createLoginLogData(userEmail, 'login');
+                        await createLoginLog(logData).unwrap();
+                    } catch (error) {
                         // Silently fail - don't block login if logging fails
                         console.error('Failed to log login activity:', error);
-                    });
-                }).catch((error) => {
-                    // Silently fail - don't block login if logging fails
-                    console.error('Failed to create login log data:', error);
-                });
+                    } finally {
+                        // Clear inputs only on success
+                        setEmail("");
+                        setPassword("");
+
+                        const userRole = state.data?.user_metadata?.role;
+                        const redirectPath = (userRole === "admin" || userRole === "super_admin")
+                            ? "/admin/dashboard"
+                            : "/dashboard";
+                        window.location.href = redirectPath;
+                    }
+                })();
+            } else {
+                // If no email, redirect immediately
+                setEmail("");
+                setPassword("");
+
+                const userRole = state.data?.user_metadata?.role;
+                const redirectPath = (userRole === "admin" || userRole === "super_admin")
+                    ? "/admin/dashboard"
+                    : "/dashboard";
+                window.location.href = redirectPath;
             }
-
-            // Clear inputs only on success
-            setEmail("");
-            setPassword("");
-
-            const userRole = state.data?.user_metadata?.role;
-            const redirectPath = (userRole === "admin" || userRole === "super_admin")
-                ? "/admin/dashboard"
-                : "/dashboard";
-            window.location.href = redirectPath;
         } else if (state.message) {
             toast.error(state.message);
             // Inputs remain unchanged on error
