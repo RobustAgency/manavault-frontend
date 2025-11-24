@@ -5,6 +5,8 @@ export { purchaseOrdersApi } from "./purchaseOrdersApi";
 export { vouchersApi } from "./vouchersApi";
 export { digitalProductsApi } from "./digitalProductsApi";
 export { brandsApi } from "./brandsApi";
+export { loginLogsApi } from "./loginLogsApi";
+export { voucherAuditLogsApi } from "./voucherAuditLogsApi";
 
 // Export all types
 export type {
@@ -43,6 +45,7 @@ export type {
   GetVouchersParams,
   GetVouchersResponse,
   GetDecryptedVoucherResponse,
+  GetDecryptedVoucherData,
 } from "./vouchersApi";
 
 export type {
@@ -59,6 +62,17 @@ export type {
   BrandFilters,
   CreateBrandData,
 } from "./brandsApi";
+
+export type {
+  LoginLog,
+  LoginLogFilters,
+  CreateLoginLogData,
+} from "./loginLogsApi";
+
+export type {
+  VoucherAuditLog,
+  VoucherAuditLogFilters,
+} from "./voucherAuditLogsApi";
 
 // Export all hooks
 export {
@@ -87,7 +101,7 @@ export {
 
 export {
   useGetVouchersQuery,
-  useLazyGetDecryptedVoucherQuery,
+  useGetDecryptedVoucherMutation,
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } from "./vouchersApi";
@@ -105,3 +119,14 @@ export {
   useGetBrandsQuery,
   useCreateBrandMutation,
 } from "./brandsApi";
+
+export {
+  useGetLoginLogsQuery,
+  useLazyGetLoginLogsQuery,
+  useCreateLoginLogMutation,
+} from "./loginLogsApi";
+
+export {
+  useGetVoucherAuditLogsQuery,
+  useLazyGetVoucherAuditLogsQuery,
+} from "./voucherAuditLogsApi";

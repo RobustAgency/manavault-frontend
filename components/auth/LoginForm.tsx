@@ -1,5 +1,5 @@
 "use client"
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useState, useRef } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "react-toastify"
 
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { login } from "@/lib/auth-actions"
+import { useCreateLoginLogMutation } from "@/lib/redux/features"
+import { createLoginLogData } from "@/lib/login-log-utils"
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -28,6 +30,8 @@ function SubmitButton() {
 export function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [createLoginLog] = useCreateLoginLogMutation();
+    const loggedLoginStateRef = useRef<string | null>(null);
 
     const [state, formAction] = useActionState(
         async (_prev: null | { success: false; message: string } | { success: true; data: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null }, formData: FormData) => {
@@ -48,7 +52,29 @@ export function LoginForm() {
     useEffect(() => {
         if (!state) return;
         if (state.success) {
+            // Create a unique key for this login state to prevent duplicates
+            const stateKey = state.data?.id || state.data?.email || 'unknown';
+
+            // Prevent duplicate login log creation for the same login
+            if (loggedLoginStateRef.current === stateKey) return;
+            loggedLoginStateRef.current = stateKey;
+
             toast.success("Logged in successfully");
+
+            // Create login log entry
+            const userEmail = state.data?.email || email;
+            if (userEmail) {
+                createLoginLogData(userEmail, 'login').then((logData) => {
+                    createLoginLog(logData).catch((error) => {
+                        // Silently fail - don't block login if logging fails
+                        console.error('Failed to log login activity:', error);
+                    });
+                }).catch((error) => {
+                    // Silently fail - don't block login if logging fails
+                    console.error('Failed to create login log data:', error);
+                });
+            }
+
             // Clear inputs only on success
             setEmail("");
             setPassword("");
@@ -61,8 +87,10 @@ export function LoginForm() {
         } else if (state.message) {
             toast.error(state.message);
             // Inputs remain unchanged on error
+            // Reset the ref on error so it can be called again on retry
+            loggedLoginStateRef.current = null;
         }
-    }, [state]);
+    }, [state, email, createLoginLog]);
 
     return (
         <Card className="min-w-sm mx-auto max-w-sm">

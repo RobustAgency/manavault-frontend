@@ -78,6 +78,12 @@ export interface GetDecryptedVoucherResponse {
   error?: boolean;
 }
 
+export interface GetDecryptedVoucherData {
+  voucherId: number;
+  ip_address: string;
+  user_agent: string;
+}
+
 // Custom base query using existing Axios client
 const axiosBaseQuery =
   (): BaseQueryFn<
@@ -91,35 +97,35 @@ const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({ url, method = "GET", data, params, headers }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-        headers,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
+    async ({ url, method = "GET", data, params, headers }) => {
+      try {
+        const result = await apiClient({
+          url,
+          method,
+          data,
+          params,
+          headers,
+        });
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError<{
+          data?: unknown;
+          message?: string;
+          error?: boolean;
+          errors?: Record<string, string[]>;
+        }>;
+        const error = {
+          status: err.response?.status || 500,
+          data: err.response?.data || {
+            message: err.message || "An error occurred",
+            error: true,
+          },
+        };
+        return {
+          error,
+        };
+      }
+    };
 
 // Type for RTK Query mutation errors
 interface MutationError {
@@ -152,13 +158,13 @@ export const vouchersApi = createApi({
           : [];
         const pagination = payload
           ? {
-              currentPage: payload.current_page ?? 1,
-              perPage: payload.per_page ?? vouchers.length,
-              total: payload.total ?? vouchers.length,
-              lastPage: payload.last_page ?? 1,
-              from: payload.from ?? null,
-              to: payload.to ?? null,
-            }
+            currentPage: payload.current_page ?? 1,
+            perPage: payload.per_page ?? vouchers.length,
+            total: payload.total ?? vouchers.length,
+            lastPage: payload.last_page ?? 1,
+            from: payload.from ?? null,
+            to: payload.to ?? null,
+          }
           : null;
 
         return {
@@ -171,18 +177,25 @@ export const vouchersApi = createApi({
       providesTags: (result) =>
         result?.vouchers?.length
           ? [
-              ...result.vouchers.map(({ id }) => ({
-                type: "Voucher" as const,
-                id: String(id),
-              })),
-              { type: "Voucher", id: "LIST" },
-            ]
+            ...result.vouchers.map(({ id }) => ({
+              type: "Voucher" as const,
+              id: String(id),
+            })),
+            { type: "Voucher", id: "LIST" },
+          ]
           : [{ type: "Voucher", id: "LIST" }],
     }),
-    getDecryptedVoucher: builder.query<GetDecryptedVoucherResponse, number>({
-      query: (voucherId) => ({
-        url: `/admin/vouchers/${voucherId}`,
-        method: "GET",
+    getDecryptedVoucher: builder.mutation<
+      GetDecryptedVoucherResponse,
+      GetDecryptedVoucherData
+    >({
+      query: ({ voucherId, ip_address, user_agent }) => ({
+        url: `/admin/vouchers/${voucherId}/code`,
+        method: "POST",
+        data: {
+          ip_address,
+          user_agent,
+        },
       }),
       transformResponse: (
         response: ApiResponse<{ id: number; code: string }>
@@ -273,7 +286,7 @@ export const vouchersApi = createApi({
 
 export const {
   useGetVouchersQuery,
-  useLazyGetDecryptedVoucherQuery,
+  useGetDecryptedVoucherMutation,
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } = vouchersApi;
