@@ -16,6 +16,7 @@ import {
 import {
   useGetProductsQuery,
   useDeleteProductMutation,
+  useGetBrandsQuery,
   type Product,
   type ProductStatus,
 } from '@/lib/redux/features';
@@ -27,12 +28,14 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
-  const [brandSearch, setBrandSearch] = useState('');
+  const [brandFilter, setBrandFilter] = useState<string>('all');
 
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
-  const [debouncedBrandSearch, setDebouncedBrandSearch] = useState('');
   const perPage = 10;
+
+  // Fetch brands for the filter dropdown
+  const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
 
   // Debounce search inputs
   useEffect(() => {
@@ -44,21 +47,17 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, [nameSearch]);
 
+  // Reset to first page when brand filter changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedBrandSearch(brandSearch);
-      setPage(1); // Reset to first page on search
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [brandSearch]);
+    setPage(1);
+  }, [brandFilter]);
 
   const { data, isLoading } = useGetProductsQuery({
     page,
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
     name: debouncedNameSearch || undefined,
-    brand: debouncedBrandSearch || undefined,
+    brand_id: brandFilter === 'all' ? undefined : parseInt(brandFilter),
   });
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
@@ -122,6 +121,21 @@ export default function ProductsPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-64">
+          <Select value={brandFilter} onValueChange={setBrandFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by brand" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Brands</SelectItem>
+              {brandsData?.data?.map((brand) => (
+                <SelectItem key={brand.id} value={String(brand.id)}>
+                  {brand.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex-1">
           <Input
             placeholder="Search by name..."
@@ -129,13 +143,6 @@ export default function ProductsPage() {
             onChange={(e) => setNameSearch(e.target.value)}
           />
         </div>
-        {/* <div className="flex-1">
-          <Input
-            placeholder="Search by brand..."
-            value={brandSearch}
-            onChange={(e) => setBrandSearch(e.target.value)}
-          />
-        </div> */}
       </div>
 
       <DataTable

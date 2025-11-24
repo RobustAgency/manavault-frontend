@@ -64,7 +64,13 @@ export interface DigitalProduct {
 export interface Product {
   id: number;
   name: string;
-  brand?: string | null;
+  brand?: string | null | {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+  };
+  brand_id?: number;
   description?: string | null;
   short_description?: string | null;
   long_description?: string | null;
@@ -98,6 +104,7 @@ export interface ProductFilters {
   per_page?: number;
   name?: string;
   brand?: string;
+  brand_id?: number;
   status?: ProductStatus;
 }
 
@@ -146,34 +153,34 @@ const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
+    async ({ url, method = "GET", data, params }) => {
+      try {
+        const result = await apiClient({
+          url,
+          method,
+          data,
+          params,
+        });
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError<{
+          data?: unknown;
+          message?: string;
+          error?: boolean;
+          errors?: Record<string, string[]>;
+        }>;
+        const error = {
+          status: err.response?.status || 500,
+          data: err.response?.data || {
+            message: err.message || "An error occurred",
+            error: true,
+          },
+        };
+        return {
+          error,
+        };
+      }
+    };
 
 // Type for RTK Query mutation errors
 interface MutationError {
@@ -203,12 +210,12 @@ export const productsApi = createApi({
       providesTags: (result) =>
         result?.data
           ? [
-              ...result.data.map(({ id }) => ({
-                type: "Product" as const,
-                id: String(id),
-              })),
-              { type: "Product", id: "LIST" },
-            ]
+            ...result.data.map(({ id }) => ({
+              type: "Product" as const,
+              id: String(id),
+            })),
+            { type: "Product", id: "LIST" },
+          ]
           : [{ type: "Product", id: "LIST" }],
       transformResponse: (response: {
         data: {
@@ -266,12 +273,12 @@ export const productsApi = createApi({
       providesTags: [{ type: "ThirdPartyProduct", id: "LIST" }],
       transformResponse: (response: {
         data:
-          | ThirdPartyProduct[]
-          | {
-              data?: ThirdPartyProduct[];
-              limit?: number | string;
-              offset?: number | string;
-            };
+        | ThirdPartyProduct[]
+        | {
+          data?: ThirdPartyProduct[];
+          limit?: number | string;
+          offset?: number | string;
+        };
         error?: boolean;
         message?: string;
       }) => {

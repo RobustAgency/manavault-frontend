@@ -16,26 +16,46 @@ import {
 import {
     useGetProductQuery,
     useUpdateProductMutation,
+    useGetBrandsQuery,
     type ProductStatus,
 } from '@/lib/redux/features';
 import { useProductForm } from '../../components/useProductForm';
 import { use, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
+import { BrandSelector } from '../../components/BrandSelector';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
     const productId = parseInt(id);
     const { data: product, isLoading: isLoadingProduct } = useGetProductQuery(productId);
+    const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
     const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (product) {
+            // Get brand_id from product.brand_id or from brand object
+            let brandId = '';
+            if (product.brand_id) {
+                brandId = String(product.brand_id);
+            } else if (product.brand && typeof product.brand === 'object' && product.brand.id) {
+                // Use brand object ID directly if available
+                brandId = String(product.brand.id);
+            } else if (product.brand && typeof product.brand === 'string' && brandsData?.data) {
+                // Fallback: find by brand name if it's a string
+                const foundBrand = brandsData.data.find(
+                    (brand) => brand.name === product.brand
+                );
+                if (foundBrand) {
+                    brandId = String(foundBrand.id);
+                }
+            }
+
             setFormData({
                 name: product.name,
-                brand: product.brand || '',
+                brand_id: brandId,
                 description: product.description || '',
                 short_description: product.short_description || '',
                 long_description: product.long_description || '',
@@ -47,7 +67,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 regions: product.regions?.join(', ') || '',
             });
         }
-    }, [product, setFormData]);
+    }, [product, brandsData]);
 
     useEffect(() => {
         if (isSuccess) {
@@ -75,7 +95,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             submitData.append('status', formData.status);
 
             // Add optional fields only if they have values
-            if (formData.brand.trim()) submitData.append('brand', formData.brand.trim());
+            if (formData.brand_id.trim()) {
+                const brandId = parseInt(formData.brand_id);
+                if (!isNaN(brandId)) {
+                    submitData.append('brand_id', brandId.toString());
+                }
+            }
             if (formData.description.trim()) submitData.append('description', formData.description.trim());
             if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
             if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
@@ -186,17 +211,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="brand" className="text-sm font-medium">Brand</Label>
-                                <Input
-                                    id="brand"
-                                    value={formData.brand}
-                                    onChange={(e) => updateFormData({ brand: e.target.value })}
-                                    placeholder="Enter brand name"
-                                    maxLength={255}
-                                    className="h-10"
-                                />
-                            </div>
+                            <BrandSelector
+                                value={formData.brand_id}
+                                onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
+                                error={errors.brand}
+                            />
 
                             <div className="space-y-2">
                                 <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>

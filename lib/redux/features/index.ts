@@ -4,6 +4,7 @@ export { productsApi } from "./productsApi";
 export { purchaseOrdersApi } from "./purchaseOrdersApi";
 export { vouchersApi } from "./vouchersApi";
 export { digitalProductsApi } from "./digitalProductsApi";
+export { brandsApi } from "./brandsApi";
 
 // Export all types
 export type {
@@ -53,6 +54,12 @@ export type {
   UpdateDigitalProductData,
 } from "./digitalProductsApi";
 
+export type {
+  Brand,
+  BrandFilters,
+  CreateBrandData,
+} from "./brandsApi";
+
 // Export all hooks
 export {
   useGetSuppliersQuery,
@@ -93,3 +100,8 @@ export {
   useUpdateDigitalProductMutation,
   useDeleteDigitalProductMutation,
 } from "./digitalProductsApi";
+
+export {
+  useGetBrandsQuery,
+  useCreateBrandMutation,
+} from "./brandsApi";
