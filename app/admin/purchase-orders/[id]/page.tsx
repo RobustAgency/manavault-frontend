@@ -37,7 +37,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
   });
 
   const isExternalSupplier =
-    order?.suppliers?.some((supplier: any) => supplier?.type?.toLowerCase?.() === 'external');
+    order?.suppliers?.every((supplier: any) => supplier?.type?.toLowerCase?.() === 'external');
 
   const getTotalQuantity = () => {
     if (!order || !order.items || order.items.length === 0) return 0;
