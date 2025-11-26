@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { DigitalProductStatus } from '@/lib/redux/features';
 
 export interface DigitalProductFormErrors {
   supplier_id?: string;
@@ -20,7 +19,6 @@ export interface DigitalProductFormState {
   tags: string; // Comma-separated string for input
   image: string;
   cost_price: string;
-  status: DigitalProductStatus;
   regions: string; // Comma-separated string for input
   metadata: string; // JSON string for input
 }
@@ -35,7 +33,6 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     tags: '',
     image: '',
     cost_price: '',
-    status: 'active',
     regions: '',
     metadata: '',
   });
@@ -119,7 +116,6 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       tags: '',
       image: '',
       cost_price: '',
-      status: 'active',
       regions: '',
       metadata: '',
     });
@@ -161,7 +157,6 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
         tags: tagsArray.length > 0 ? tagsArray : undefined,
         image: formData.image.trim() || undefined,
         cost_price: parseFloat(formData.cost_price),
-        status: formData.status,
         regions: regionsArray.length > 0 ? regionsArray : undefined,
         metadata: metadataObj,
       };
@@ -176,7 +171,6 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       tags: tagsArray.length > 0 ? tagsArray : undefined,
       image: formData.image.trim() || undefined,
       cost_price: parseFloat(formData.cost_price),
-      status: formData.status,
       regions: regionsArray.length > 0 ? regionsArray : undefined,
       metadata: metadataObj,
     };

@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DigitalProductStatus,
   Supplier,
 } from '@/lib/redux/features';
 import { type DigitalProductFormState } from './useDigitalProductForm';
@@ -161,23 +160,6 @@ export const ProductFormFields = ({
         />
         <p className="text-xs text-muted-foreground">Comma-separated region codes (e.g., US, CA, UK)</p>
         {formErrors.regions && <p className="text-sm text-red-500">{formErrors.regions}</p>}
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor={`status-${formItemId}`}>Status *</Label>
-        <Select
-          required
-          value={form.status}
-          onValueChange={(value: DigitalProductStatus) => onUpdate({ status: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="grid gap-2">

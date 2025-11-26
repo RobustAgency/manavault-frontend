@@ -97,9 +97,7 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                             </code>
                         </p>
                     </div>
-                    <Badge variant="filled" color={getStatusColor(product.status)}>
-                        {product.status}
-                    </Badge>
+                   
                 </div>
             </div>
 
@@ -161,12 +159,7 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                     <p className="text-sm text-muted-foreground mb-1">Cost Price</p>
                                     <p className="text-2xl font-bold text-primary">{formatCurrency(product.cost_price)}</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground mb-1">Status</p>
-                                    <Badge variant="filled" color={getStatusColor(product.status)}>
-                                        {product.status}
-                                    </Badge>
-                                </div>
+                                
                             </div>
                         </div>
                     </CardContent>

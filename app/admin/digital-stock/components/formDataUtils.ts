@@ -33,7 +33,6 @@ export const convertFormToSubmitData = (
     tags: tagsArray.length > 0 ? tagsArray : undefined,
     image: form.image.trim() || undefined,
     cost_price: parseFloat(form.cost_price),
-    status: form.status,
     regions: regionsArray.length > 0 ? regionsArray : undefined,
     metadata: metadataObj,
   };

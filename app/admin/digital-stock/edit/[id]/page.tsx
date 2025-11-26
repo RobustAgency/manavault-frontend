@@ -34,7 +34,6 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 tags: product.tags?.join(', ') || '',
                 image: product.image || '',
                 cost_price: product.cost_price?.toString() ?? '',
-                status: product.status,
                 regions: product.regions?.join(', ') || '',
                 metadata: product.metadata ? JSON.stringify(product.metadata, null, 2) : '',
             });
