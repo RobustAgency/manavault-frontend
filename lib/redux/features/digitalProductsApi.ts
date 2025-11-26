@@ -62,7 +62,6 @@ export interface CreateDigitalProductData {
   tags?: string[];
   image?: string;
   cost_price: number;
-  status: DigitalProductStatus;
   regions?: string[];
   metadata?: Record<string, unknown>;
 }
@@ -78,7 +77,6 @@ export interface UpdateDigitalProductData {
   tags?: string[];
   image?: string;
   cost_price?: number;
-  status?: DigitalProductStatus;
   regions?: string[];
   metadata?: Record<string, unknown>;
 }

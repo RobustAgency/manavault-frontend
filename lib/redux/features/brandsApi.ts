@@ -15,17 +15,25 @@ interface PaginationMeta {
 export interface Brand {
   id: number;
   name: string;
+  image?: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface BrandFilters {
   name?: string;
+  page?: number;
   per_page?: number;
 }
 
 export interface CreateBrandData {
   name: string;
+  image?: File | string;
+}
+
+export interface UpdateBrandData {
+  name?: string;
+  image?: File | string;
 }
 
 // Custom base query using existing Axios client
@@ -131,7 +139,27 @@ export const brandsApi = createApi({
       },
     }),
 
-    createBrand: builder.mutation<Brand, CreateBrandData>({
+    getBrand: builder.query<Brand, number>({
+      query: (id) => ({
+        url: `/admin/brands/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [
+        { type: "Brand", id: String(id) },
+      ],
+      transformResponse: (response: {
+        data: Brand;
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Brand;
+      },
+    }),
+
+    createBrand: builder.mutation<Brand, CreateBrandData | FormData>({
       query: (data) => ({
         url: "/admin/brands",
         method: "POST",
@@ -162,8 +190,74 @@ export const brandsApi = createApi({
         }
       },
     }),
+
+    updateBrand: builder.mutation<
+      Brand,
+      { id: number; data: UpdateBrandData | FormData }
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/brands/${id}`,
+        method: "POST",
+        data: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Brand", id: String(id) },
+        { type: "Brand", id: "LIST" },
+      ],
+      transformResponse: (response: {
+        data: Brand;
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Brand;
+      },
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Brand updated successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message || "Failed to update brand";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
+
+    deleteBrand: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/admin/brands/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: "Brand", id: String(id) },
+        { type: "Brand", id: "LIST" },
+      ],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Brand deleted successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          const errorMessage =
+            mutationError?.error?.data?.message || "Failed to delete brand";
+          toast.error(errorMessage);
+        }
+      },
+    }),
   }),
 });
 
-export const { useGetBrandsQuery, useCreateBrandMutation } = brandsApi;
+export const {
+  useGetBrandsQuery,
+  useGetBrandQuery,
+  useCreateBrandMutation,
+  useUpdateBrandMutation,
+  useDeleteBrandMutation,
+} = brandsApi;
 

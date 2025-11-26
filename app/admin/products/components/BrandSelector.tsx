@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -12,18 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  useGetBrandsQuery,
-  useCreateBrandMutation,
-} from '@/lib/redux/features';
+import { useGetBrandsQuery } from '@/lib/redux/features';
+import { BrandDialog } from '@/app/admin/brands/components';
 
 interface BrandSelectorProps {
   value: string | number | null;
@@ -41,32 +30,15 @@ export const BrandSelector = ({
   required = false,
 }: BrandSelectorProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newBrandName, setNewBrandName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
 
   const { data: brandsData, isLoading: isLoadingBrands } = useGetBrandsQuery({
     per_page: 100,
   });
-  const [createBrand] = useCreateBrandMutation();
 
   const brands = brandsData?.data || [];
 
-  const handleAddBrand = async () => {
-    if (!newBrandName.trim()) {
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const result = await createBrand({ name: newBrandName.trim() }).unwrap();
-      onChange(result.id);
-      setNewBrandName('');
-      setIsDialogOpen(false);
-    } catch (err) {
-      console.error('Failed to create brand:', err);
-    } finally {
-      setIsCreating(false);
-    }
+  const handleBrandCreated = (brand: { id: number; name: string }) => {
+    onChange(brand.id);
   };
 
   return (
@@ -119,54 +91,11 @@ export const BrandSelector = ({
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Brand</DialogTitle>
-            <DialogDescription>
-              Create a new brand to use in your products.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-brand-name">Brand Name *</Label>
-              <Input
-                id="new-brand-name"
-                value={newBrandName}
-                onChange={(e) => setNewBrandName(e.target.value)}
-                placeholder="Enter brand name"
-                maxLength={255}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newBrandName.trim()) {
-                    e.preventDefault();
-                    handleAddBrand();
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setIsDialogOpen(false);
-                setNewBrandName('');
-              }}
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleAddBrand}
-              disabled={!newBrandName.trim() || isCreating}
-            >
-              {isCreating ? 'Creating...' : 'Create Brand'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BrandDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onSuccess={handleBrandCreated}
+      />
     </>
   );
 };

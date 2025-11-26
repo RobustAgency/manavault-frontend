@@ -5,21 +5,9 @@ import { RefreshCw, AlertCircle, X } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useGetVoucherAuditLogsQuery } from '@/lib/redux/features';
 import { createColumns } from '@/components/admin/voucher-audit-logs/columns';
 
-const actionOptions = [
-    { value: 'viewed', label: 'Viewed' },
-    { value: 'requested', label: 'Requested' },
-    { value: 'copied', label: 'Copied' },
-];
 
 export default function VoucherAuditLogsPage() {
     const [page, setPage] = useState(1);
