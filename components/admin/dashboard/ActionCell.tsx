@@ -2,8 +2,6 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreVertical } from "lucide-react"
 import { TableUser } from "@/hooks/admin/useUsers"
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog"
 import { deleteUser } from "@/lib/admin-actions"

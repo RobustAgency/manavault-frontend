@@ -61,6 +61,7 @@ export type {
   Brand,
   BrandFilters,
   CreateBrandData,
+  UpdateBrandData,
 } from "./brandsApi";
 
 export type {
@@ -117,7 +118,10 @@ export {
 
 export {
   useGetBrandsQuery,
+  useGetBrandQuery,
   useCreateBrandMutation,
+  useUpdateBrandMutation,
+  useDeleteBrandMutation,
 } from "./brandsApi";
 
 export {

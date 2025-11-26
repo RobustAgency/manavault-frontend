@@ -9,10 +9,10 @@ import {
     Package,
     ShoppingCart,
     FileText,
-    Upload,
     Gift,
     ShieldCheck,
-    ClipboardList
+    ClipboardList,
+    Layers
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
@@ -26,6 +26,7 @@ const adminRoutes = [
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/login-logs", label: "Login Logs", icon: ShieldCheck },
     { href: "/admin/voucher-audit-logs", label: "Voucher Audit", icon: ClipboardList },
+    { href: "/admin/brands", label: "Brands", icon: Layers },
     // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [
@@ -83,7 +84,7 @@ export function Sidebar({
                                 <span className={`whitespace-nowrap`}>{item.label}</span>
                             )}
                             {isActive && (
-                                <div className='absolute top-1/2 -translate-y-1/2 rounded-full -left-1 w-1 h-[calc(100%-10px)] bg-gradient-to-r from-black via-neutral-800 to-gray-900'></div>
+                                <div className='absolute top-1/2 -translate-y-1/2 rounded-full -left-1 w-1 h-[calc(100%-10px)] bg-linear-to-r from-black via-neutral-800 to-gray-900'></div>
                             )}
                         </Link>
                     )

@@ -20,7 +20,6 @@ import {
 } from '../components';
 import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
-import { DataTable } from '@/components/custom/DataTable';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
