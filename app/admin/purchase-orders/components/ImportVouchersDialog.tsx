@@ -45,7 +45,16 @@ export const ImportVouchersDialog = ({
 
   const purchaseOrderLabel = useMemo(() => {
     if (order.items && order.items.length > 0) {
-      const productNames = order.items
+      // Filter items with internal supplier type only
+      const internalItems = order.items.filter(
+        (item) => (item.digital_product as any)?.supplier?.type?.toLowerCase() === 'internal'
+      );
+
+      if (internalItems.length === 0) {
+        return order.order_number;
+      }
+
+      const productNames = internalItems
         .map((item) => item.digital_product?.name || `Product ${item.digital_product_id}`)
         .filter((name, index, self) => self.indexOf(name) === index) // Remove duplicates
         .slice(0, 2); // Show max 2 product names
@@ -58,7 +67,7 @@ export const ImportVouchersDialog = ({
         ? productNames[0]
         : productNames.length === 2
           ? `${productNames[0]}, ${productNames[1]}`
-          : `${productNames[0]} + ${order.items.length - 1} more`;
+          : `${productNames[0]} + ${internalItems.length - 1} more`;
 
       return `${order.order_number} • ${productText}`;
     }
@@ -67,7 +76,10 @@ export const ImportVouchersDialog = ({
 
   const totalQuantity = useMemo(() => {
     if (order.items && order.items.length > 0) {
-      return order.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      // Only count items with internal supplier type
+      return order.items
+        .filter((item) => (item.digital_product as any)?.supplier?.type?.toLowerCase() === 'internal')
+        .reduce((sum, item) => sum + (item.quantity || 0), 0);
     }
     return 0;
   }, [order.items]);

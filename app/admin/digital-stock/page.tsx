@@ -112,7 +112,7 @@ export default function DigitalProductsPage() {
 
       {/* Filters */}
       <div className="flex gap-4 mb-4 flex-wrap">
-        <div className="w-48">
+        {/* <div className="w-48">
           <Select
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as DigitalProductStatus | 'all')}
@@ -126,7 +126,7 @@ export default function DigitalProductsPage() {
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="w-48">
           <Select
             value={supplierFilter}

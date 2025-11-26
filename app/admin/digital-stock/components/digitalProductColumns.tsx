@@ -92,7 +92,7 @@ export const createDigitalProductColumns = ({
     },
     {
       accessorKey: 'regions',
-      header: 'Regions',
+      header: 'Region',
       cell: ({ row }) => {
         const regions = row.original.regions;
         if (!regions || regions.length === 0) return '-';
@@ -112,15 +112,15 @@ export const createDigitalProductColumns = ({
         );
       },
     },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge variant="filled" color={getStatusColor(row.original.status)}>
-          {row.original.status}
-        </Badge>
-      ),
-    },
+    // {
+    //   accessorKey: 'status',
+    //   header: 'Status',
+    //   cell: ({ row }) => (
+    //     <Badge variant="filled" color={getStatusColor(row.original.status)}>
+    //       {row.original.status}
+    //     </Badge>
+    //   ),
+    // },
     {
       id: 'actions',
       header: 'Actions',

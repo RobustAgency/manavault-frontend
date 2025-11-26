@@ -29,6 +29,16 @@ export interface PurchaseOrderItemDetail {
     description?: string | null;
     cost_price: number;
     status?: string;
+    supplier?: {
+      id: number;
+      name: string;
+      type?: string;
+      contact_email?: string | null;
+      contact_phone?: string | null;
+      status?: string;
+      created_at?: string;
+      updated_at?: string;
+    };
   };
 }
 

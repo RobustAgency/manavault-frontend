@@ -72,7 +72,7 @@ export const ProductFormDialog = ({
       setFormData({
         name: selectedProduct.name,
         brand_id: brandId,
-        description: selectedProduct.description || '',
+        // description: selectedProduct.description || '',
         short_description: selectedProduct.short_description || '',
         long_description: selectedProduct.long_description || '',
         sku: selectedProduct.sku,
@@ -104,7 +104,7 @@ export const ProductFormDialog = ({
           submitData.brand_id = brandId;
         }
       }
-      if (formData.description.trim()) submitData.description = formData.description.trim();
+      // if (formData.description.trim()) submitData.description = formData.description.trim();
       if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
       if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
       if (typeof formData.image === 'string' && formData.image.trim()) {
@@ -173,7 +173,7 @@ export const ProductFormDialog = ({
             error={errors.brand}
           />
 
-          <div className="grid gap-2">
+          {/* <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -182,7 +182,7 @@ export const ProductFormDialog = ({
               placeholder="Product description..."
               rows={3}
             />
-          </div>
+          </div> */}
 
           <div className="grid gap-2">
             <Label htmlFor="short_description">Short Description</Label>
@@ -230,14 +230,14 @@ export const ProductFormDialog = ({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="regions">Regions (comma-separated)</Label>
+            <Label htmlFor="regions">Region</Label>
             <Input
               id="regions"
               value={formData.regions}
               onChange={(e) => updateFormData({ regions: e.target.value })}
-              placeholder="US, CA, UK"
+              placeholder="US"
             />
-            <p className="text-xs text-muted-foreground">Separate multiple regions with commas (e.g., US, CA, UK)</p>
+            {/* <p className="text-xs text-muted-foreground">Separate multiple regions with commas (e.g., US, CA, UK)</p> */}
           </div>
 
           <div className="grid gap-2">

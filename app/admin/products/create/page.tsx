@@ -60,7 +60,7 @@ export default function CreateProductPage() {
                     submitData.append('brand_id', brandId.toString());
                 }
             }
-            if (formData.description.trim()) submitData.append('description', formData.description.trim());
+            // if (formData.description.trim()) submitData.append('description', formData.description.trim());
             if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
             if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
 
@@ -214,7 +214,7 @@ export default function CreateProductPage() {
                             <p className="text-xs text-muted-foreground">Brief summary for listing pages</p>
                         </div>
 
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                             <Textarea
                                 id="description"
@@ -225,7 +225,7 @@ export default function CreateProductPage() {
                                 className="resize-none"
                             />
                             <p className="text-xs text-muted-foreground">Standard product description</p>
-                        </div>
+                        </div> */}
 
                         <div className="space-y-2">
                             <Label htmlFor="long_description" className="text-sm font-medium">Long Description</Label>
@@ -271,13 +271,13 @@ export default function CreateProductPage() {
                         <div className="space-y-2">
                             <Label htmlFor="regions" className="text-sm font-medium">Regions</Label>
                             <Input
-                                id="regions"
+                                id="region"
                                 value={formData.regions}
                                 onChange={(e) => updateFormData({ regions: e.target.value })}
-                                placeholder="US, CA, UK, EU"
+                                placeholder="US"
                                 className="h-10"
                             />
-                            <p className="text-xs text-muted-foreground">Comma-separated region codes where this product is available</p>
+                            {/* <p className="text-xs text-muted-foreground">Comma-separated region codes where this product is available</p> */}
                         </div>
                     </div>
                 </div>

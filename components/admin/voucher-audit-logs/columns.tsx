@@ -3,7 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { VoucherAuditLog } from "@/lib/redux/features";
-import { formatDate } from "@/utils/formatDate";
 
 const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "N/A";
@@ -46,22 +45,6 @@ const getActionBadge = (action: string) => {
 
 export const createColumns = (): ColumnDef<VoucherAuditLog>[] => [
     {
-        accessorKey: "voucher_code",
-        header: "Voucher Code",
-        cell: ({ row }) => {
-            const code = row.original.voucher?.code;
-            return <div className="font-medium">{code || "N/A"}</div>;
-        },
-    },
-    {
-        accessorKey: "action",
-        header: "Action",
-        cell: ({ row }) => {
-            const action = row.getValue("action") as string;
-            return getActionBadge(action);
-        },
-    },
-    {
         accessorKey: "user_email",
         header: "User",
         cell: ({ row }) => {
@@ -81,6 +64,15 @@ export const createColumns = (): ColumnDef<VoucherAuditLog>[] => [
             );
         },
     },
+    {
+        accessorKey: "action",
+        header: "Action",
+        cell: ({ row }) => {
+            const action = row.getValue("action") as string;
+            return getActionBadge(action);
+        },
+    },
+   
     {
         accessorKey: "ip_address",
         header: "IP Address",

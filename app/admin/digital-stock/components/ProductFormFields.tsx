@@ -152,12 +152,12 @@ export const ProductFormFields = ({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor={`regions-${formItemId}`}>Regions</Label>
+        <Label htmlFor={`regions-${formItemId}`}>Region</Label>
         <Input
           id={`regions-${formItemId}`}
           value={form.regions}
           onChange={(e) => onUpdate({ regions: e.target.value })}
-          placeholder="US, CA, UK"
+          placeholder="US"
         />
         <p className="text-xs text-muted-foreground">Comma-separated region codes (e.g., US, CA, UK)</p>
         {formErrors.regions && <p className="text-sm text-red-500">{formErrors.regions}</p>}
