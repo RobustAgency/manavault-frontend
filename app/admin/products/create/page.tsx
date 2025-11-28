@@ -18,7 +18,7 @@ import {
     type ProductStatus,
 } from '@/lib/redux/features';
 import { useProductForm } from '../components/useProductForm';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../components/BrandSelector';
@@ -27,6 +27,12 @@ export default function CreateProductPage() {
     const router = useRouter();
     const { formData, errors, validateForm, updateFormData } = useProductForm(false);
     const [createProduct, { isLoading, isSuccess, isError, error }] = useCreateProductMutation();
+
+    // Refs for required fields
+    const nameRef = useRef<HTMLInputElement>(null);
+    const skuRef = useRef<HTMLInputElement>(null);
+    const sellingPriceRef = useRef<HTMLInputElement>(null);
+    const statusRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (isSuccess) {
@@ -41,60 +47,93 @@ export default function CreateProductPage() {
         }
     }, [isError, error]);
 
+    const scrollToFirstError = () => {
+        // Define the order of required fields
+        const fieldOrder = [
+            { key: 'name', ref: nameRef },
+            { key: 'sku', ref: skuRef },
+            { key: 'selling_price', ref: sellingPriceRef },
+            { key: 'status', ref: statusRef },
+        ];
+
+        // Find the first field with an error
+        for (const field of fieldOrder) {
+            if (errors[field.key as keyof typeof errors]) {
+                const element = field.ref.current;
+                if (element) {
+                    // Scroll to the element with smooth behavior
+                    element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    // Focus the element after a small delay to ensure scroll completes
+                    setTimeout(() => {
+                        element.focus();
+                    }, 100);
+                    break;
+                }
+            }
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (validateForm(false, '')) {
-            const submitData = new FormData();
+        if (!validateForm(false, '')) {
+            // Scroll to and focus the first error field
+            scrollToFirstError();
+            return;
+        }
 
-            // Add required fields
-            submitData.append('name', formData.name.trim());
-            submitData.append('sku', formData.sku.trim());
-            submitData.append('selling_price', formData.selling_price);
-            submitData.append('status', formData.status);
+        const submitData = new FormData();
 
-            // Add optional fields only if they have values
-            if (formData.brand_id.trim()) {
-                const brandId = parseInt(formData.brand_id);
-                if (!isNaN(brandId)) {
-                    submitData.append('brand_id', brandId.toString());
-                }
+        // Add required fields
+        submitData.append('name', formData.name.trim());
+        submitData.append('sku', formData.sku.trim());
+        submitData.append('selling_price', formData.selling_price);
+        submitData.append('status', formData.status);
+
+        // Add optional fields only if they have values
+        if (formData.brand_id.trim()) {
+            const brandId = parseInt(formData.brand_id);
+            if (!isNaN(brandId)) {
+                submitData.append('brand_id', brandId.toString());
             }
-            // if (formData.description.trim()) submitData.append('description', formData.description.trim());
-            if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
-            if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
+        }
+        // if (formData.description.trim()) submitData.append('description', formData.description.trim());
+        if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
+        if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
 
-            // Handle image - append the File object directly
-            if (formData.image) {
-                if (formData.image instanceof File) {
-                    submitData.append('image', formData.image);
-                } else if (typeof formData.image === 'string' && formData.image.trim()) {
-                    submitData.append('image', formData.image.trim());
-                }
+        // Handle image - append the File object directly
+        if (formData.image) {
+            if (formData.image instanceof File) {
+                submitData.append('image', formData.image);
+            } else if (typeof formData.image === 'string' && formData.image.trim()) {
+                submitData.append('image', formData.image.trim());
             }
+        }
 
-            // Parse tags from comma-separated string
-            if (formData.tags.trim()) {
-                const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-                tags.forEach(tag => submitData.append('tags[]', tag));
-            }
+        // Parse tags from comma-separated string
+        if (formData.tags.trim()) {
+            const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            tags.forEach(tag => submitData.append('tags[]', tag));
+        }
 
-            // Parse regions from comma-separated string
-            if (formData.regions.trim()) {
-                const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
-                regions.forEach(region => submitData.append('regions[]', region));
-            }
+        // Parse regions from comma-separated string
+        if (formData.regions.trim()) {
+            const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
+            regions.forEach(region => submitData.append('regions[]', region));
+        }
 
-            try {
-                const result = await createProduct(submitData).unwrap();
-                if (result?.id) {
-                    router.push(`/admin/products/${result.id}`);
-                } else {
-                    router.push('/admin/products');
-                }
-            } catch (err) {
-                console.error('Failed to create product:', err);
+        try {
+            const result = await createProduct(submitData).unwrap();
+            if (result?.id) {
+                router.push(`/admin/products/${result.id}`);
+            } else {
+                router.push('/admin/products');
             }
+        } catch (err) {
+            console.error('Failed to create product:', err);
         }
     };
 
@@ -127,6 +166,7 @@ export default function CreateProductPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="name" className="text-sm font-medium">Product Name *</Label>
                                 <Input
+                                    ref={nameRef}
                                     id="name"
                                     value={formData.name}
                                     onChange={(e) => updateFormData({ name: e.target.value })}
@@ -140,6 +180,7 @@ export default function CreateProductPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="sku" className="text-sm font-medium">SKU *</Label>
                                 <Input
+                                    ref={skuRef}
                                     id="sku"
                                     value={formData.sku}
                                     onChange={(e) => updateFormData({ sku: e.target.value })}
@@ -161,6 +202,7 @@ export default function CreateProductPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
                                 <Input
+                                    ref={sellingPriceRef}
                                     id="selling_price"
                                     type="number"
                                     step="0.01"
@@ -180,7 +222,7 @@ export default function CreateProductPage() {
                                 value={formData.status}
                                 onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
                             >
-                                <SelectTrigger className="h-10">
+                                <SelectTrigger ref={statusRef} className="h-10" id="status">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
