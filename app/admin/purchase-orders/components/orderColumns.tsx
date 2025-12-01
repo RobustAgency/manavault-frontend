@@ -15,10 +15,12 @@ export const formatCurrency = (amount: number | string) => {
 };
 
 export const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 };
 
@@ -71,7 +73,7 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
     },
   },
   {
-    accessorKey: 'created_at',
+    accessorKey: 'updated_at',
     header: 'Date',
     cell: ({ row }) => formatDate(row.original.created_at),
   },

@@ -41,9 +41,14 @@ export interface ImportVouchersData {
   purchase_order_id: number;
 }
 
+export interface VoucherCodeItem {
+  code: string;
+  digitalProductID: number;
+}
+
 export interface StoreVouchersData {
   purchase_order_id: number;
-  voucher_codes: string[];
+  voucher_codes: VoucherCodeItem[];
 }
 
 export interface StoreVouchersResponse extends ApiResponse<unknown> {
