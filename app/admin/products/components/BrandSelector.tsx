@@ -48,8 +48,8 @@ export const BrandSelector = ({
           {label} {required && '*'}
         </Label>
         <Select
-          value={value ? String(value) : ''}
-          onValueChange={(val) => onChange(val ? parseInt(val) : null)}
+          value={value ? String(value) : '' }
+          onValueChange={(val) => onChange(val ? parseInt(val) : Number(value))}
         >
           <SelectTrigger className="h-10">
             <SelectValue placeholder="Select a brand" />

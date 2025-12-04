@@ -77,6 +77,23 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
     header: 'Date',
     cell: ({ row }) => formatDate(row.original.created_at),
   },
+    {
+    accessorKey: 'suppliers',
+    header: 'Suppliers',
+     cell: ({ row }) => {
+  const suppliers = row.original.suppliers || []
+
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {suppliers.map((s) => (
+        <span key={s.id} className="px-2 py-1 text-xs bg-muted rounded">
+          {s.name}
+        </span>
+      ))}
+    </div>
+  )
+}
+  },
   {
     id: 'actions',
     header: 'Actions',

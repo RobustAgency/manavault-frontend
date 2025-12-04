@@ -34,40 +34,42 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
     const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
 
-    useEffect(() => {
-        if (product) {
-            // Get brand_id from product.brand_id or from brand object
-            let brandId = '';
-            if (product.brand_id) {
-                brandId = String(product.brand_id);
-            } else if (product.brand && typeof product.brand === 'object' && product.brand.id) {
-                // Use brand object ID directly if available
-                brandId = String(product.brand.id);
-            } else if (product.brand && typeof product.brand === 'string' && brandsData?.data) {
-                // Fallback: find by brand name if it's a string
-                const foundBrand = brandsData.data.find(
-                    (brand) => brand.name === product.brand
-                );
-                if (foundBrand) {
-                    brandId = String(foundBrand.id);
-                }
-            }
+  useEffect(() => {
+    if (!product || !brandsData?.data) return;
 
-            setFormData({
-                name: product.name,
-                brand_id: brandId,
-                // description: product.description || '',
-                short_description: product.short_description || '',
-                long_description: product.long_description || '',
-                sku: product.sku,
-                selling_price: product.selling_price?.toString() ?? '',
-                status: product.status,
-                tags: product.tags?.join(', ') || '',
-                image: product.image || '',
-                regions: product.regions?.join(', ') || '',
-            });
-        }
-    }, [product, brandsData]);
+    let brandId = '';
+
+    if (product.brand_id) {
+        brandId = String(product.brand_id);
+    } else if (product.brand && typeof product.brand === 'object' && product.brand.id) {
+        brandId = String(product.brand.id);
+    } else if (typeof product.brand === 'string') {
+        const foundBrand = brandsData.data.find(
+            (brand) => brand.name === product.brand
+        );
+        if (foundBrand) brandId = String(foundBrand.id);
+    }
+
+    setFormData(
+        {
+        name: product.name,
+        brand_id: brandId,
+        short_description: product.short_description || '',
+        long_description: product.long_description || '',
+        sku: product.sku,
+        selling_price: product.selling_price?.toString() ?? '',
+        image : product.image || '',
+        status: product.status,
+        tags: product.tags?.join(', ') || '',
+        regions: product.regions?.join(', ') || '', 
+    }
+);
+}, [product, brandsData]);
+
+const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
+
+const isImageExist =  formData?.image instanceof File  ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image  : "";
+
 
     useEffect(() => {
         if (isSuccess) {
@@ -106,13 +108,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
 
             // Handle image - append the File object directly
-            if (formData.image) {
-                if (formData.image instanceof File) {
-                    submitData.append('image', formData.image);
-                } else if (typeof formData.image === 'string' && formData.image.trim()) {
-                    submitData.append('image', formData.image.trim());
-                }
-            }
+           if (formData.image instanceof File) {
+             submitData.append("image", formData.image);
+           }
 
             // Parse tags from comma-separated string
             if (formData.tags.trim()) {
@@ -129,7 +127,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             await updateProduct({ id: productId, data: submitData });
         }
     };
-
     if (isLoadingProduct) {
         return (
             <div className="container mx-auto py-8 max-w-3xl">
@@ -213,7 +210,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <BrandSelector
                                 value={formData.brand_id}
-                                onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
+                                onChange={(value) => updateFormData({ brand_id: String(value) })}
                                 error={errors.brand}
                             />
 
@@ -308,7 +305,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     </div>
                     <div className="p-6 space-y-5">
                         <ImagePicker
-                            value={formData.image}
+                            value={isImageExist}
                             onChange={(value) => updateFormData({ image: value })}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
