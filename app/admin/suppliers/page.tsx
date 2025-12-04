@@ -47,7 +47,9 @@ export default function SuppliersPage() {
   // Reset page to 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [typeFilter, statusFilter]);
+  }, [statusFilter,typeFilter]);
+  
+  //this was the dependency of setPage useEffect typeFilter,
 
   const { data, isLoading } = useGetSuppliersQuery({
     page,
