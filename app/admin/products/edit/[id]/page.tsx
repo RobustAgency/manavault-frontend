@@ -49,7 +49,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         );
         if (foundBrand) brandId = String(foundBrand.id);
     }
-
     setFormData(
         {
         name: product.name,
@@ -156,6 +155,7 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
         );
     }
 
+
     return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
@@ -233,7 +233,8 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                             <Select
-                                value={formData.status}
+                             key={formData.status}
+                                value={formData.status }
                                 onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
                             >
                                 <SelectTrigger className="h-10">

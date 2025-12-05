@@ -107,7 +107,6 @@ export const ImagePicker = ({
         return value as string;
     }, [value, previewUrl]);
 
-    console.log(value)
 
     return (
         <div className="space-y-3">

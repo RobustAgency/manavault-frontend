@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PurchaseOrder } from '@/lib/redux/features';
 import Link from 'next/link';
+import SupplierToolTip from './SupplierToolTip';
 
 export const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -82,14 +83,22 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
     header: 'Suppliers',
      cell: ({ row }) => {
   const suppliers = row.original.suppliers || []
+  const defaultSuppliers = 2;
 
   return (
     <div className="flex gap-2 flex-wrap">
-      {suppliers.map((s) => (
+      {suppliers.slice(0,defaultSuppliers).map((s) => (
         <span key={s.id} className="px-2 py-1 text-xs bg-muted rounded">
           {s.name}
         </span>
       ))}
+
+      {suppliers.length > defaultSuppliers && <>
+      <span className="px-2 py-1 text-xs bg-muted rounded">
+        <SupplierToolTip suppliersCount={suppliers.slice(defaultSuppliers).length} suppliers={suppliers.map((s) => s.name)} defaultSuppliers={defaultSuppliers} />
+        </span>
+        </>
+     }
     </div>
   )
 }
