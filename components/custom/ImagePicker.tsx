@@ -45,7 +45,6 @@ export const ImagePicker = ({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         const validation = validateFile(file);
         if (validation) {
             setValidationError(validation);
@@ -57,7 +56,6 @@ export const ImagePicker = ({
         // Create preview URL
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
-
         // Pass the file object to parent
         onChange(file);
     };
@@ -109,6 +107,7 @@ export const ImagePicker = ({
         return value as string;
     }, [value, previewUrl]);
 
+
     return (
         <div className="space-y-3">
             {label && <label className="text-sm font-medium">{label}</label>}
@@ -128,7 +127,7 @@ export const ImagePicker = ({
                     disabled={disabled}
                 />
 
-                {displayImage ? (
+                {value ? (
                     <div className="relative group">
                         <div className="relative h-48 w-full rounded-lg overflow-hidden bg-muted">
                             <Image
@@ -139,15 +138,16 @@ export const ImagePicker = ({
                                 unoptimized
                             />
                         </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <div className="absolute inset-0 rounded-sm bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <Button
                                 type="button"
                                 variant="secondary"
                                 size="sm"
+                                className='text-white'
                                 onClick={openFileDialog}
                                 disabled={disabled}
                             >
-                                <Upload className="h-4 w-4 mr-2" />
+                                <Upload className="h-4 w-4 mr-2 " />
                                 Change
                             </Button>
                             <Button

@@ -76,15 +76,15 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
     header: 'Actions',
     cell: ({ row }) => (
       <div className="flex gap-2">
+        <Link href={`/admin/products/${row.original.id}`}>
         <Button
           variant="outline"
           size="sm"
           asChild
         >
-          <Link href={`/admin/products/${row.original.id}`}>
             <EyeIcon className="h-4 w-4" />
-          </Link>
         </Button>
+          </Link>
         <Button
           variant="outline"
           size="sm"
