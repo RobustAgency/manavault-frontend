@@ -14,11 +14,11 @@ export const createSupplierColumns = ({ onEdit, onDelete }: SupplierColumnsProps
     accessorKey: 'name',
     header: 'Name',
   },
-  {
-    accessorKey: 'slug',
-    header: 'Slug',
-    cell: ({ row }) => <code className="text-xs bg-gray-100 px-2 py-1 rounded">{row.original.slug}</code>,
-  },
+  // {
+  //   accessorKey: 'slug',
+  //   header: 'Slug',
+  //   cell: ({ row }) => <code className="text-xs bg-gray-100 px-2 py-1 rounded">{row.original.slug}</code>,
+  // },
   {
     accessorKey: 'type',
     header: 'Type',
