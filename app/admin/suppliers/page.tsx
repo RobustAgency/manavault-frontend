@@ -134,7 +134,7 @@ export default function SuppliersPage() {
 
       {/* Filters */}
       <div className="flex gap-4 mb-4 flex-wrap">
-        <div className="w-48">
+        {/* <div className="w-48">
           <Select
             value={typeFilter}
             onValueChange={setTypeFilter}
@@ -148,7 +148,7 @@ export default function SuppliersPage() {
               <SelectItem value="external">External</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="w-48">
           <Select
             value={statusFilter}
