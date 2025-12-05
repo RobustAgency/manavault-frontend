@@ -63,7 +63,7 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
             className="gap-2"
           >
             <LinkIcon className="h-4 w-4" />
-            Associate Digital Products
+            Add Suppliers
           </Button>
           <Link href={`/admin/products/edit/${product.id}`}>
             <Button
