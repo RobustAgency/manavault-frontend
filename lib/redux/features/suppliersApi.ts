@@ -31,14 +31,12 @@ export interface SupplierFilters {
   page?: number;
   per_page?: number;
   name?: string;
-  type?: SupplierType;
+   type?: SupplierType;
   status?: SupplierStatus;
 }
 
 export interface CreateSupplierData {
   name: string;
-  slug: string;
-  type: SupplierType;
   contact_email?: string;
   contact_phone?: string;
   status?: SupplierStatus;
@@ -46,8 +44,6 @@ export interface CreateSupplierData {
 
 export interface UpdateSupplierData {
   name?: string;
-  slug?: string;
-  type?: SupplierType;
   contact_email?: string;
   contact_phone?: string;
   status?: SupplierStatus;
