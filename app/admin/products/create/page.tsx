@@ -34,11 +34,6 @@ export default function CreateProductPage() {
     const sellingPriceRef = useRef<HTMLInputElement>(null);
     const statusRef = useRef<HTMLButtonElement>(null);
 
-    useEffect(() => {
-        if (isSuccess) {
-            toast.success('Product created successfully');
-        }
-    }, [isSuccess, router]);
 
     useEffect(() => {
         if (isError) {
