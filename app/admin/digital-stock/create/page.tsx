@@ -20,7 +20,7 @@ import { SupplierFormDialog } from '@/app/admin/suppliers/components/SupplierFor
 
 export default function CreateDigitalProductPage() {
     const router = useRouter();
-    const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100, status: 'active' });
+    const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100, status: 'active', type: 'internal' });
     const [createDigitalProducts, { isLoading, isSuccess, isError, error, data: createdProducts }] = useCreateDigitalProductsMutation();
     const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
 
@@ -141,7 +141,7 @@ export default function CreateDigitalProductPage() {
                 <div className="bg-card border rounded-lg shadow-sm">
                     <div className="border-b px-6 py-4">
                         <h2 className="text-lg font-semibold">Supplier Selection</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Choose the external supplier for these products</p>
+                        <p className="text-sm text-muted-foreground mt-1">Choose the supplier for these products</p>
                     </div>
                     <div className="p-6">
                         <GlobalSupplierSelector
