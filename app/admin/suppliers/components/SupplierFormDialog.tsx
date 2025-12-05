@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Supplier, CreateSupplierData, SupplierStatus, SupplierType } from '@/lib/redux/features';
+import { Supplier, CreateSupplierData, SupplierStatus } from '@/lib/redux/features';
 import { useSupplierForm } from './useSupplierForm';
 
 interface SupplierFormDialogProps {
@@ -46,8 +46,6 @@ export const SupplierFormDialog = ({
     if (isEditMode && selectedSupplier) {
       updateFormData({
         name: selectedSupplier.name,
-        slug: selectedSupplier.slug,
-        type: selectedSupplier.type,
         contact_email: selectedSupplier.contact_email || '',
         contact_phone: selectedSupplier.contact_phone || '',
         status: selectedSupplier.status,
@@ -60,14 +58,11 @@ export const SupplierFormDialog = ({
   const handleSubmit = () => {
     if (validateForm()) {
       const trimmedName = formData.name.trim();
-      const trimmedSlug = formData.slug.trim();
       const trimmedEmail = formData.contact_email.trim();
       const trimmedPhone = formData.contact_phone.trim();
 
       const payload: CreateSupplierData = {
         name: trimmedName,
-        slug: trimmedSlug,
-        type: formData.type as SupplierType,
         status: formData.status as SupplierStatus,
       };
 
@@ -109,35 +104,7 @@ export const SupplierFormDialog = ({
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="slug">Slug *</Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => updateFormData({ slug: e.target.value.toLowerCase() })}
-              placeholder="supplier_name"
-            />
-            {errors.slug && <p className="text-sm text-red-500">{errors.slug}</p>}
-            <p className="text-xs text-muted-foreground">Lowercase letters, numbers, and underscores only</p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="type">Supplier Type *</Label>
-            <Select
-              value={formData.type || undefined}
-              onValueChange={(value: SupplierType) => updateFormData({ type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select supplier type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="internal">Internal</SelectItem>
-                <SelectItem value="external">External</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
-          </div>
+                  
 
           <div className="grid gap-2">
             <Label htmlFor="contact_email">Contact Email</Label>
