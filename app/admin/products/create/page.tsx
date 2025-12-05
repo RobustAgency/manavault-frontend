@@ -287,7 +287,7 @@ export default function CreateProductPage() {
                     </div>
                     <div className="p-6 space-y-5">
                         <ImagePicker
-                            value={formData.image}
+                            value={formData.image ?? ''}
                             onChange={(value) => updateFormData({ image: value })}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
