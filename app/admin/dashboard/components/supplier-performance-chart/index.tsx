@@ -26,7 +26,7 @@ export function SupplierPerformanceChart({ data }: SupplierPerformanceChartProps
     const formatLabel = (value: string) =>
   value.length > 12 ? `${value.slice(0, 13)}…` : value;
   return (
-    <div className="rounded-xl bg-card shadow-sm border animate-slide-up " style={{ animationDelay: "350ms" }}>
+    <div className="rounded-xl w-full overflow-hidden bg-card shadow-sm border animate-slide-up" style={{ animationDelay: "350ms" }}>
       <div className="flex items-center gap-2 border-b border-border p-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
           <Users className="h-4 w-4 text-green-600" />

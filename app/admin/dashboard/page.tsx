@@ -110,7 +110,7 @@ export default function AdminDashboard() {
                 })}
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2 mb-8">
+            <div className="w-full grid gap-4 lg:grid-cols-2 grid-col-1 mb-8">
                 {/* Low Stock Table */}
                 <SupplierPerformanceChart data={supplerKpiData?.slice(0,5) ?? []} />
                 <LowStackTable isLoading = {isLoading} data={lowStockProductData?.slice(0, 5) ?? []} />
