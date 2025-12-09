@@ -52,6 +52,23 @@ export interface DigitalProductFilters {
   supplier_id?: number;
   status?: DigitalProductStatus;
 }
+export interface GetLowStockProduct{
+  id: number;
+  supplier_id: number;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  cost_price: string;
+  metadata: any | null;
+  created_at: string;
+  updated_at: string;
+  sku: string;
+  last_synced_at: string | null;
+  source: string | null;
+  supplier_name: string;
+  supplier_type: string;
+  quantity: string;  
+} 
 
 export interface CreateDigitalProductData {
   supplier_id: number;
@@ -276,6 +293,30 @@ export const digitalProductsApi = createApi({
       },
     }),
 
+   getLowStockProduct: builder.query<GetLowStockProduct[], void>({
+  query: () => ({
+    url: `/admin/digital-stocks/low-stock`,
+    method: "GET",
+  }),
+  providesTags: () => [{ type: "DigitalProduct" }],
+  transformResponse: (response: {
+    error?: boolean;
+    data?: {
+      data: GetLowStockProduct[];
+      current_page: number;
+      per_page: number;
+      total: number;
+      last_page: number;
+      from: number;
+      to: number;
+    };
+    message?: string;
+  }) => {
+    return response.data?.data ?? []; 
+  },
+}),
+
+
     createDigitalProducts: builder.mutation<
       DigitalProduct[],
       BulkCreateDigitalProductsData
@@ -372,6 +413,7 @@ export const digitalProductsApi = createApi({
 });
 
 export const {
+  useGetLowStockProductQuery,
   useGetDigitalProductsQuery,
   useGetDigitalProductsListQuery,
   useGetDigitalProductQuery,

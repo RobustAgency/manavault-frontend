@@ -1,11 +1,8 @@
 'use client';
-
-import { PackageIcon, ShoppingCartIcon, FileTextIcon } from 'lucide-react';
+import {Truck, ShoppingCartIcon, FileTextIcon } from 'lucide-react';
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -14,19 +11,26 @@ import {
     useGetProductsQuery,
     useGetPurchaseOrdersQuery,
 } from '@/lib/redux/features';
+import { StatCard } from './components/stat-card';
+import LowStackTable from './components/low-stock-table';
+import { useGetLowStockProductQuery } from '@/lib/redux/features/digitalProductsApi';
+import { SupplierPerformanceChart } from './components/supplier-performance-chart';
+import { useGetSupplierKpiQuery } from '@/lib/redux/features/suppliersApi';
 
 export default function AdminDashboard() {
     const router = useRouter();
-
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 1 });
     const { data: productsData } = useGetProductsQuery({ per_page: 1 });
     const { data: purchaseOrdersData } = useGetPurchaseOrdersQuery({ per_page: 1 });
+    const { data: lowStockProductData, isLoading } = useGetLowStockProductQuery();
+    const { data: supplerKpiData,  } = useGetSupplierKpiQuery();
+
 
     const stats = [
         {
             title: 'Total Suppliers',
             value: suppliersData?.pagination.total || 0,
-            icon: PackageIcon,
+            icon: Truck,
             description: 'Active suppliers in system',
             href: '/admin/suppliers',
             color: 'text-blue-600',
@@ -52,6 +56,16 @@ export default function AdminDashboard() {
         },
     ];
 
+
+    const supplierPerformanceData = [
+  { supplier_name: "TechSupplies Inc", total_purchase_orders: 45, completed_purchase_orders: 42, processing_purchase_orders: 3, completion_rate: 93 },
+  { supplier_name: "GadgetWorld", total_purchase_orders: 32, completed_purchase_orders: 28, processing_purchase_orders: 4, completion_rate: 88 },
+  { supplier_name: "OfficeGear Ltd", total_purchase_orders: 28, completed_purchase_orders: 26, processing_purchase_orders: 2, completion_rate: 93 },
+  { supplier_name: "LightingPro", total_purchase_orders: 18, completed_purchase_orders: 17, processing_purchase_orders: 1, completion_rate: 94 },
+  { supplier_name: "ElectroMart", total_purchase_orders: 22, completed_purchase_orders: 18, processing_purchase_orders: 4, completion_rate: 82 },
+];
+
+
     const recentActivity = [
         {
             title: 'Quick Access',
@@ -76,36 +90,36 @@ export default function AdminDashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {stats.map((stat) => {
-                    const Icon = stat.icon;
                     return (
                         <Card
                             key={stat.title}
-                            className="cursor-pointer hover:shadow-lg transition-shadow"
+                            className="cursor-pointer hover:shadow-lg transition-shadow gap-0 p-0"
                             onClick={() => router.push(stat.href)}
                         >
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    {stat.title}
-                                </CardTitle>
-                                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                    <Icon className={`h-5 w-5 ${stat.color}`} />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold">{stat.value}</div>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {stat.description}
-                                </p>
-                            </CardContent>
+                            <StatCard
+                                title={stat.title}
+                                value={stat.value}
+                                description={stat.description}
+                                icon={stat.icon}
+                                bgColor={stat.bgColor}
+                                color={stat.color}
+                                delay={0}
+                            />
                         </Card>
                     );
                 })}
             </div>
 
+            <div className="grid gap-4 lg:grid-cols-2 mb-8">
+                {/* Low Stock Table */}
+                <SupplierPerformanceChart data={supplerKpiData?.slice(0,5) ?? []} />
+                <LowStackTable isLoading = {isLoading} data={lowStockProductData?.slice(0, 5) ?? []} />
+            </div>
+
             {/* Quick Links */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Quick Links</h2>
-                <Card>
+            {/* <div className="mb-8">
+                <Card className='cursor-pointer hover:shadow-lg transition-shadow gap-0 p-5'>
+                <h2 className="text-2xl font-bold mb-0">Quick Links</h2>
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {recentActivity[0].items.map((item) => (
@@ -121,7 +135,7 @@ export default function AdminDashboard() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+            </div> */}
         </div>
     );
 }

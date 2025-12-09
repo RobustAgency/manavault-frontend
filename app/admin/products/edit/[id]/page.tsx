@@ -72,14 +72,12 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
 
     useEffect(() => {
         if (isSuccess) {
-            toast.success('Product updated successfully');
             router.push('/admin/products');
         }
     }, [isSuccess, router]);
 
     useEffect(() => {
         if (isError) {
-            toast.error('Failed to update product');
             console.error('Update product error:', error);
         }
     }, [isError, error]);
