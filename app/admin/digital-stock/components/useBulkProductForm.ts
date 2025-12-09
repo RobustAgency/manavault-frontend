@@ -23,7 +23,7 @@ export const useBulkProductForm = () => {
       tags: "",
       image: "",
       cost_price: "",
-      regions: "",
+      region: "",
       metadata: "",
     },
     errors: {},

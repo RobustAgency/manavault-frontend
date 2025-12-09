@@ -19,7 +19,7 @@ export interface DigitalProductFormState {
   tags: string; // Comma-separated string for input
   image: string;
   cost_price: string;
-  regions: string; // Comma-separated string for input
+  region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
 }
 
@@ -33,7 +33,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     tags: '',
     image: '',
     cost_price: '',
-    regions: '',
+    region: '',
     metadata: '',
   });
 
@@ -83,11 +83,12 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     }
 
     // Validate regions format (optional)
-    if (formData.regions.trim()) {
-      const regionsArray = formData.regions.split(',').map(region => region.trim()).filter(Boolean);
-      if (regionsArray.length > 0) {
-        const invalidRegions = regionsArray.filter(region => region.length > 10);
-        if (invalidRegions.length > 0) {
+    if (formData.region.trim()) {
+      // const regionsArray = formData.regions.split(',').map(region => region.trim()).filter(Boolean);
+      if (formData.region.length > 0) {
+        // const invalidRegions = regionsArray.filter(region => region.length > 10);
+        const invalidRegions = formData.region.length>10;
+        if (invalidRegions) {
           newErrors.regions = 'Each region code must be 10 characters or less';
         }
       }
@@ -116,7 +117,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       tags: '',
       image: '',
       cost_price: '',
-      regions: '',
+      region: '',
       metadata: '',
     });
     setErrors({});
@@ -133,10 +134,11 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       .map(tag => tag.trim())
       .filter(Boolean);
     
-    const regionsArray = formData.regions
-      .split(',')
-      .map(region => region.trim())
-      .filter(Boolean);
+    // const regionsArray = formData.regions
+    //   .split(',')
+    //   .map(region => region.trim())
+    //   .filter(Boolean);
+    const regionsArray = formData.region;
 
     let metadataObj: Record<string, unknown> | undefined;
     if (formData.metadata.trim()) {

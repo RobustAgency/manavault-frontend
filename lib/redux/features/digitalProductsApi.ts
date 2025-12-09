@@ -25,7 +25,7 @@ export interface DigitalProduct {
   image?: string | null;
   cost_price: string | number;
   status: DigitalProductStatus;
-  regions?: string[] | null;
+  region?: string | null;
   metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
@@ -62,7 +62,7 @@ export interface CreateDigitalProductData {
   tags?: string[];
   image?: string;
   cost_price: number;
-  regions?: string[];
+  region?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -77,7 +77,7 @@ export interface UpdateDigitalProductData {
   tags?: string[];
   image?: string;
   cost_price?: number;
-  regions?: string[];
+  region?: string;
   metadata?: Record<string, unknown>;
 }
 
