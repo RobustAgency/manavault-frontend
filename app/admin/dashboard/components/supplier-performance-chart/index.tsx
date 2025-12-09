@@ -20,9 +20,10 @@ interface SupplierData {
 
 interface SupplierPerformanceChartProps {
   data: SupplierData[];
+  isLoading : boolean;
 }
 
-export function SupplierPerformanceChart({ data }: SupplierPerformanceChartProps) {
+export function SupplierPerformanceChart({ data, isLoading }: SupplierPerformanceChartProps) {
     const formatLabel = (value: string) =>
   value.length > 12 ? `${value.slice(0, 13)}…` : value;
   return (
@@ -37,6 +38,14 @@ export function SupplierPerformanceChart({ data }: SupplierPerformanceChartProps
         </div>
       </div>
       <div className="py-8">
+           {isLoading ? (
+                       
+                            <div className="flex items-center justify-center w-full">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary mr-2" />
+                              Loading...
+                            </div>
+                       
+                      ) : (
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data}  barCategoryGap="40%" margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -135,6 +144,8 @@ export function SupplierPerformanceChart({ data }: SupplierPerformanceChartProps
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+                      )
+                      }
       </div>
     </div>
   );

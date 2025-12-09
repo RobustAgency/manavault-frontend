@@ -84,7 +84,7 @@ const LowStockProductTable: React.FC<LowStockProductProps> = ({ data, isLoading 
                       {data.map((item) => (
                         <TableRow key={item.id} className="group">
                           <TableCell className="font-medium text-foreground p-3">{item.name}</TableCell>
-                          <TableCell className="p-3">{item.sku}</TableCell>
+                          <TableCell className="p-3"><span className="bg-gray-100 px-2 py-1 rounded">{item.sku}</span></TableCell>
                           <TableCell className="text-center p-3">{item.quantity}</TableCell>
                           <TableCell className="p-3">{item.supplier_name}</TableCell>
                         </TableRow>

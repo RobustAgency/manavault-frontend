@@ -22,8 +22,8 @@ export default function AdminDashboard() {
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 1 });
     const { data: productsData } = useGetProductsQuery({ per_page: 1 });
     const { data: purchaseOrdersData } = useGetPurchaseOrdersQuery({ per_page: 1 });
-    const { data: lowStockProductData, isLoading } = useGetLowStockProductQuery();
-    const { data: supplerKpiData,  } = useGetSupplierKpiQuery();
+    const { data: lowStockProductData, isLoading: stockLoading } = useGetLowStockProductQuery();
+    const { data: supplerKpiData, isLoading: supplierLoading  } = useGetSupplierKpiQuery();
 
 
     const stats = [
@@ -53,28 +53,6 @@ export default function AdminDashboard() {
             href: '/admin/purchase-orders',
             color: 'text-purple-600',
             bgColor: 'bg-purple-50',
-        },
-    ];
-
-
-    const supplierPerformanceData = [
-  { supplier_name: "TechSupplies Inc", total_purchase_orders: 45, completed_purchase_orders: 42, processing_purchase_orders: 3, completion_rate: 93 },
-  { supplier_name: "GadgetWorld", total_purchase_orders: 32, completed_purchase_orders: 28, processing_purchase_orders: 4, completion_rate: 88 },
-  { supplier_name: "OfficeGear Ltd", total_purchase_orders: 28, completed_purchase_orders: 26, processing_purchase_orders: 2, completion_rate: 93 },
-  { supplier_name: "LightingPro", total_purchase_orders: 18, completed_purchase_orders: 17, processing_purchase_orders: 1, completion_rate: 94 },
-  { supplier_name: "ElectroMart", total_purchase_orders: 22, completed_purchase_orders: 18, processing_purchase_orders: 4, completion_rate: 82 },
-];
-
-
-    const recentActivity = [
-        {
-            title: 'Quick Access',
-            items: [
-                { label: 'Manage Suppliers', href: '/admin/suppliers' },
-                { label: 'Manage Products', href: '/admin/products' },
-                { label: 'Digital Stock', href: '/admin/digital-stock' },
-                { label: 'Purchase Orders', href: '/admin/purchase-orders' },
-            ],
         },
     ];
 
@@ -112,30 +90,9 @@ export default function AdminDashboard() {
 
             <div className="w-full grid gap-4 lg:grid-cols-2 grid-col-1 mb-8">
                 {/* Low Stock Table */}
-                <SupplierPerformanceChart data={supplerKpiData?.slice(0,5) ?? []} />
-                <LowStackTable isLoading = {isLoading} data={lowStockProductData?.slice(0, 5) ?? []} />
+                <SupplierPerformanceChart isLoading= {supplierLoading} data={supplerKpiData?.slice(0,5) ?? []} />
+                <LowStackTable isLoading = {stockLoading} data={lowStockProductData?.slice(0, 5) ?? []} />
             </div>
-
-            {/* Quick Links */}
-            {/* <div className="mb-8">
-                <Card className='cursor-pointer hover:shadow-lg transition-shadow gap-0 p-5'>
-                <h2 className="text-2xl font-bold mb-0">Quick Links</h2>
-                    <CardContent className="pt-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {recentActivity[0].items.map((item) => (
-                                <Button
-                                    key={item.label}
-                                    variant="outline"
-                                    className="h-auto py-4"
-                                    onClick={() => router.push(item.href)}
-                                >
-                                    {item.label}
-                                </Button>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div> */}
         </div>
     );
 }
