@@ -39,11 +39,11 @@ const LowStockProductTable: React.FC<LowStockProductProps> = ({ data, isLoading 
     { id: "3", label: "Supplier" },
   ];
   return (
-      <div className="rounded-xl  w-[full] overflow-hidden shadow-sm py-2 bg-card border text-card-foreground animate-slide-up" style={{ animationDelay: "200ms" }}>
+      <div className="rounded-xl  w-[full] overflow-hidden shadow-sm bg-card border text-card-foreground animate-slide-up" style={{ animationDelay: "200ms" }}>
         {/* Table Heading */}
         <div className="flex items-center gap-3 border-b border-border p-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/20">
-            <AlertTriangle className="h-5 w-5 text-warning" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
           </div>
           <div>
             <h3 className="font-semibold text-foreground">Low Stock Alerts</h3>

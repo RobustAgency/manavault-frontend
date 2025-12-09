@@ -112,7 +112,7 @@ export function SupplierPerformanceChart({ data, isLoading }: SupplierPerformanc
                 yAxisId="left"
                 dataKey="total_purchase_orders"
                 className="text-warning"
-                fill="hsl(162 83% 41%)"
+                fill="hsl(162 98% 41%)"
                 radius={[4, 4, 0, 0]}
                  minPointSize={3}
                 barSize={12}
