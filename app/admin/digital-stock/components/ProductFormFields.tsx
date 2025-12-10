@@ -41,13 +41,13 @@ export const ProductFormFields = ({
         <div className="grid gap-2">
           <Label htmlFor={`supplier_id-${formItemId}`}>Supplier *</Label>
           <Select
+            key={form.supplier_id}
             required
             value={form.supplier_id.toString()}
             onValueChange={(value) => {
               onUpdate({ supplier_id: parseInt(value) });
               onSupplierChange?.(parseInt(value));
             }}
-            disabled={isEditMode}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select a supplier" />
@@ -154,12 +154,12 @@ export const ProductFormFields = ({
         <Label htmlFor={`regions-${formItemId}`}>Region</Label>
         <Input
           id={`regions-${formItemId}`}
-          value={form.regions}
-          onChange={(e) => onUpdate({ regions: e.target.value })}
+          value={form.region}
+          onChange={(e) => onUpdate({ region: e.target.value })}
           placeholder="US"
         />
         <p className="text-xs text-muted-foreground">Comma-separated region codes (e.g., US, CA, UK)</p>
-        {formErrors.regions && <p className="text-sm text-red-500">{formErrors.regions}</p>}
+        {formErrors.region && <p className="text-sm text-red-500">{formErrors.region}</p>}
       </div>
 
       <div className="grid gap-2">

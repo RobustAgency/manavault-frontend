@@ -23,7 +23,7 @@ export default function CreateDigitalProductPage() {
     const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100, status: 'active', type: 'internal' });
     const [createDigitalProducts, { isLoading, isSuccess, isError, error, data: createdProducts }] = useCreateDigitalProductsMutation();
     const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
-
+    console.log(createdProducts);
     const {
         productForms,
         expandedItems,
@@ -51,10 +51,11 @@ export default function CreateDigitalProductPage() {
 
     useEffect(() => {
         if (isSuccess && createdProducts) {
-            toast.success('Digital product(s) created successfully');
+            // toast.success('Digital product(s) created successfully');
             // Navigate to first created product's detail page
             if (createdProducts.length > 0) {
-                router.push(`/admin/digital-stock/${createdProducts[0].id}`);
+                // router.push(`/admin/digital-stock/${createdProducts[0].id}`);
+                router.push(`/admin/digital-stock`);
             } else {
                 router.push('/admin/digital-stock');
             }
@@ -63,7 +64,7 @@ export default function CreateDigitalProductPage() {
 
     useEffect(() => {
         if (isError) {
-            toast.error('Failed to create digital product(s)');
+            // toast.error('Failed to create digital product(s)');
             console.error('Create digital product error:', error);
         }
     }, [isError, error]);
@@ -80,7 +81,7 @@ export default function CreateDigitalProductPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+          console.log(productForms);
         // Validate supplier first
         if (!selectedSupplierId || selectedSupplierId === 0) {
             setSupplierError('Supplier is required');
@@ -90,10 +91,12 @@ export default function CreateDigitalProductPage() {
 
         // Validate all forms
         const allValid = productForms.every((form) => validateProductForm(form));
+        console.log(allValid);
         if (allValid) {
             const products = productForms.map((form) =>
                 convertFormToSubmitData(form.formData, selectedSupplierId)
             );
+            console.log(products);
             await createDigitalProducts({ products });
         }
     };
