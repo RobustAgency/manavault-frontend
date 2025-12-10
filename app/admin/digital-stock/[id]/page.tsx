@@ -166,7 +166,7 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                 </Card>
 
                 {/* Tags and Regions Card */}
-                {(product.tags && product.tags.length > 0) || (product.regions && product.regions.length > 0) ? (
+                {(product.tags && product.tags.length > 0) || (product.region) ? (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -192,18 +192,16 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                         </div>
                                     </div>
                                 )}
-                                {product.regions && product.regions.length > 0 && (
+                                {product.region && (
                                     <div>
                                         <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                                             <GlobeIcon className="h-4 w-4" />
                                             Available Regions
                                         </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {product.regions.map((region, idx) => (
-                                                <Badge key={idx} variant="outlined" color="info">
-                                                    {region}
-                                                </Badge>
-                                            ))}
+                                            <Badge variant="outlined" color="info">
+                                                {product.region}
+                                            </Badge>
                                         </div>
                                     </div>
                                 )}
