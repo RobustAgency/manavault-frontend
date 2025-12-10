@@ -49,6 +49,19 @@ export interface UpdateSupplierData {
   status?: SupplierStatus;
 }
 
+export interface GetSupplierKPI {
+  supplier_id: number;
+  supplier_name: string;
+  total_purchase_orders: number;
+  completed_purchase_orders: number;
+  processing_purchase_orders: number;
+  total_quantity_ordered: number;
+  total_amount_spent: number;
+  average_order_value: number;
+  completion_rate: number;
+}
+
+
 // Custom base query using existing Axios client
 const axiosBaseQuery =
   (): BaseQueryFn<
@@ -164,6 +177,39 @@ export const suppliersApi = createApi({
         };
       },
     }),
+getSupplierKpi: builder.query<GetSupplierKPI[], void>({
+  query: () => ({
+    url: `/admin/suppliers/kpis`,
+    method: "GET",
+  }),
+
+providesTags: (result) =>
+  result
+    ? [
+        ...result.map((item) => ({
+          type: "Supplier" as const,
+          id: item.supplier_id,
+        })),
+        { type: "Supplier" as const, id: "LIST" },
+      ]
+    : [{ type: "Supplier" as const, id: "LIST" }],
+
+  transformResponse: (response: {
+    error?: boolean;
+    data?: {
+      data: GetSupplierKPI[];
+      current_page: number;
+      per_page: number;
+      total: number;
+      last_page: number;
+      from: number;
+      to: number;
+    };
+    message?: string;
+  }) => {
+    return response.data?.data ?? [];
+  },
+}),
 
     getSupplier: builder.query<Supplier, number>({
       query: (id) => ({
@@ -262,6 +308,7 @@ export const suppliersApi = createApi({
 });
 
 export const {
+  useGetSupplierKpiQuery,
   useGetSuppliersQuery,
   useGetSupplierQuery,
   useCreateSupplierMutation,

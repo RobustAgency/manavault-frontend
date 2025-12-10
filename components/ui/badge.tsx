@@ -55,7 +55,7 @@ const badgeVariants = cva(
       {
         variant: "filled",
         color: "warning",
-        class: "bg-yellow-600 text-white border-yellow-600",
+        class: "bg-warning text-white border-warning",
       },
       {
         variant: "filled",
