@@ -21,6 +21,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --warning: oklch(83.275% 0.17151 82.058);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -46,7 +47,6 @@
   /* Use your theme colors in Tailwind */
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
-
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -62,6 +62,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-warning : var(--warning);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -130,4 +131,9 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none !important;
 }
