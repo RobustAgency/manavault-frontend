@@ -10,7 +10,6 @@ import {
     useUpdateDigitalProductMutation,
     type UpdateDigitalProductData,
 } from '@/lib/redux/features';
-import { toast } from 'react-toastify';
 import { ProductFormFields, useDigitalProductForm } from '../../components';
 
 export default function EditDigitalProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,11 +21,11 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     const { formData, setFormData, errors, validateForm, updateFormData, getFormDataForSubmit } =
         useDigitalProductForm(true);
     const [updateDigitalProduct, { isLoading, isSuccess, isError, error }] = useUpdateDigitalProductMutation();
-
     useEffect(() => {
         if (product) {
+
             setFormData({
-                supplier_id: product.supplier_id,
+                supplier_id: product.supplier_id || 0 ,
                 name: product.name,
                 sku: product.sku || '',
                 brand: product.brand || '',
@@ -34,7 +33,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 tags: product.tags?.join(', ') || '',
                 image: product.image || '',
                 cost_price: product.cost_price?.toString() ?? '',
-                regions: product.regions?.join(', ') || '',
+                region: product.region || '',
                 metadata: product.metadata ? JSON.stringify(product.metadata, null, 2) : '',
             });
         }
@@ -42,14 +41,14 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
 
     useEffect(() => {
         if (isSuccess) {
-            toast.success('Digital product updated successfully');
+            // toast.success('Digital product updated successfully');
             router.push('/admin/digital-stock');
         }
     }, [isSuccess, router]);
 
     useEffect(() => {
         if (isError) {
-            toast.error('Failed to update digital product');
+            // toast.error('Failed to update digital product');
             console.error('Update digital product error:', error);
         }
     }, [isError, error]);
@@ -100,7 +99,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
         );
     }
 
-    return (
+    return (  
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
                 <Button
