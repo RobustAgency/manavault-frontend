@@ -87,7 +87,7 @@ export default function CreateProductPage() {
         submitData.append('name', formData.name.trim());
         submitData.append('sku', formData.sku.trim());
         submitData.append('selling_price', formData.selling_price);
-        submitData.append('face_value', formData.faceValue);
+        submitData.append('face_value', formData.face_value);
         submitData.append('currency', formData.currency);
         submitData.append('status', formData.status);
 
@@ -239,12 +239,12 @@ export default function CreateProductPage() {
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    value={formData.faceValue}
-                                    onChange={(e) => updateFormData({ faceValue: e.target.value })}
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
                                     placeholder="0.00"
                                     className="h-10"
                                 />
-                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
                         

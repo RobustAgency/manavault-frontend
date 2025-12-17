@@ -21,7 +21,6 @@ import {
 } from '@/lib/redux/features';
 import { useProductForm } from '../../components/useProductForm';
 import { use, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../../components/BrandSelector';
 
@@ -62,7 +61,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 tags: product.tags?.join(', ') || '',
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
-                faceValue: product.face_value?.toString() ?? ''
+                face_value: product.face_value?.toString() ?? ''
             }
         );
     }, [product, brandsData]);
@@ -95,7 +94,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             submitData.append('selling_price', formData.selling_price);
             submitData.append('status', formData.status);
             submitData.append('currency', formData.currency);
-            submitData.append('status', formData.status);
+            submitData.append('face_value', formData.face_value);
 
             // Add optional fields only if they have values
             if (formData.brand_id.trim()) {
@@ -256,12 +255,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    value={formData.faceValue}
-                                    onChange={(e) => updateFormData({ faceValue: e.target.value })}
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
                                     placeholder="0.00"
                                     className="h-10"
                                 />
-                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
                         <div className="space-y-2">

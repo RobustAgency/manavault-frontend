@@ -210,7 +210,7 @@ export const priceAutomationApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Rule created successfully");
+          toast.success("Price rule created successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
@@ -248,7 +248,7 @@ export const priceAutomationApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Price Rule updated successfully");
+          toast.success("Price rule updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
@@ -272,7 +272,7 @@ export const priceAutomationApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Price Rule deleted successfully");
+          toast.success("Price rule deleted successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =

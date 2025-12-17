@@ -17,7 +17,7 @@ const EditPriceRulePage = () => {
 
   const [updatePriceRule] = useUpdatePriceRuleMutation();
 
-  const handleEdit = async (updateData : PriceRule) => {
+  const handleEdit = async (updateData: PriceRule) => {
     if (!id || !updateData) return;
 
     await updatePriceRule({
@@ -27,7 +27,6 @@ const EditPriceRulePage = () => {
     router.back();
   };
 
-
   return (
     <>
       {isLoading ? <>
@@ -35,12 +34,12 @@ const EditPriceRulePage = () => {
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary mr-2" />
           Loading...
         </div>
-      </> : 
-       <PriceRuleForm
-        initialData={priceRuleListData}
-        mode="edit"
-        onSubmit={handleEdit}
-      />
+      </> :
+        <PriceRuleForm
+          initialData={priceRuleListData}
+          mode="edit"
+          onSubmit={handleEdit}
+        />
       }
 
     </>

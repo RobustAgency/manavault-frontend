@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, Plus, Save } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -33,7 +33,7 @@ const PriceRuleForm = ({
   const router = useRouter();
 
   const [conditions, setConditions] = useState<Condition[]>(
-    initialData?.conditions?.length
+      initialData?.conditions?.length
       ? initialData.conditions
       : [{ id: "1", field: "name", value: "", operator: "=" }]
   );
@@ -166,12 +166,10 @@ console.log(initialData)
                   <SelectItem value="absolute"> Number </SelectItem>
                 </SelectContent>
               </Select>
-              {errors.action_value && <p className="text-sm text-red-500">{errors.action_mode}</p>}
+              {errors.action_mode && <p className="text-sm text-red-500">{errors.action_mode}</p>}
 
             </div>
           </div>
-
-
 
           <div className="flex flex-col justify-between gap-2">
             <Label className="text-sm font-medium">Status</Label>

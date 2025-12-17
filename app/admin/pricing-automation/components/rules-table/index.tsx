@@ -4,7 +4,7 @@ import { DataTable } from "@/components/custom/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Product, ProductStatus, SupplierStatus, SupplierType, useGetSuppliersQuery } from "@/lib/redux/features";
+import {ProductStatus } from "@/lib/redux/features";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,17 +17,18 @@ const RulesTable = () => {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<PriceRule | null>(null);
 
   const [deleteProduct, { isLoading: isDeleting }] =  useDeletePriceRuleMutation();
 
-  const openEditPage = (rules: Product) => {
+  const openEditPage = (rules: PriceRule) => {
     router.push(`/admin/pricing-automation/edit/${rules.id}`);
   };
 
-  const openDeleteDialog = (product: Product) => {
-    setSelectedProduct(product);
+  const openDeleteDialog = (rules: PriceRule) => {
+    setSelectedProduct(rules);
     setIsDeleteDialogOpen(true);
   };
 
@@ -50,7 +51,7 @@ const RulesTable = () => {
   // Reset page to 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, typeFilter]);
+  }, [statusFilter]);
 
 
   const { data: priceRuleListData, isLoading: PriceRuleListLoading } = useGetPriceRulesListQuery({
@@ -60,16 +61,11 @@ const RulesTable = () => {
     status: statusFilter === 'all' ? undefined : (statusFilter as RuleStatus)
 });
 
-console.log(statusFilter)
-
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
   const handleDelete = async () => {
     if (!selectedProduct) return;
 
     try {
-      await deleteProduct(selectedProduct.id).unwrap();
+      await deleteProduct(Number(selectedProduct.id)).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
     } catch (error) {

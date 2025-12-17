@@ -23,15 +23,15 @@ export const getStatusColor = (status: RuleStatus): 'success' | 'default' | 'war
 };
 
 interface RulesColumnsProps {
-  onEdit: any
-  onDelete: any;
+  onEdit: (rule: PriceRule) => void;
+  onDelete: (rule: PriceRule) => void;
 }
 
 export const createRulesColumns = ({ onEdit, onDelete }: RulesColumnsProps): ColumnDef<PriceRule>[] => [
   {
     accessorKey: 'name',
     header: 'Name',
-    cell: ({ row }) => <span className="">{row.original.name}</span>,
+    cell: ({ row }) => <span>{row.original.name}</span>,
   },
   {
     accessorKey: 'conditions',
