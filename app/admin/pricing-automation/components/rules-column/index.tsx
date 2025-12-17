@@ -68,7 +68,7 @@ export const createRulesColumns = ({ onEdit, onDelete }: RulesColumnsProps): Col
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => <Badge variant={"filled"} color={getStatusColor(row.original.status)}>{row.original.status}</Badge>
+    cell: ({ row }) => <Badge variant={"filled"} color={getStatusColor(row.original.status)}>{row.original.status === "active" ? "active" : "inactive"}</Badge>
   },
 
   {

@@ -33,7 +33,7 @@ const PriceRuleForm = ({
   const router = useRouter();
 
   const [conditions, setConditions] = useState<Condition[]>(
-      initialData?.conditions?.length
+    initialData?.conditions?.length
       ? initialData.conditions
       : [{ id: "1", field: "name", value: "", operator: "=" }]
   );

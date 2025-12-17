@@ -31,14 +31,14 @@ type Operator =
 type FieldKey =
   | "selling_price"
   | "name"
-  | "brand_id"
+  | "brand_name"
   | "regions"
   | string;
 
 export const FIELD_OPERATOR_MAP: Record<FieldKey, Operator[]> = {
   selling_price: ["=", "!=", ">", ">=", "<", "<="],
   name: ["=", "!=", "contains"],
-  brand_id: ["=", "!="],
+  brand_name: ["=", "!="],
   regions: ["=", "!="],
 };
 
@@ -93,7 +93,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
 
   const getValueOptions = (field: string) => {
     switch (field) {
-      case "brand_id":
+      case "brand_name":
         return selectorOptions;
       default:
         return null;
@@ -103,7 +103,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
   const fieldOptions = [
     { value: "name", label: "Product Name" },
     { value: "regions", label: "Region" },
-    { value: "brand_id", label: "Brand" },
+    { value: "brand_name", label: "Brand" },
     { value: "selling_price", label: "Selling Price" },
   ];
 
@@ -119,6 +119,7 @@ const getOperatorOptions = (field: FieldKey) => {
     { value: "any", label: "Match Any" },
   ];
 
+  
   return (
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
@@ -204,7 +205,7 @@ const getOperatorOptions = (field: FieldKey) => {
                   </SelectTrigger>
                   <SelectContent>
                     {getValueOptions(condition.field)?.map((option) => (
-                      <SelectItem key={option.name} value={String(option.id)}>
+                      <SelectItem key={option.name} value={option.name}>
                         {option.name}
                       </SelectItem>
                     ))}

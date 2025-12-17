@@ -4,7 +4,7 @@ import { DataTable } from "@/components/custom/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {ProductStatus } from "@/lib/redux/features";
+import { ProductStatus } from "@/lib/redux/features";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,7 +18,7 @@ const RulesTable = () => {
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PriceRule | null>(null);
 
   const [deleteProduct, { isLoading: isDeleting }] =  useDeletePriceRuleMutation();
@@ -100,7 +100,6 @@ const RulesTable = () => {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="in_active">Inactive</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
         </div>
