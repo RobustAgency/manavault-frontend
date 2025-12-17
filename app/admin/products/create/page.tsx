@@ -33,6 +33,7 @@ export default function CreateProductPage() {
     const skuRef = useRef<HTMLInputElement>(null);
     const sellingPriceRef = useRef<HTMLInputElement>(null);
     const statusRef = useRef<HTMLButtonElement>(null);
+    const faceValueRef = useRef<HTMLInputElement>(null);
 
 
     useEffect(() => {
@@ -86,6 +87,8 @@ export default function CreateProductPage() {
         submitData.append('name', formData.name.trim());
         submitData.append('sku', formData.sku.trim());
         submitData.append('selling_price', formData.selling_price);
+        submitData.append('face_value', formData.faceValue);
+        submitData.append('currency', formData.currency);
         submitData.append('status', formData.status);
 
         // Add optional fields only if they have values
@@ -211,6 +214,40 @@ export default function CreateProductPage() {
                             </div>
                         </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                            <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
+                            <Select
+                                value={formData.currency}
+                                onValueChange={(value) => updateFormData({ currency: value })}
+                            >
+                                <SelectTrigger ref={statusRef} className="h-10" id="status">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="usd">Dollars ($)</SelectItem>
+                                    <SelectItem value="eur">Euro (€)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
+                                <Input
+                                    ref={faceValueRef}
+                                    id="face_value"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.faceValue}
+                                    onChange={(e) => updateFormData({ faceValue: e.target.value })}
+                                    placeholder="0.00"
+                                    className="h-10"
+                                />
+                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                            </div>
+                        </div>
+                        
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                             <Select
@@ -227,6 +264,8 @@ export default function CreateProductPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+
+
                     </div>
                 </div>
 

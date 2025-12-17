@@ -34,40 +34,42 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
     const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
 
-  useEffect(() => {
-    if (!product || !brandsData?.data) return;
+    useEffect(() => {
+        if (!product || !brandsData?.data) return;
 
-    let brandId = '';
+        let brandId = '';
 
-    if (product.brand_id) {
-        brandId = String(product.brand_id);
-    } else if (product.brand && typeof product.brand === 'object' && product.brand.id) {
-        brandId = String(product.brand.id);
-    } else if (typeof product.brand === 'string') {
-        const foundBrand = brandsData.data.find(
-            (brand) => brand.name === product.brand
+        if (product.brand_id) {
+            brandId = String(product.brand_id);
+        } else if (product.brand && typeof product.brand === 'object' && product.brand.id) {
+            brandId = String(product.brand.id);
+        } else if (typeof product.brand === 'string') {
+            const foundBrand = brandsData.data.find(
+                (brand) => brand.name === product.brand
+            );
+            if (foundBrand) brandId = String(foundBrand.id);
+        }
+        setFormData(
+            {
+                name: product.name,
+                brand_id: brandId,
+                short_description: product.short_description || '',
+                long_description: product.long_description || '',
+                sku: product.sku,
+                selling_price: product.selling_price?.toString() ?? '',
+                image: product.image || '',
+                status: product.status,
+                tags: product.tags?.join(', ') || '',
+                regions: product.regions?.join(', ') || '',
+                currency: product.currency || "",
+                faceValue: product.face_value?.toString() ?? ''
+            }
         );
-        if (foundBrand) brandId = String(foundBrand.id);
-    }
-    setFormData(
-        {
-        name: product.name,
-        brand_id: brandId,
-        short_description: product.short_description || '',
-        long_description: product.long_description || '',
-        sku: product.sku,
-        selling_price: product.selling_price?.toString() ?? '',
-        image : product.image || '',
-        status: product.status,
-        tags: product.tags?.join(', ') || '',
-        regions: product.regions?.join(', ') || '', 
-    }
-);
-}, [product, brandsData]);
+    }, [product, brandsData]);
 
-const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
+    const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
-const isImageExist =  formData?.image instanceof File  ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image  : "";
+    const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
 
     useEffect(() => {
@@ -92,6 +94,8 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
             submitData.append('name', formData.name.trim());
             submitData.append('selling_price', formData.selling_price);
             submitData.append('status', formData.status);
+            submitData.append('currency', formData.currency);
+            submitData.append('status', formData.status);
 
             // Add optional fields only if they have values
             if (formData.brand_id.trim()) {
@@ -105,9 +109,9 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
             if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
 
             // Handle image - append the File object directly
-           if (formData.image instanceof File) {
-             submitData.append("image", formData.image);
-           }
+            if (formData.image instanceof File) {
+                submitData.append("image", formData.image);
+            }
 
             // Parse tags from comma-separated string
             if (formData.tags.trim()) {
@@ -227,12 +231,44 @@ const isImageExist =  formData?.image instanceof File  ? formData.image : formDa
                                 {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                                <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
+                                <Select
+                                    key={formData.currency}
+                                    value={formData.currency}
+                                    onValueChange={(value) => updateFormData({ currency: value })}
+                                >
+                                    <SelectTrigger className="h-10" id="status">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="usd">Dollars ($)</SelectItem>
+                                        <SelectItem value="eur">Euro (€)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
+                                <Input
+                                    id="face_value"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.faceValue}
+                                    onChange={(e) => updateFormData({ faceValue: e.target.value })}
+                                    placeholder="0.00"
+                                    className="h-10"
+                                />
+                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                             <Select
-                             key={formData.status}
-                                value={formData.status }
+                                key={formData.status}
+                                value={formData.status}
                                 onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
                             >
                                 <SelectTrigger className="h-10">

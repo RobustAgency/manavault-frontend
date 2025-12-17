@@ -21,6 +21,8 @@ export interface ProductFormState {
   tags: string;
   image?: string | File;
   regions: string;
+  currency : string;
+  faceValue : string;
 }
 
 export const useProductForm = (isEditMode: boolean) => {
@@ -36,6 +38,8 @@ export const useProductForm = (isEditMode: boolean) => {
     tags: "",
     image: "",
     regions: "",
+    currency : "usd",
+    faceValue : ""
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -93,6 +97,8 @@ export const useProductForm = (isEditMode: boolean) => {
       tags: "",
       image: "",
       regions: "",
+      currency : "usd",
+      faceValue : ""
     });
     setErrors({});
   };
