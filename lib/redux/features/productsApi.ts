@@ -88,6 +88,8 @@ export interface Product {
     name: string;
     slug: string;
   };
+  currency : string;
+  face_value : number;
 }
 
 export interface ThirdPartyProduct {

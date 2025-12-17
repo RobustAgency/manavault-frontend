@@ -7,6 +7,7 @@ export interface ProductFormErrors {
   sku?: string;
   selling_price?: string;
   brand?: string;
+  face_value? : string;
 }
 
 export interface ProductFormState {
@@ -21,6 +22,8 @@ export interface ProductFormState {
   tags: string;
   image?: string | File;
   regions: string;
+  currency : string;
+  face_value : string;
 }
 
 export const useProductForm = (isEditMode: boolean) => {
@@ -36,6 +39,8 @@ export const useProductForm = (isEditMode: boolean) => {
     tags: "",
     image: "",
     regions: "",
+    currency : "usd",
+    face_value : ""
   });
 
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -75,7 +80,17 @@ export const useProductForm = (isEditMode: boolean) => {
         newErrors.selling_price = "Selling price must be 0 or greater";
       }
     }
-
+    
+     if (!formData.face_value.trim()) {
+      newErrors.face_value = "Face value is required";
+    } else {
+      const sellingPriceValue = parseFloat(formData.face_value);
+      if (Number.isNaN(sellingPriceValue)) {
+        newErrors.face_value = "Face value must be a valid number";
+      } else if (sellingPriceValue < 0) {
+        newErrors.face_value = "Face value must be 0 or greater";
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,6 +108,8 @@ export const useProductForm = (isEditMode: boolean) => {
       tags: "",
       image: "",
       regions: "",
+      currency : "usd",
+      face_value : ""
     });
     setErrors({});
   };
