@@ -257,8 +257,6 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
                 <>
                   <Input
                     placeholder="Enter value..."
-                     min="1"
-                    max="10"
                     value={condition.value}
                     onChange={(e) => editCondition(condition.id, { value: e.target.value })}
                     className="h-11 mb-2"
