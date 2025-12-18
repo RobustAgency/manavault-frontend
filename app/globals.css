@@ -133,6 +133,11 @@
   }
 }
 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
 .recharts-wrapper:focus,
 .recharts-surface:focus {
   outline: none !important;
