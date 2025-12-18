@@ -12,7 +12,8 @@ import {
     Gift,
     ShieldCheck,
     ClipboardList,
-    Layers
+    Layers,
+    Tag
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
@@ -27,6 +28,7 @@ const adminRoutes = [
     { href: "/admin/login-logs", label: "Login Logs", icon: ShieldCheck },
     { href: "/admin/voucher-audit-logs", label: "Voucher Audit", icon: ClipboardList },
     { href: "/admin/brands", label: "Brands", icon: Layers },
+    { href: "/admin/pricing-automation", label: "Pricing Automation", icon: Tag },
     // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [

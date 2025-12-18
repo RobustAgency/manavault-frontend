@@ -8,6 +8,7 @@ import { digitalProductsApi } from "./features/digitalProductsApi";
 import { brandsApi } from "./features/brandsApi";
 import { loginLogsApi } from "./features/loginLogsApi";
 import { voucherAuditLogsApi } from "./features/voucherAuditLogsApi";
+import { priceAutomationApi } from "./features/priceAutomationApi";
 
 export const makeStore = () => {
   return configureStore({
@@ -20,6 +21,8 @@ export const makeStore = () => {
       [brandsApi.reducerPath]: brandsApi.reducer,
       [loginLogsApi.reducerPath]: loginLogsApi.reducer,
       [voucherAuditLogsApi.reducerPath]: voucherAuditLogsApi.reducer,
+      [priceAutomationApi.reducerPath]: priceAutomationApi.reducer,
+
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(
@@ -30,7 +33,8 @@ export const makeStore = () => {
         digitalProductsApi.middleware,
         brandsApi.middleware,
         loginLogsApi.middleware,
-        voucherAuditLogsApi.middleware
+        voucherAuditLogsApi.middleware,
+        priceAutomationApi.middleware,
       ),
   });
 };
