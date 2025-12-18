@@ -54,7 +54,11 @@ export const createRulesColumns = ({ onEdit, onDelete }: RulesColumnsProps): Col
     accessorKey: "action-value",
     header: 'Action Value',
     cell: ({ row }) => (
-      <span>{formatCurrency(row.original.action_value)}</span>
+       <span>
+    {row.original.action_value == null
+      ? "-"
+      : formatCurrency(row.original.action_value)}
+  </span>
     ),
   },
   {

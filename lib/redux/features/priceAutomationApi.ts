@@ -103,7 +103,7 @@ export interface PriceRule {
   status: "active" | "in_active" | undefined;
   match_type: string;
   conditions: Condition[];
-  action_value: number;
+  action_value: number | null;
   action_operator: string;
   action_mode: string,
 }
