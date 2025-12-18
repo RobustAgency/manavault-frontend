@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
-import { SetStateAction, Dispatch } from "react";
+import { SetStateAction, Dispatch, useEffect } from "react";
 import { Condition } from "@/lib/redux/features/priceAutomationApi";
 
 export interface Brand {
@@ -39,7 +39,7 @@ export const FIELD_OPERATOR_MAP: Record<FieldKey, Operator[]> = {
   selling_price: ["=", "!=", ">", ">=", "<", "<="],
   name: ["=", "!=", "contains"],
   brand_name: ["=", "!="],
-  regions: ["=", "!="],
+  regions: ["contains"],
 };
 
 export const OPERATOR_LABELS: Record<Operator, string> = {
@@ -69,12 +69,41 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
   setMatchCondition,
   conditionError
 }) => {
+  // Helper function to get default operator for a field
+  const getDefaultOperator = (field: FieldKey): Operator => {
+    const operators = FIELD_OPERATOR_MAP[field];
+    return operators && operators.length > 0 ? operators[0] : "=";
+  };
+
+  // Normalize conditions on mount to ensure valid operators
+  useEffect(() => {
+    const needsNormalization = conditions.some((condition) => {
+      const validOperators = FIELD_OPERATOR_MAP[condition.field];
+      return !validOperators?.includes(condition.operator as any);
+    });
+
+    if (needsNormalization) {
+      const normalizedConditions = conditions.map((condition) => {
+        const validOperators = FIELD_OPERATOR_MAP[condition.field];
+        const isOperatorValid = validOperators?.includes(condition.operator as any);
+        
+        return {
+          ...condition,
+          operator: isOperatorValid ? condition.operator : getDefaultOperator(condition.field)
+        };
+      });
+      
+      setConditions(normalizedConditions);
+    }
+  }, []); 
+
   const addCondition = () => {
+    const defaultField = "name";
     const newCondition: Condition = {
       id: Date.now().toString(),
-      field: "name",
+      field: defaultField,
       value: "",
-      operator: "=",
+      operator: getDefaultOperator(defaultField),
     };
     setConditions([...conditions, newCondition]);
   };
@@ -87,7 +116,20 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
 
   const editCondition = (id: string, updates: Partial<Condition>) => {
     setConditions(
-      conditions.map((c) => (c.id === id ? { ...c, ...updates } : c))
+      conditions.map((c) => {
+        if (c.id === id) {
+          if (updates.field && updates.field !== c.field) {
+            return {
+              ...c,
+              ...updates,
+              operator: getDefaultOperator(updates.field),
+              value: ""
+            };
+          }
+          return { ...c, ...updates };
+        }
+        return c;
+      })
     );
   };
 
@@ -107,12 +149,12 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
     { value: "selling_price", label: "Selling Price" },
   ];
 
-const getOperatorOptions = (field: FieldKey) => {
-  return FIELD_OPERATOR_MAP[field]?.map((op) => ({
-    value: op,
-    label: OPERATOR_LABELS[op],
-  }));
-};
+  const getOperatorOptions = (field: FieldKey) => {
+    return FIELD_OPERATOR_MAP[field]?.map((op) => ({
+      value: op,
+      label: OPERATOR_LABELS[op],
+    }));
+  };
 
   const ConditionOptions = [
     { value: "all", label: "Match All" },
@@ -123,7 +165,7 @@ const getOperatorOptions = (field: FieldKey) => {
   return (
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
-        <Label className="text-sm font-medium">Conditions</Label>
+        <Label className="text-sm font-medium">Conditions *</Label>
         <div className="space-y-0">
           <Select
             value={matchCondition}
@@ -155,7 +197,7 @@ const getOperatorOptions = (field: FieldKey) => {
               </div>
               <Select
                 value={condition.field}
-                onValueChange={(value) => editCondition(condition.id, { field: value, value: "" })}
+                onValueChange={(value) => editCondition(condition.id, { field: value })}
               >
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select field" />
@@ -176,10 +218,10 @@ const getOperatorOptions = (field: FieldKey) => {
               </div>
               <Select
                 value={condition.operator}
-                onValueChange={(value) => editCondition(condition.id, { operator: value, value: "" })}
+                onValueChange={(value) => editCondition(condition.id, { operator: value })}
               >
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select field" />
+                  <SelectValue placeholder="Select operator" />
                 </SelectTrigger>
                 <SelectContent>
                   {getOperatorOptions(condition.field)?.map((option) => (

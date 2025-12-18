@@ -1,7 +1,6 @@
 'use client';
 
 import { PackageIcon } from 'lucide-react';
-import { ColumnDef } from '@tanstack/react-table';
 import {
   Card,
   CardContent,
@@ -10,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Product, DigitalProduct as DigitalProductType } from '@/lib/redux/features/productsApi';
+import { Product } from '@/lib/redux/features/productsApi';
 import { formatCurrency, getStatusColor } from './productColumns';
 import { ProductImage } from './ProductImage';
 
@@ -95,9 +94,10 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">Selling Price</p>
                 <p className="text-3xl font-bold text-primary">
-                  {formatCurrency(product.selling_price)}
+                  {formatCurrency(product.selling_price, product.currency)}
                 </p>
               </div>
+               
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
                 <Badge variant="filled" color={getStatusColor(product.status)}>

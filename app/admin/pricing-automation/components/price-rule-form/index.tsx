@@ -31,11 +31,12 @@ const PriceRuleForm = ({
   onSubmit,
 }: PriceRuleFormProps) => {
   const router = useRouter();
-
+  
+  
   const [conditions, setConditions] = useState<Condition[]>(
     initialData?.conditions?.length
       ? initialData.conditions
-      : [{ id: "1", field: "name", value: "", operator: "=" }]
+      : [{ id: "1", field: "name", value: "", operator: "" }]
   );
 
   const [matchCondition, setMatchCondition] = useState(
@@ -81,7 +82,7 @@ console.log(initialData)
         <div className="grid grid-cols-1 md:grid-cols-1 gap-5 py-4  border-border">
           <div className="space-y-2">
             <Label htmlFor="faceValue" className="text-sm font-medium">
-              Rule Name
+              Rule Name *
             </Label>
             <Input
               id="name"
@@ -116,7 +117,7 @@ console.log(initialData)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-border">
           <div className="space-y-2 pb-0">
             <Label htmlFor="actionValue" className="text-sm font-medium flex items-center gap-2">
-              Action Value
+              Action Value *
             </Label>
             <div className="relative">
               <Input
