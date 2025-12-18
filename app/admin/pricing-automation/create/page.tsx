@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { PriceRule, useCreatePriceRuleMutation } from "@/lib/redux/features/priceAutomationApi";
 import PriceRuleForm from "../components/price-rule-form";
 
-const createPriceRule = () => {
+const CreatePriceRule = () => {
   const router = useRouter();
   const [createPriceRule] = useCreatePriceRuleMutation();
   const handleCreate = async (data: PriceRule) => {
@@ -20,4 +20,4 @@ const createPriceRule = () => {
 }
 
 
-export default createPriceRule
+export default CreatePriceRule
