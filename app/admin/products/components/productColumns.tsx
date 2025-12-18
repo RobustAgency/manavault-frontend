@@ -5,10 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Product, ProductStatus } from '@/lib/redux/features';
 
-export const formatCurrency = (amount: number) => {
+type CurrencyCode = 'USD' | 'EUR' | 'PKR';
+
+const normalizeCurrency = (currency?: string): CurrencyCode => {
+  switch (currency?.toLowerCase()) {
+    case 'usd':
+      return 'USD';
+    case 'eur':
+      return 'EUR';
+    default:
+      return 'USD'; 
+  }
+};
+
+export const formatCurrency = (amount: number,  currency?: string) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency : 'usd',
   }).format(amount);
 };
 
@@ -57,10 +70,15 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
     header: 'SKU',
     cell: ({ row }) => <code className="text-xs bg-gray-100 px-2 py-1 rounded">{row.original.sku}</code>,
   },
+   {
+    accessorKey: 'face_value',
+    header: 'Face Value',
+    cell: ({ row }) => formatCurrency(row.original.face_value, normalizeCurrency(row.original.currency)),
+  },
   {
     accessorKey: 'selling_price',
     header: 'Selling Price',
-    cell: ({ row }) => formatCurrency(row.original.selling_price),
+    cell: ({ row }) => formatCurrency(row.original.selling_price, normalizeCurrency(row.original.currency)),
   },
   {
     accessorKey: 'status',

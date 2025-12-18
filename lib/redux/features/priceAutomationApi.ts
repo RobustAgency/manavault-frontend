@@ -2,6 +2,8 @@ import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
 import { toast } from "react-toastify";
 import { apiClient } from "@/lib/api";
 import { AxiosRequestConfig, AxiosError } from "axios";
+import { productsApi } from "@/lib/redux/features/productsApi";
+
 
 interface PaginationMeta {
   current_page: number;
@@ -20,11 +22,11 @@ export interface Brand {
   updated_at: string;
 }
 
-export interface PriceRuleQuery  {
+export interface PriceRuleQuery {
   page?: number;
   per_page?: number;
   status?: "active" | "in_active" | undefined;
-  name : string | undefined
+  name: string | undefined
 }
 
 
@@ -45,34 +47,34 @@ const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
+    async ({ url, method = "GET", data, params }) => {
+      try {
+        const result = await apiClient({
+          url,
+          method,
+          data,
+          params,
+        });
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError<{
+          data?: unknown;
+          message?: string;
+          error?: boolean;
+          errors?: Record<string, string[]>;
+        }>;
+        const error = {
+          status: err.response?.status || 500,
+          data: err.response?.data || {
+            message: err.message || "An error occurred",
+            error: true,
+          },
+        };
+        return {
+          error,
+        };
+      }
+    };
 
 // Type for RTK Query mutation errors
 interface MutationError {
@@ -89,19 +91,19 @@ export interface Condition {
   id: string;
   field: string;
   value: string;
-  operator?: "=" | "!=" | ">" | "<" | "contains" | string ;
+  operator?: "=" | "!=" | ">" | "<" | "contains" | string;
 }
 
-export type RuleStatus = "active" | "in_active" | undefined ;
+export type RuleStatus = "active" | "in_active" | undefined;
 
 export interface PriceRule {
   id?: string;
-  name : string;
+  name: string;
   description: string;
-  status : "active" | "in_active" | undefined;
-  match_type : string;
+  status: "active" | "in_active" | undefined;
+  match_type: string;
   conditions: Condition[];
-  action_value: number ;
+  action_value: number;
   action_operator: string;
   action_mode: string,
 }
@@ -123,51 +125,51 @@ export const priceAutomationApi = createApi({
       providesTags: (result) =>
         result?.data
           ? [
-              ...result.data.map(({ id }) => ({
-                type: "price-automation" as const,
-                id: String(id),
-              })),
-              { type: "price-automation", id: "LIST" },
-            ]
+            ...result.data.map(({ id }) => ({
+              type: "price-automation" as const,
+              id: String(id),
+            })),
+            { type: "price-automation", id: "LIST" },
+          ]
           : [{ type: "price-automation", id: "LIST" }],
-       transformResponse: (response: {
-             data: {
-               data: PriceRule[];
-               current_page: number;
-               per_page: number;
-               total: number;
-               last_page: number;
-               from: number;
-               to: number;
-             };
-             error?: boolean;
-             message?: string;
-           }) => {
-             if (response.data?.data && Array.isArray(response.data.data)) {
-               return {
-                 data: response.data.data,
-                 pagination: {
-                   current_page: response.data.current_page,
-                   per_page: response.data.per_page,
-                   total: response.data.total,
-                   last_page: response.data.last_page,
-                   from: response.data.from,
-                   to: response.data.to,
-                 },
-               };
-             }
-             return {
-               data: [],
-               pagination: {
-                 current_page: 1,
-                 per_page: 10,
-                 total: 0,
-                 last_page: 1,
-                 from: 0,
-                 to: 0,
-               },
-             };
-           },
+      transformResponse: (response: {
+        data: {
+          data: PriceRule[];
+          current_page: number;
+          per_page: number;
+          total: number;
+          last_page: number;
+          from: number;
+          to: number;
+        };
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return {
+            data: response.data.data,
+            pagination: {
+              current_page: response.data.current_page,
+              per_page: response.data.per_page,
+              total: response.data.total,
+              last_page: response.data.last_page,
+              from: response.data.from,
+              to: response.data.to,
+            },
+          };
+        }
+        return {
+          data: [],
+          pagination: {
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            last_page: 1,
+            from: 0,
+            to: 0,
+          },
+        };
+      },
     }),
 
     getPriceRule: builder.query<PriceRule, number>({
@@ -207,9 +209,15 @@ export const priceAutomationApi = createApi({
         }
         return response as unknown as PriceRule;
       },
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
         try {
-          await queryFulfilled;
+          dispatch(
+            productsApi.util.invalidateTags([
+              { type: "Product", id: "LIST" },
+            ])
+          );
+
           toast.success("Price rule created successfully");
         } catch (error) {
           const mutationError = error as MutationError;
@@ -245,9 +253,14 @@ export const priceAutomationApi = createApi({
         }
         return response as unknown as PriceRule;
       },
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          dispatch(
+            productsApi.util.invalidateTags([
+              { type: "Product", id: "LIST" },
+            ])
+          );
           toast.success("Price rule updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
@@ -290,6 +303,6 @@ export const {
   useGetPriceRuleQuery,
   useUpdatePriceRuleMutation,
   useCreatePriceRuleMutation
-  
+
 } = priceAutomationApi;
 
