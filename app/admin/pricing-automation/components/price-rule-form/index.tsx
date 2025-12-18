@@ -119,12 +119,10 @@ console.log(initialData)
             <Label htmlFor="actionValue" className="text-sm font-medium flex items-center gap-2">
               Action Value *
             </Label>
-            <div className="relative">
+            <div className="relative flex flex-col gap-2">
               <Input
                 id="value"
                 type="number"
-                min="1"
-                max="10"
                 value={formData.action_value === 0 ? "" : formData.action_value }
                 placeholder="Enter value"
                 onChange={(e) => updateFormData({ action_value: Number(e.target.value) })}

@@ -72,6 +72,9 @@ export const usePricingAutomationForm = ( isEditMode: boolean,
   if (!formData.action_value) {
     newErrors.action_value = "Value is required";
   }
+   if (formData.action_value <= 0) {
+    newErrors.action_value = "Value must be greater than 0";
+  }
 
   if (!formData.action_mode) {
     newErrors.action_mode = "Mode is required";
