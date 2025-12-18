@@ -42,7 +42,7 @@ const PriceRuleForm = ({
   const [matchCondition, setMatchCondition] = useState(
     initialData?.match_type ?? "all"
   );
-console.log(initialData)
+
   const { formData, errors, updateFormData, validateForm } =  usePricingAutomationForm(mode === "edit", initialData);
 
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
@@ -123,9 +123,9 @@ console.log(initialData)
               <Input
                 id="value"
                 type="number"
-                value={formData.action_value === 0 ? "" : formData.action_value }
+                value={formData.action_value ?? "" }
                 placeholder="Enter value"
-                onChange={(e) => updateFormData({ action_value: Number(e.target.value) })}
+                onChange={(e) => updateFormData({ action_value: e.target.value === "" ? null : Number(e.target.value), })}
                 className="h-11"
               />
                  {errors.action_value && <p className="text-sm text-red-500">{errors.action_value}</p>}
