@@ -123,6 +123,8 @@ console.log(initialData)
               <Input
                 id="value"
                 type="number"
+                min="1"
+                max="10"
                 value={formData.action_value === 0 ? "" : formData.action_value }
                 placeholder="Enter value"
                 onChange={(e) => updateFormData({ action_value: Number(e.target.value) })}
@@ -144,7 +146,6 @@ console.log(initialData)
                 <SelectContent>
                   <SelectItem value="-">Subtract (-)</SelectItem>
                   <SelectItem value="+"> Add (+)</SelectItem>
-                  <SelectItem value="=">Equal (=)</SelectItem>
                 </SelectContent>
               </Select>
                  {errors.action_operator && <p className="text-sm text-red-500">{errors.action_operator}</p>}
