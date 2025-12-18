@@ -81,6 +81,8 @@ export const ProductFormDialog = ({
         tags: selectedProduct.tags?.join(', ') || '',
         image: selectedProduct.image || '',
         regions: selectedProduct.regions?.join(', ') || '',
+        currency: selectedProduct.currency,
+        face_value: selectedProduct.face_value?.toString(),
       });
     } else {
       resetForm();
