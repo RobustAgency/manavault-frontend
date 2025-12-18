@@ -38,7 +38,7 @@ export const createRulesColumns = ({ onEdit, onDelete }: RulesColumnsProps): Col
     header: 'Conditions',
     cell: ({ row }) => {
       return (
-        <div className='flex gap-2'>
+        <div className='flex flex-wrap gap-2'>
           {row.original.conditions.map((condition, index) =>
           (
             <div key={index} className='flex gap-2 w-fit'>
