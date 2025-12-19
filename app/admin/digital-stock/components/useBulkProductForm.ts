@@ -25,6 +25,7 @@ export const useBulkProductForm = () => {
       cost_price: "",
       region: "",
       metadata: "",
+      currency: "usd",
     },
     errors: {},
     isExpanded: true,
