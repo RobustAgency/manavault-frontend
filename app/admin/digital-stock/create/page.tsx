@@ -23,7 +23,6 @@ export default function CreateDigitalProductPage() {
     const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100, status: 'active', type: 'internal' });
     const [createDigitalProducts, { isLoading, isSuccess, isError, error, data: createdProducts }] = useCreateDigitalProductsMutation();
     const [createSupplier, { isLoading: isCreatingSupplier }] = useCreateSupplierMutation();
-    console.log(createdProducts);
     const {
         productForms,
         expandedItems,
@@ -36,7 +35,7 @@ export default function CreateDigitalProductPage() {
         validateProductForm,
     } = useBulkProductForm();
 
-    const [selectedSupplierId, setSelectedSupplierId] = useState<number>(0);
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number | undefined>(undefined);
     const [supplierError, setSupplierError] = useState<string>('');
     const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
     const [hasInitialized, setHasInitialized] = useState(false);
@@ -76,7 +75,7 @@ export default function CreateDigitalProductPage() {
     };
 
     const handleAddAnotherProduct = () => {
-        addProduct(selectedSupplierId);
+        addProduct(selectedSupplierId ?? 0);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -91,7 +90,7 @@ export default function CreateDigitalProductPage() {
 
         // Validate all forms
         const allValid = productForms.every((form) => validateProductForm(form));
-        console.log(allValid);
+
         if (allValid) {
             const products = productForms.map((form) =>
                 convertFormToSubmitData(form.formData, selectedSupplierId)
@@ -148,11 +147,12 @@ export default function CreateDigitalProductPage() {
                     </div>
                     <div className="p-6">
                         <GlobalSupplierSelector
-                            selectedSupplierId={selectedSupplierId}
+                            selectedSupplierId={selectedSupplierId ?? undefined}
                             suppliers={suppliersData?.data || []}
                             error={supplierError}
                             onSupplierChange={handleSupplierChange}
                             onAddNewSupplier={() => setIsAddSupplierDialogOpen(true)}
+                            addNewSupplier
                         />
                     </div>
                 </div>

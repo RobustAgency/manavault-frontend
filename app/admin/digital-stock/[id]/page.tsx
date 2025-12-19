@@ -231,7 +231,7 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                         <div>
                                             <p className="text-sm text-muted-foreground mb-1">Type</p>
                                             <Badge variant="outlined" className="capitalize">
-                                                {product.supplier.type}
+                                                {product.supplier.type === "internal" ? "API Supplier" : "Supplier"}
                                             </Badge>
                                         </div>
                                     )}

@@ -38,6 +38,11 @@ export const createDigitalProductColumns = ({
       accessorKey: 'name',
       header: 'Name',
     },
+      {
+      accessorKey: 'supplier_name',
+      header: 'Supplier',
+      cell: ({ row }) => row.original.supplier_name || '-',
+    },
     {
       accessorKey: 'sku',
       header: 'SKU',
@@ -47,11 +52,6 @@ export const createDigitalProductColumns = ({
       accessorKey: 'brand',
       header: 'Brand',
       cell: ({ row }) => row.original.brand || '-',
-    },
-    {
-      accessorKey: 'supplier_name',
-      header: 'Supplier',
-      cell: ({ row }) => row.original.supplier_name || '-',
     },
     {
       accessorKey: 'cost_price',
@@ -76,7 +76,7 @@ export const createDigitalProductColumns = ({
         if (!tags || tags.length === 0) return '-';
         return (
           <div className="flex flex-wrap gap-1">
-            {tags.slice(0, 3).map((tag, idx) => (
+            {Array.isArray(tags) && tags.slice(0, 3).map((tag, idx) => (
               <Badge key={idx} variant="outlined" className="text-xs">
                 {tag}
               </Badge>

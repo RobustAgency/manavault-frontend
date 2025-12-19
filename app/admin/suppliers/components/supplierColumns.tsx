@@ -24,7 +24,7 @@ export const createSupplierColumns = ({ onEdit, onDelete }: SupplierColumnsProps
     header: 'Type',
     cell: ({ row }) => (
       <Badge variant="filled" color={row.original.type === 'internal' ? 'info' : 'default'}>
-        {row.original.type}
+        {row.original.type === "internal" ? "Supplier" : "API Supplier"} 
       </Badge>
     ),
   },

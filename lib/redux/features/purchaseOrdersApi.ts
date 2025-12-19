@@ -115,6 +115,10 @@ export interface PurchaseOrderItem {
 export interface CreatePurchaseOrderData {
   items: PurchaseOrderItem[];
 }
+export interface CSVUploadData {
+supplier_id: number;
+file: File;
+}
 
 // Custom base query using existing Axios client
 const axiosBaseQuery =
@@ -334,11 +338,37 @@ export const purchaseOrdersApi = createApi({
         }
       },
     }),
+
+     createCSVUpload: builder.mutation<
+      CSVUploadData, FormData
+    >({
+      query: (data) => ({
+        url: "/admin/digital-products/batch-import",
+        method: "POST",
+        data: data,
+      }),
+      invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("CSV Uploaded successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message ||
+              "Failed to upload CSV file";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
   }),
 });
 
 export const {
   useGetPurchaseOrdersQuery,
+  useCreateCSVUploadMutation,
   useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
 } = purchaseOrdersApi;

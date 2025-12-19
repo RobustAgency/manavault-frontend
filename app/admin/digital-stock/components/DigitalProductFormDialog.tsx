@@ -102,6 +102,7 @@ export const DigitalProductFormDialog = ({
         cost_price: selectedProduct.cost_price?.toString() ?? '',
         region: selectedProduct.region || '',
         metadata: selectedProduct.metadata ? JSON.stringify(selectedProduct.metadata, null, 2) : '',
+        currency: selectedProduct.currency || '',
       });
     }
   }, [isEditMode, selectedProduct, isOpen, setFormData]);
@@ -195,6 +196,7 @@ export const DigitalProductFormDialog = ({
               error={supplierError}
               onSupplierChange={handleSupplierChange}
               onAddNewSupplier={() => setIsAddSupplierDialogOpen(true)}
+              addNewSupplier
             />
           )}
 
