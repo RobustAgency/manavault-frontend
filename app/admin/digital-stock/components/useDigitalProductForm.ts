@@ -21,6 +21,7 @@ export interface DigitalProductFormState {
   cost_price: string;
   region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
+  currency: string;
 }
 
 export const useDigitalProductForm = (isEditMode: boolean) => {
@@ -35,6 +36,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     cost_price: '',
     region: '',
     metadata: '',
+    currency: 'usd',
   });
 
   const [errors, setErrors] = useState<DigitalProductFormErrors>({});
@@ -119,6 +121,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       cost_price: '',
       region: '',
       metadata: '',
+      currency: 'usd',
     });
     setErrors({});
   }, []);
@@ -161,6 +164,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
         cost_price: parseFloat(formData.cost_price),
         regions: regionsArray.length > 0 ? regionsArray : undefined,
         metadata: metadataObj,
+        currency: formData.currency || undefined,
       };
     }
 
@@ -175,6 +179,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       cost_price: parseFloat(formData.cost_price),
       regions: regionsArray.length > 0 ? regionsArray : undefined,
       metadata: metadataObj,
+      currency: formData.currency || undefined,
     };
   };
 

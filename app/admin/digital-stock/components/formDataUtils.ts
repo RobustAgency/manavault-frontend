@@ -13,6 +13,7 @@ export interface DigitalProductDataType {
   cost_price: number;
   region?: string;
   metadata?: Record<string, unknown>;
+  currency?: string;
 }
 
 export const convertFormToSubmitData = (
@@ -49,6 +50,7 @@ export const convertFormToSubmitData = (
     cost_price: parseFloat(form.cost_price),
     region: form.region,
     metadata: metadataObj,
+    currency: form.currency,
   };
 };
 

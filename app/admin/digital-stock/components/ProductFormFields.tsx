@@ -149,6 +149,25 @@ export const ProductFormFields = ({
         />
         {formErrors.cost_price && <p className="text-sm text-red-500">{formErrors.cost_price}</p>}
       </div>
+       <div className="grid gap-2">
+        <Label htmlFor={`currency-${formItemId}`}>Currency *</Label>
+          <Select
+               key={form.currency}
+                value={form?.currency || ''}
+                onValueChange={(value) => onUpdate({ currency: value })}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select field" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="usd">USD ($)</SelectItem>
+                  <SelectItem value="eur">EUR (€)</SelectItem>
+                </SelectContent>
+              </Select>
+        {formErrors.currency && <p className="text-sm text-red-500">{formErrors.currency}</p>}
+      </div>
+      
+      
 
       <div className="grid gap-2">
         <Label htmlFor={`regions-${formItemId}`}>Region</Label>

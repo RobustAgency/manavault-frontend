@@ -12,9 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useGetDigitalProductsListQuery, type DigitalProduct } from '@/lib/redux/features';
+import { Supplier, useGetDigitalProductsListQuery, type DigitalProduct } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface SelectedProduct {
     id: number;
@@ -28,9 +29,11 @@ interface SelectDigitalProductsDialogProps {
     onClose: () => void;
     onSubmit: (products: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct }>) => void;
     onAddNewProduct?: () => void;
+    supplierDetails? : Supplier ;
 }
 
 export const SelectDigitalProductsDialog = ({
+    supplierDetails,
     isOpen,
     supplierId,
     isSubmitting,
@@ -38,7 +41,7 @@ export const SelectDigitalProductsDialog = ({
     onSubmit,
     onAddNewProduct,
 }: SelectDigitalProductsDialogProps) => {
-    const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(new Map()); // Map<productId, quantity>
+    const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(new Map()); 
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -183,7 +186,7 @@ export const SelectDigitalProductsDialog = ({
 
     const totalItems = selectedProducts.size;
     const totalQuantity = Array.from(selectedProducts.values()).reduce((sum, qty) => sum + qty, 0);
-
+   
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
@@ -196,14 +199,23 @@ export const SelectDigitalProductsDialog = ({
 
                 <div className="flex-1 overflow-hidden flex flex-col gap-4">
                     {/* Search Input */}
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by product name..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9"
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 justify-center items-center">
+                         <div className="relative flex gap-2">
+                            <Label>Supplier Name: </Label>
+                            <Badge variant="filled" className="capitalize">
+                               {supplierDetails?.name}
+                            </Badge>
+                        </div>
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by product name..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className='pl-9'  
+                            />
+                        </div>
+                        
                     </div>
 
                     {/* Select All Button */}
