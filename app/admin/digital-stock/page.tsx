@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon } from 'lucide-react';
+import { File, PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +19,12 @@ import {
   useDeleteDigitalProductMutation,
   type DigitalProduct,
   type DigitalProductStatus,
+  useCreatePurchaseOrderMutation,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createDigitalProductColumns } from './components';
+import { toast } from 'react-toastify';
+import { UploadCsvDialogue } from './components/uploadCsvDialogue';
 
 export default function DigitalProductsPage() {
   const router = useRouter();
@@ -30,7 +33,11 @@ export default function DigitalProductsPage() {
   const [nameSearch, setNameSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
 
+   
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const [debouncedBrandSearch, setDebouncedBrandSearch] = useState('');
@@ -64,8 +71,17 @@ export default function DigitalProductsPage() {
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
   });
 
-  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
+  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [deleteDigitalProduct, { isLoading: isDeleting }] = useDeleteDigitalProductMutation();
+
+    const handleCreate = async (data: any) => {
+    try {
+      await createPurchaseOrder(data).unwrap();
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to create purchase order:', error);
+    }
+  };
 
   // Dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -97,6 +113,10 @@ export default function DigitalProductsPage() {
     onDelete: openDeleteDialog,
   });
 
+  const handleUploadClick = () => {
+   setIsCreateDialogOpen(true);
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
@@ -104,10 +124,21 @@ export default function DigitalProductsPage() {
           <h1 className="text-3xl font-bold">Digital Stock</h1>
           <p className="text-muted-foreground mt-1">Manage digital stock from external suppliers</p>
         </div>
-        <Button onClick={() => router.push('/admin/digital-stock/create')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Digital Stock
-        </Button>
+        <div className='flex justify-between gap-2'>
+        
+
+          <label htmlFor="file">
+            <Button type="button" onClick={handleUploadClick}>
+              <File className="h-4 w-4 mr-2" />
+              Upload CSV
+            </Button>
+          </label>
+
+          <Button onClick={() => router.push('/admin/digital-stock/create')}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add Digital Stock
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -186,6 +217,14 @@ export default function DigitalProductsPage() {
         isLoading={isDeleting}
         type="danger"
       />
+       <UploadCsvDialogue
+              isOpen={isCreateDialogOpen}
+              suppliers={suppliersData?.data || []}
+              isSubmitting={isCreating}
+              onClose={() => setIsCreateDialogOpen(false)}
+              onSubmit={handleCreate}
+              onSuppliersRefetch={refetchSuppliers}
+            />
     </div>
   );
 }

@@ -137,3 +137,10 @@
 .recharts-surface:focus {
   outline: none !important;
 }
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

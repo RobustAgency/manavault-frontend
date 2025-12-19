@@ -105,6 +105,8 @@ export const CreateOrderDialog = ({
       return !selectedInOtherSelect;
     });
   };
+  
+  const getSingleSupplierDetail = selectedSupplierForProducts ? getSupplierDetails(selectedSupplierForProducts) : undefined;
 
   useEffect(() => {
     if (!isOpen) {
@@ -351,6 +353,7 @@ export const CreateOrderDialog = ({
 
       {/* Select Digital Products Dialog */}
       <SelectDigitalProductsDialog
+        supplierDetails={getSingleSupplierDetail }
         isOpen={isSelectProductsDialogOpen}
         supplierId={selectedSupplierForProducts || 0}
         isSubmitting={false}

@@ -6,7 +6,7 @@ import {
 
 export interface PurchaseOrderFormErrors {
   items?: string;
-  [key: string]: string | undefined; // For item-specific errors like 'items.0.quantity'
+  [key: string]: string | undefined;
 }
 
 export const usePurchaseOrderForm = () => {
