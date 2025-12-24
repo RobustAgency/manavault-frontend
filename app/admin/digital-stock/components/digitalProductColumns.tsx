@@ -4,15 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DigitalProduct, DigitalProductStatus } from '@/lib/redux/features';
 import Link from 'next/link';
-
-export const formatCurrency = (amount: number | string) => {
-  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(numAmount)) return '$0.00';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(numAmount);
-};
+import { formatCurrency } from '@/utils/formatCurrency';
 
 export const getStatusColor = (status: DigitalProductStatus): 'success' | 'default' => {
   switch (status) {
@@ -56,7 +48,7 @@ export const createDigitalProductColumns = ({
     {
       accessorKey: 'cost_price',
       header: 'Cost Price',
-      cell: ({ row }) => formatCurrency(row.original.cost_price),
+      cell: ({ row }) => formatCurrency(Number(row.original.cost_price), row.original.currency),
     },
     {
       accessorKey: 'quantity',

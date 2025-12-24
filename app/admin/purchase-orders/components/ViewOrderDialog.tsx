@@ -11,7 +11,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { PurchaseOrder } from '@/lib/redux/features';
-import { formatCurrency, formatDate } from './orderColumns';
+import { formatDate } from './orderColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface ViewOrderDialogProps {
   isOpen: boolean;
@@ -73,9 +74,9 @@ export const ViewOrderDialog = ({ isOpen, order, onClose }: ViewOrderDialogProps
                       const totalPrice = parseFloat(order.total_price || '0');
                       const quantity = order.quantity || 1;
                       const calculatedPrice = quantity > 0 ? totalPrice / quantity : 0;
-                      return formatCurrency(calculatedPrice);
+                      return formatCurrency(calculatedPrice, order.currency);
                     }
-                    return formatCurrency(unitPrice);
+                    return formatCurrency(unitPrice, order.currency);
                   })()}
                 </p>
               </div>

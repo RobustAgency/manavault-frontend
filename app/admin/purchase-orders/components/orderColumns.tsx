@@ -5,15 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { PurchaseOrder } from '@/lib/redux/features';
 import Link from 'next/link';
 import SupplierToolTip from './SupplierToolTip';
+import { formatCurrency } from '@/utils/formatCurrency';
 
-export const formatCurrency = (amount: number | string) => {
-  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(numAmount)) return '$0.00';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(numAmount);
-};
 
 export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString('en-US', {
@@ -93,9 +86,9 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
       if (totalAmount == null || isNaN(totalAmount)) {
         // Fallback: use total_price if total_amount is not available
         const totalPrice = parseFloat(row.original.total_price || '0');
-        return <span className="font-semibold">{formatCurrency(totalPrice)}</span>;
+        return <span className="font-semibold">{formatCurrency(totalPrice, row.original.currency ?? null)}</span>;
       }
-      return <span className="font-semibold">{formatCurrency(totalAmount)}</span>;
+      return <span className="font-semibold">{formatCurrency(totalAmount, row.original.currency ?? null)}</span>;
     },
   },
   {
