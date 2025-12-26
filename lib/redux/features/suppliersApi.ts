@@ -25,6 +25,7 @@ export interface Supplier {
   status: SupplierStatus;
   created_at: string;
   updated_at: string;
+  currency?: string | null;
 }
 
 export interface SupplierFilters {

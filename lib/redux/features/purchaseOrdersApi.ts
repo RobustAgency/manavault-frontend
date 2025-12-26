@@ -112,6 +112,7 @@ export interface PurchaseOrderItem {
   supplier_id: number;
   digital_product_id: number;
   quantity: number;
+  currency: string;
 }
 
 export interface CreatePurchaseOrderData {
