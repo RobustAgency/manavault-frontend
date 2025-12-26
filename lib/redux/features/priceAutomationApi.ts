@@ -35,6 +35,16 @@ export interface UpdateBrandData {
   image?: File | string;
 }
 
+
+export interface Product{
+  face_value? : number;
+  current_selling_price? : number;
+  new_selling_price? : number;
+  product_id? : number;
+  product_name? : string;
+  currency? : string;
+}
+
 // Custom base query using existing Axios client
 const axiosBaseQuery =
   (): BaseQueryFn<
@@ -294,6 +304,42 @@ export const priceAutomationApi = createApi({
         }
       },
     }),
+
+    getPreviewRuleAffectedProducts: builder.query<Product[], PriceRule>({
+      query: (data) => ({
+        url: "/admin/price-rules/preview",
+        method: "POST",
+        data: data,
+      }),
+      transformResponse: (response: {
+        data: Product[];
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Product[];
+      },
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        try {
+          dispatch(
+            productsApi.util.invalidateTags([
+              { type: "Product", id: "LIST" },
+            ])
+          );
+
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message || "Failed to create brand";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
   }),
 });
 
@@ -302,7 +348,8 @@ export const {
   useDeletePriceRuleMutation,
   useGetPriceRuleQuery,
   useUpdatePriceRuleMutation,
-  useCreatePriceRuleMutation
+  useCreatePriceRuleMutation,
+  useLazyGetPreviewRuleAffectedProductsQuery,
 
 } = priceAutomationApi;
 

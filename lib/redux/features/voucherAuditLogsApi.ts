@@ -1,5 +1,4 @@
 import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
 import { apiClient } from "@/lib/api";
 import { AxiosRequestConfig, AxiosError } from "axios";
 
