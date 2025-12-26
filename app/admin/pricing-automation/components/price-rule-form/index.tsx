@@ -21,6 +21,7 @@ import { useGetBrandsQuery } from "@/lib/redux/features";
 import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
 import { useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
+import { toast } from "react-toastify";
 
 interface PriceRuleFormProps {
   mode: "create" | "edit";
@@ -56,7 +57,11 @@ const PriceRuleForm = ({
     });
   }, [conditions, matchCondition]);
 
+  console.log(formData)
    const handlePreview = async () => {
+    if(!formData.conditions[0].value || !formData.action_value) {
+     toast.error("Please fill the form to preview products."); 
+    } 
     await triggerPreview(formData).unwrap().then(() => {   
       setIsPreviewDialogOpen(true);
     });
