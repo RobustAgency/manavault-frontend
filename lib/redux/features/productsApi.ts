@@ -23,6 +23,7 @@ export interface DigitalProduct {
   description?: string | null;
   cost_price: string;
   status: string;
+  currency: string;
   metadata?: {
     sku: string;
     name: string;
@@ -91,6 +92,8 @@ export interface Product {
   currency : string;
   face_value : number;
 }
+
+
 
 export interface ThirdPartyProduct {
   id: string | number;

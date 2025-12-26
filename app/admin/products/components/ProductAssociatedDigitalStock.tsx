@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PackageIcon } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import {
@@ -13,7 +13,9 @@ import {
 import { DataTable } from '@/components/custom/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Product, DigitalProduct as DigitalProductType } from '@/lib/redux/features/productsApi';
-import { formatCurrency } from './productColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
+import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
+
 
 interface ProductAssociatedDigitalStockProps {
     product: Product;
@@ -22,6 +24,34 @@ interface ProductAssociatedDigitalStockProps {
 const ProductAssociatedDigitalStock = ({
     product,
 }: ProductAssociatedDigitalStockProps) => {
+
+    const [createDigitalProductOrder] = useCreateDigitalProductOrderMutation();
+    const [isDraggingRow, setIsDraggingRow] = React.useState(false);
+    const [sortTableData, setSortTableData] = useState<DigitalProductType[]>(product.digital_products || []);
+
+
+    console.log(isDraggingRow)
+    const handleSave = () => {
+        if (!product) return;
+
+        const data = sortTableData?.map((item, index) => ({
+            digital_product_id: item.id,
+            priority_order: index + 1,
+        }));
+        console.log(isDraggingRow);
+        createDigitalProductOrder({ id: product.id, data: data || [] })
+            .unwrap().then(() => {
+                setIsDraggingRow(false);
+            })
+            .catch((error) => {
+                // Handle error appropriately
+                console.error('Failed to save digital product order:', error);
+            });
+
+          setIsDraggingRow(false);
+
+    }
+
 
     const digitalProductColumns: ColumnDef<DigitalProductType>[] = [
         {
@@ -52,15 +82,15 @@ const ProductAssociatedDigitalStock = ({
         {
             accessorKey: 'cost_price',
             header: 'Cost Price',
-            cell: ({ row }) => formatCurrency(parseFloat(row.getValue('cost_price'))),
+            cell: ({ row }) => formatCurrency(parseFloat(row.getValue('cost_price')), row.original.currency),
         },
         {
-            accessorKey: 'metadata.faceValue',
+            accessorKey: 'faceValue',
             header: 'Face Value',
             cell: ({ row }) => {
                 const faceValue = row.original.metadata?.faceValue;
                 return faceValue && typeof faceValue === 'string'
-                    ? formatCurrency(parseFloat(faceValue))
+                    ? formatCurrency(parseFloat(faceValue), row.original.currency)
                     : 'N/A';
             },
         },
@@ -101,12 +131,19 @@ const ProductAssociatedDigitalStock = ({
                 </CardDescription>
             </CardHeader>
             <CardContent>
+
                 <DataTable
                     columns={digitalProductColumns}
                     data={product.digital_products}
+                    sortTableData={sortTableData}
+                    setSortTableData={setSortTableData}
                     searchKey="name"
+                    sortable={isDraggingRow}
+                    setIsDraggingRow={setIsDraggingRow}
+                    handleSave={handleSave}
                     searchPlaceholder="Search digital products..."
                 />
+
             </CardContent>
         </Card>
     );

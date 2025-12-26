@@ -10,8 +10,9 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/lib/redux/features/productsApi';
-import { formatCurrency, getStatusColor } from './productColumns';
+import { getStatusColor } from './productColumns';
 import { ProductImage } from './ProductImage';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 

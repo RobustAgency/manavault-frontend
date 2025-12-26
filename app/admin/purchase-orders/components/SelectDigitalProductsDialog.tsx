@@ -16,6 +16,7 @@ import { Supplier, useGetDigitalProductsListQuery, type DigitalProduct } from '@
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface SelectedProduct {
     id: number;
@@ -297,7 +298,7 @@ export const SelectDigitalProductsDialog = ({
                                                     <div className="flex items-center gap-3 shrink-0">
                                                         <div className="text-right">
                                                             <p className="text-sm font-medium">
-                                                                ${Number(product.cost_price).toFixed(2)}
+                                                          {formatCurrency(Number(product.cost_price), product.currency)}
                                                             </p>
                                                         </div>
                                                         {isSelected && (

@@ -21,7 +21,9 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useGetDigitalProductQuery } from '@/lib/redux/features';
-import { formatCurrency, getStatusColor } from '../components/digitalProductColumns';
+
+import { formatCurrency } from '../components/digitalProductColumns';
+
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -78,6 +80,12 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
             </div>
         );
     }
+
+    const tags = Array.isArray(product.tags)
+  ? product.tags
+  : product.tags
+  ? [product.tags]
+  : [];
 
     return (
         <div className="container mx-auto py-8">
@@ -157,7 +165,7 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Cost Price</p>
-                                    <p className="text-2xl font-bold text-primary">{formatCurrency(product.cost_price)}</p>
+                                    <p className="text-2xl font-bold text-primary">{formatCurrency(Number(product.cost_price), product.currency)}</p>
                                 </div>
                                 
                             </div>
@@ -177,16 +185,16 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-6">
-                                {product.tags && product.tags.length > 0 && (
+                                {product?.tags && product?.tags?.length > 0 && (
                                     <div>
                                         <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                                             <TagIcon className="h-4 w-4" />
                                             Tags
                                         </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {product.tags.map((tag, idx) => (
+                                            {tags?.map((tag, idx) => (
                                                 <Badge key={idx} variant="outlined">
-                                                    {tag}
+                                                   {tag}
                                                 </Badge>
                                             ))}
                                         </div>

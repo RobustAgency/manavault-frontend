@@ -1,10 +1,10 @@
 'use client';
 
 import { DigitalProduct, Supplier } from '@/lib/redux/features';
-import { formatCurrency } from './orderColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface OrderSummaryProps {
-    itemsBySupplier: Record<number, Array<{ supplier_id: number; digital_product_id: number; quantity: number }>>;
+    itemsBySupplier: Record<number, Array<{ supplier_id: number; digital_product_id: number; quantity: number ; currency: string }>>;
     getSupplierDetails: (supplierId: number) => Supplier | undefined;
     getProductDetails: (productId: number) => DigitalProduct | undefined;
     totalAmount: number;
@@ -47,13 +47,13 @@ export const OrderSummary = ({
                                             <span className="text-gray-600">
                                                 {product.name} <span className="text-gray-400">× {item.quantity}</span>
                                             </span>
-                                            <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+                                            <span className="font-medium text-gray-900">{formatCurrency(subtotal, items[0]?.currency as string)}</span>
                                         </div>
                                     );
                                 })}
                                 <div className="flex justify-between items-center text-sm font-medium pt-1.5 border-t mt-1.5">
                                     <span className="text-gray-700">Subtotal:</span>
-                                    <span className="text-gray-900">{formatCurrency(supplierTotal)}</span>
+                                    <span className="text-gray-900">{formatCurrency(supplierTotal, items[0]?.currency as string)}</span>
                                 </div>
                             </div>
                         </div>

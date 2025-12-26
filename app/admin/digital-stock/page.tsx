@@ -23,21 +23,21 @@ import {
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createDigitalProductColumns } from './components';
-import { toast } from 'react-toastify';
 import { UploadCsvDialogue } from './components/uploadCsvDialogue';
+import CustomSelect from '@/components/custom/CustomSelect';
 
 export default function DigitalProductsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<DigitalProductStatus | 'all'>('all');
+  const [currencyFilter, setCurrencyFilter] = useState<DigitalProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const fileRef = useRef<HTMLInputElement>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
+  const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
 
-   
+
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const [debouncedBrandSearch, setDebouncedBrandSearch] = useState('');
@@ -65,7 +65,7 @@ export default function DigitalProductsPage() {
   const { data, isLoading } = useGetDigitalProductsQuery({
     page,
     per_page: perPage,
-    status: statusFilter === 'all' ? undefined : statusFilter,
+    currency: currencyFilter === 'all' ? undefined : currencyFilter,
     name: debouncedNameSearch || undefined,
     brand: debouncedBrandSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
@@ -74,7 +74,7 @@ export default function DigitalProductsPage() {
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [deleteDigitalProduct, { isLoading: isDeleting }] = useDeleteDigitalProductMutation();
 
-    const handleCreate = async (data: any) => {
+  const handleCreate = async (data: any) => {
     try {
       await createPurchaseOrder(data).unwrap();
       setIsCreateDialogOpen(false);
@@ -114,7 +114,7 @@ export default function DigitalProductsPage() {
   });
 
   const handleUploadClick = () => {
-   setIsCreateDialogOpen(true);
+    setIsCreateDialogOpen(true);
   }
 
   return (
@@ -125,7 +125,7 @@ export default function DigitalProductsPage() {
           <p className="text-muted-foreground mt-1">Manage digital stock from external suppliers</p>
         </div>
         <div className='flex justify-between gap-2'>
-        
+
 
           <label htmlFor="file">
             <Button type="button" onClick={handleUploadClick}>
@@ -176,6 +176,18 @@ export default function DigitalProductsPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className='w-48'>
+          <CustomSelect
+            value={currencyFilter}
+            placeholder="Filter by status"
+            options={[
+              { value: 'all', label: 'All Currency' },
+              { value: 'usd', label: 'USD' },
+              { value: 'eur', label: 'EUR' },
+            ]}
+            onChange={(value) => setCurrencyFilter(value as DigitalProductStatus | 'all')}
+          />
+        </div>
         <div className="flex-1 min-w-[200px]">
           <Input
             placeholder="Search by name..."
@@ -217,14 +229,14 @@ export default function DigitalProductsPage() {
         isLoading={isDeleting}
         type="danger"
       />
-       <UploadCsvDialogue
-              isOpen={isCreateDialogOpen}
-              suppliers={suppliersData?.data || []}
-              isSubmitting={isCreating}
-              onClose={() => setIsCreateDialogOpen(false)}
-              onSubmit={handleCreate}
-              onSuppliersRefetch={refetchSuppliers}
-            />
+      <UploadCsvDialogue
+        isOpen={isCreateDialogOpen}
+        suppliers={suppliersData?.data || []}
+        isSubmitting={isCreating}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSubmit={handleCreate}
+        onSuppliersRefetch={refetchSuppliers}
+      />
     </div>
   );
 }

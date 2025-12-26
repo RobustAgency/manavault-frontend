@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProductImageProps {
   src: string;
@@ -28,7 +29,7 @@ export function ProductImage({ src, alt }: ProductImageProps) {
       {isLoading && (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse" />
       )}
-      <img
+      <Image
         src={src}
         alt={alt}
         className={`w-full h-full object-cover transition-opacity duration-300 ${
