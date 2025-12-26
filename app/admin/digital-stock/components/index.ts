@@ -1,5 +1,5 @@
 export { DigitalProductFormDialog } from './DigitalProductFormDialog';
-export { createDigitalProductColumns, formatCurrency, getStatusColor } from './digitalProductColumns';
+export { createDigitalProductColumns, getStatusColor } from './digitalProductColumns';
 export { useDigitalProductForm } from './useDigitalProductForm';
 export type { DigitalProductFormErrors } from './useDigitalProductForm';
 export { ProductFormFields } from './ProductFormFields';

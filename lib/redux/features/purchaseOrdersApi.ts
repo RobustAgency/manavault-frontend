@@ -21,6 +21,7 @@ export interface PurchaseOrderItemDetail {
   subtotal: string;
   created_at: string;
   updated_at: string;
+  currency: string;
   digital_product?: {
     id: number;
     name: string;
@@ -54,6 +55,7 @@ export interface PurchaseOrder {
   status?: string;
   created_at: string;
   updated_at: string;
+  currency?: string;
   product?: {
     id: number;
     name: string;
@@ -116,8 +118,18 @@ export interface CreatePurchaseOrderData {
   items: PurchaseOrderItem[];
 }
 export interface CSVUploadData {
-supplier_id: number;
-file: File;
+  supplier_id: number;
+  file: File;
+}
+
+export interface createSortOrderItem {
+  digital_product_id: number;
+  priority_order: number;
+}
+
+export interface createDigitalProductOrder {
+  id: number
+  data: createSortOrderItem[];
 }
 
 // Custom base query using existing Axios client
@@ -132,34 +144,34 @@ const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
+    async ({ url, method = "GET", data, params }) => {
+      try {
+        const result = await apiClient({
+          url,
+          method,
+          data,
+          params,
+        });
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError<{
+          data?: unknown;
+          message?: string;
+          error?: boolean;
+          errors?: Record<string, string[]>;
+        }>;
+        const error = {
+          status: err.response?.status || 500,
+          data: err.response?.data || {
+            message: err.message || "An error occurred",
+            error: true,
+          },
+        };
+        return {
+          error,
+        };
+      }
+    };
 
 // Type for RTK Query mutation errors
 interface MutationError {
@@ -189,12 +201,12 @@ export const purchaseOrdersApi = createApi({
       providesTags: (result) =>
         result?.data
           ? [
-              ...result.data.map(({ id }) => ({
-                type: "PurchaseOrder" as const,
-                id: String(id),
-              })),
-              { type: "PurchaseOrder", id: "LIST" },
-            ]
+            ...result.data.map(({ id }) => ({
+              type: "PurchaseOrder" as const,
+              id: String(id),
+            })),
+            { type: "PurchaseOrder", id: "LIST" },
+          ]
           : [{ type: "PurchaseOrder", id: "LIST" }],
       transformResponse: (response: {
         data: {
@@ -219,8 +231,8 @@ export const purchaseOrdersApi = createApi({
             const unitPrice = order.product?.purchase_price
               ? parseFloat(String(order.product.purchase_price))
               : quantity > 0
-              ? totalPrice / quantity
-              : 0;
+                ? totalPrice / quantity
+                : 0;
 
             return {
               ...order,
@@ -298,8 +310,8 @@ export const purchaseOrdersApi = createApi({
             unitPrice = order.product?.purchase_price
               ? parseFloat(String(order.product.purchase_price))
               : quantity > 0
-              ? totalPrice / quantity
-              : 0;
+                ? totalPrice / quantity
+                : 0;
           }
 
           return {
@@ -339,7 +351,35 @@ export const purchaseOrdersApi = createApi({
       },
     }),
 
-     createCSVUpload: builder.mutation<
+    createDigitalProductOrder: builder.mutation<
+      PurchaseOrder,
+      createDigitalProductOrder
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/products/${id}/digital-products/priority`,
+        method: "POST",
+        data: {
+          digital_products: data,
+        },
+      }),
+      invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          toast.success("Digital product order created successfully");
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message ||
+              "Failed to create purchase order";
+            toast.error(errorMessage);
+          }
+        }
+      },
+    }),
+
+    createCSVUpload: builder.mutation<
       CSVUploadData, FormData
     >({
       query: (data) => ({
@@ -371,4 +411,5 @@ export const {
   useCreateCSVUploadMutation,
   useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
+  useCreateDigitalProductOrderMutation
 } = purchaseOrdersApi;

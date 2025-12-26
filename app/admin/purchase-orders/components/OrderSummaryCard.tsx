@@ -9,7 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PurchaseOrder } from '@/lib/redux/features';
-import { formatCurrency, formatDate } from './orderColumns';
+import { formatDate } from './orderColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface OrderSummaryCardProps {
   order: PurchaseOrder;
@@ -54,11 +55,11 @@ export const OrderSummaryCard = ({ order }: OrderSummaryCardProps) => {
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">Average Unit Price</p>
-            <p className="text-2xl font-bold">{formatCurrency(getUnitPrice())}</p>
+            <p className="text-2xl font-bold">{formatCurrency(getUnitPrice(), order.currency)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
-            <p className="text-3xl font-bold text-primary">{formatCurrency(getTotalAmount())}</p>
+            <p className="text-3xl font-bold text-primary">{formatCurrency(getTotalAmount(), order.currency)}</p>
           </div>
         </div>
         <div className="border-t my-4" />

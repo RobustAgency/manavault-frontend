@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { File, Upload, X } from 'lucide-react';
+import Link from 'next/link';
 import React, { useRef } from 'react';
 
 export const CSVUploader: React.FC<{ file: File | null; setFile: React.Dispatch<React.SetStateAction<File | null>>; error: string | undefined, }> = ({
@@ -30,6 +31,8 @@ export const CSVUploader: React.FC<{ file: File | null; setFile: React.Dispatch<
     };
 
     return (
+        <div className='flex flex-col'>
+        <div className='flex justify-end'><a href="/sample-csv/download-sample-csv" download className='flex text-blue-600! text-[12px] text-decoration-none justify-end pb-2'>Download Sample CSV</a></div>
         <div
             className="p-8 border-2 border-dashed rounded-lg text-center bg-gray-50 cursor-pointer hover:border-black">
             <Input
@@ -77,6 +80,7 @@ export const CSVUploader: React.FC<{ file: File | null; setFile: React.Dispatch<
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 };

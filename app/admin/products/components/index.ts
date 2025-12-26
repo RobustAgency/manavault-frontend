@@ -1,6 +1,6 @@
 export { ProductFormDialog } from './ProductFormDialog';
 export { AssignDigitalProductsDialog } from './AssignDigitalProductsDialog';
-export { createProductColumns, formatCurrency, getStatusColor } from './productColumns';
+export { createProductColumns, getStatusColor } from './productColumns';
 export { ProductDetailHeader } from './ProductDetailHeader';
 export { ProductOverviewCard } from './ProductOverviewCard';
 export { ProductImage } from './ProductImage';

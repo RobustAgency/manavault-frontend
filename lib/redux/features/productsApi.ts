@@ -23,6 +23,7 @@ export interface DigitalProduct {
   description?: string | null;
   cost_price: string;
   status: string;
+  currency: string;
   metadata?: {
     sku: string;
     name: string;

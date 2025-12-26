@@ -51,6 +51,7 @@ export interface DigitalProductFilters {
   name?: string;
   brand?: string;
   supplier_id?: number;
+  currency?: DigitalProductStatus;
   status?: DigitalProductStatus;
 }
 export interface GetLowStockProduct{
