@@ -1,9 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { PurchaseOrderItemDetail } from '@/lib/redux/features';
-import { formatCurrency } from './orderColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 export const createOrderItemsColumns = (): ColumnDef<PurchaseOrderItemDetail>[] => [
+  
   {
     accessorKey: 'digital_product.name',
     header: 'Product Name',
@@ -77,7 +78,7 @@ export const createOrderItemsColumns = (): ColumnDef<PurchaseOrderItemDetail>[] 
     header: () => <div className="text-center">Unit Cost</div>,
     cell: ({ row }) => (
       <div className="text-center">
-        {formatCurrency(parseFloat(row.original.unit_cost || '0'))}
+        {formatCurrency(parseFloat(row.original.unit_cost || '0'), row.original.currency ?? null)}
       </div>
     ),
   },

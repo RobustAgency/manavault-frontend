@@ -1,6 +1,6 @@
-export const formatCurrency = (amount: number, currency: string = 'usd') => {
+export const formatCurrency = (amount: number, currency: string | null = 'usd') => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: currency.toUpperCase(),
+        currency: currency?.toUpperCase() || 'USD',
     }).format(amount)
-}
+};  

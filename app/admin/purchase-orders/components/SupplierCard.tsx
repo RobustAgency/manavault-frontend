@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DigitalProduct, Supplier } from '@/lib/redux/features';
-import { formatCurrency } from './orderColumns';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface SupplierCardProps {
     supplierId: number;
     supplier?: Supplier;
-    items: Array<{ supplier_id: number; digital_product_id: number; quantity: number }>;
+    items: Array<{ supplier_id: number; digital_product_id: number; quantity: number ; currency: string }>;
     isExpanded: boolean;
     onToggle: () => void;
     onRemove: () => void;
@@ -64,7 +64,7 @@ export const SupplierCard = ({
                         <span>•</span>
                         <span>{totalQuantity} total units</span>
                         <span>•</span>
-                        <span className="font-medium text-gray-900">{formatCurrency(supplierTotal)}</span>
+                        <span className="font-medium text-gray-900">{formatCurrency(supplierTotal, items[0]?.currency as string)}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4">

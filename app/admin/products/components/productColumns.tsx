@@ -4,6 +4,7 @@ import { PencilIcon, TrashIcon, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Product, ProductStatus } from '@/lib/redux/features';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 type CurrencyCode = 'USD' | 'EUR' | 'PKR';
 
@@ -18,12 +19,6 @@ const normalizeCurrency = (currency?: string): CurrencyCode => {
   }
 };
 
-export const formatCurrency = (amount: number,  currency?: string) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency : 'usd',
-  }).format(amount);
-};
 
 export const getStatusColor = (status: ProductStatus): 'success' | 'default' | 'warning' => {
   switch (status) {
