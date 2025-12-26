@@ -135,7 +135,7 @@ export const CreateOrderDialog = ({
     }
   };
 
-  const handleProductsSelected = (items: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct }>) => {
+  const handleProductsSelected = (items: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct; currency: string }>) => {
     if (items.length === 0 || !selectedSupplierForProducts) {
       // No products selected, reset the supplier select
       handleProductsDialogClose();

@@ -10,7 +10,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 interface SupplierCardProps {
     supplierId: number;
     supplier?: Supplier;
-    items: Array<{ supplier_id: number; digital_product_id: number; quantity: number ; currency: string }>;
+    items: Array<{ supplier_id: number; digital_product_id: number; quantity: number ; currency: string | undefined }>;
     isExpanded: boolean;
     onToggle: () => void;
     onRemove: () => void;

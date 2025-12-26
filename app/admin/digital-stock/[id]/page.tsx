@@ -21,8 +21,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useGetDigitalProductQuery } from '@/lib/redux/features';
+import { formatCurrency } from '@/utils/formatCurrency';
 
-import { formatCurrency } from '../components/digitalProductColumns';
 
 
 const formatDate = (dateString: string) => {

@@ -28,7 +28,7 @@ interface SelectDigitalProductsDialogProps {
     supplierId: number;
     isSubmitting: boolean;
     onClose: () => void;
-    onSubmit: (products: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct }>) => void;
+    onSubmit: (products: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct; currency: string }>) => void;
     onAddNewProduct?: () => void;
     supplierDetails? : Supplier ;
 }
@@ -180,6 +180,7 @@ export const SelectDigitalProductsDialog = ({
                 digital_product_id,
                 quantity,
                 product, // Include product details
+                currency: supplierDetails?.currency || 'USD',
             };
         });
         onSubmit(items);
