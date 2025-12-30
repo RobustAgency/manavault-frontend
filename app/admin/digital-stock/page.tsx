@@ -25,12 +25,15 @@ import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createDigitalProductColumns } from './components';
 import { UploadCsvDialogue } from './components/uploadCsvDialogue';
 import CustomSelect from '@/components/custom/CustomSelect';
+import { DigitalProductStock } from '@/lib/redux/features/digitalProductsApi';
 
 export default function DigitalProductsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [currencyFilter, setCurrencyFilter] = useState<DigitalProductStatus | 'all'>('all');
-  const [nameSearch, setNameSearch] = useState('');
+  const [stockFilter, setStockFilter] = useState<DigitalProductStock | 'all'>('all');
+
+  const [nameSearch, setNameSearch] = useState(''); 
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -66,6 +69,7 @@ export default function DigitalProductsPage() {
     page,
     per_page: perPage,
     currency: currencyFilter === 'all' ? undefined : currencyFilter,
+    stock: stockFilter === 'all' ? undefined : stockFilter,
     name: debouncedNameSearch || undefined,
     brand: debouncedBrandSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
@@ -119,13 +123,12 @@ export default function DigitalProductsPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex  md:flex-row flex-col justify-between md:items-center items-start gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">Digital Stock</h1>
           <p className="text-muted-foreground mt-1">Manage digital stock from external suppliers</p>
         </div>
-        <div className='flex justify-between gap-2'>
-
+        <div className='flex md:flex-row flex-col justify-between gap-2'>
 
           <label htmlFor="file">
             <Button type="button" onClick={handleUploadClick}>
@@ -143,22 +146,7 @@ export default function DigitalProductsPage() {
 
       {/* Filters */}
       <div className="flex gap-4 mb-4 flex-wrap">
-        {/* <div className="w-48">
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as DigitalProductStatus | 'all')}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
-        <div className="w-48">
+        <div className="sm:w-35 w-full">
           <Select
             value={supplierFilter}
             onValueChange={setSupplierFilter}
@@ -176,7 +164,7 @@ export default function DigitalProductsPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className='w-48'>
+        <div className='sm:w-35 w-full'>
           <CustomSelect
             value={currencyFilter}
             placeholder="Filter by status"
@@ -186,6 +174,18 @@ export default function DigitalProductsPage() {
               { value: 'eur', label: 'EUR' },
             ]}
             onChange={(value) => setCurrencyFilter(value as DigitalProductStatus | 'all')}
+          />
+        </div>
+         <div className='sm:w-35 w-full'>
+          <CustomSelect
+            value={stockFilter}
+            placeholder="Filter by stock"
+            options={[
+              { value: 'all', label: 'All Stock' },
+              { value: 'high', label: 'High Stock' },
+              { value: 'low', label: 'Low Stock' },
+            ]}
+            onChange={(value) => setStockFilter(value as DigitalProductStock | 'all')}
           />
         </div>
         <div className="flex-1 min-w-[200px]">

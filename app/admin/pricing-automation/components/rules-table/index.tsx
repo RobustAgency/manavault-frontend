@@ -75,12 +75,12 @@ const RulesTable = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex md:flex-row flex-col justify-between md:items-center items-start gap-3 mb-4">
         <div>
           <h1 className="text-3xl font-bold">Pricing Automation</h1>
           <p className="text-muted-foreground mt-1">Manage pricing rules for your products</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex md:gap-2">
           <Button onClick={() => router.push('/admin/pricing-automation/create')}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Rule
@@ -90,8 +90,8 @@ const RulesTable = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 mb-4">
-        <div className="w-64">
+      <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="md:w-64 w-full">
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProductStatus | 'all')}>
             <SelectTrigger>
               <SelectValue placeholder="Filter by status" />
