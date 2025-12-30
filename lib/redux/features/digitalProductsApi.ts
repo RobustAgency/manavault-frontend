@@ -14,7 +14,7 @@ interface PaginationMeta {
 
 export type DigitalProductStatus = "active" | "inactive";
 
-export type DigitalProductStock = "in_stock" | "out_of_stock" | "low_stock" | "all";
+export type DigitalProductStock =  "high" | "low" | "all";
 
 export interface DigitalProduct {
   id: number;
