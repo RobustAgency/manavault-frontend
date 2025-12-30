@@ -20,8 +20,9 @@ export interface VoucherAuditLog {
   user_agent?: string | null;
   created_at: string;
   updated_at: string;
+  digital_product?: string | null;
   voucher?: {
-    id: number;
+    id: number; 
     code: string;
     serial_number?: string;
     pin_code?: string | null;

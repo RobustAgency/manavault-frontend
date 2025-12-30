@@ -37,7 +37,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 }
 
                 // Check if user has MFA enrolled
-                const { data: factorsData } = await supabase.auth.mfa.listFactors()
+                const { data: factorsData } = await supabase.auth.mfa.listFactors();
                 const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
 
                 // If MFA is enrolled but session is not AAL2, redirect to verify

@@ -22,6 +22,7 @@ import {
 import { useGetDigitalProductsListQuery, Supplier } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface AssignDigitalProductsDialogProps {
     isOpen: boolean;
@@ -279,7 +280,7 @@ export const AssignDigitalProductsDialog = ({
                                                         </div>
                                                         <div className="text-right shrink-0">
                                                             <p className="text-sm font-medium">
-                                                                ${Number(product.cost_price).toFixed(2)}
+                                                                {formatCurrency(Number(product.cost_price), product.currency)}
                                                             </p>
                                                         </div>
                                                     </div>
