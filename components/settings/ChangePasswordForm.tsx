@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { PasswordInput } from "@/components/ui/password-input"
 import { updatePassword } from "@/lib/auth-actions"
+import { useRouter } from "next/navigation"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -20,10 +21,11 @@ function SubmitButton() {
 }
 
 export default function ChangePasswordForm() {
-  const formRef = useRef<HTMLFormElement | null>(null)
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const router = useRouter();
   const [state, formAction] = useActionState(
     async (_prev: unknown, formData: FormData) => {
-      return await updatePassword(formData)
+      return await updatePassword(formData);
     },
     null as null | { success: boolean; message?: string }
   )
@@ -35,6 +37,10 @@ export default function ChangePasswordForm() {
       formRef.current?.reset()
     } else if (state.message) {
       toast.error(state.message)
+    }
+    if (state?.success === false) {
+      sessionStorage.setItem("returnUrl", "/settings");
+      router.push("/verify-mfa");
     }
   }, [state])
 

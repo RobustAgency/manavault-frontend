@@ -65,6 +65,14 @@ export const createColumns = (): ColumnDef<VoucherAuditLog>[] => [
         },
     },
     {
+        accessorKey: "digital_product",
+        header: "Digital Product",
+        cell: ({ row }) => {
+            const digitalProduct = row.original.digital_product;
+            return <div>{digitalProduct || "-"}</div>;
+        },
+    },
+    {
         accessorKey: "action",
         header: "Action",
         cell: ({ row }) => {

@@ -32,7 +32,7 @@ export const CSVUploader: React.FC<{ file: File | null; setFile: React.Dispatch<
 
     return (
         <div className='flex flex-col'>
-        <div className='flex justify-end'><a href="/sample-csv/download-sample-csv" download className='flex text-blue-600! text-[12px] text-decoration-none justify-end pb-2'>Download Sample CSV</a></div>
+        <div className='flex justify-end'><a href="/sample-csv/digital_products.csv" download className='flex text-blue-600! text-[12px] text-decoration-none justify-end pb-2'>Download Sample CSV</a></div>
         <div
             className="p-8 border-2 border-dashed rounded-lg text-center bg-gray-50 cursor-pointer hover:border-black">
             <Input

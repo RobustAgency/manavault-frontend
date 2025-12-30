@@ -24,11 +24,11 @@ export const ToggleSwitch = ({
   className,
 }: ToggleSwitchProps) => {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {label && (
         <label
           htmlFor={id}
-          className="text-sm leading-none text-black cursor-pointer"
+          className="text-sm leading-none text-black"
         >
           {label}
         </label>
@@ -41,8 +41,8 @@ export const ToggleSwitch = ({
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         className={cn(
-          'relative h-6 w-11 rounded-full bg-black shadow-2xl drop-shadow-lg outline-none transition-colors',
-          'data-[state=checked]:bg-primary',
+          'relative h-6 w-11 rounded-full bg-black/15 shadow-2xl drop-shadow-lg outline-none transition-colors',
+          'data-[state=checked]:bg-green-500',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           className
         )}
