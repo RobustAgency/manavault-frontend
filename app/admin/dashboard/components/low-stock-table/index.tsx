@@ -95,7 +95,7 @@ const LowStockProductTable: React.FC<LowStockProductProps> = ({ data, isLoading 
                         <TableCell colSpan={4} className="text-end p-4">
                           <Button
                             className="bg-primary text-white hover: px-4 py-2 cursor-pointer rounded"
-                            onClick={() => router.push('/admin/digital-stock') }
+                            onClick={() => router.push('/admin/digital-stock?stock=low') }
                           >
                             View All
                           </Button>
