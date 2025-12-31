@@ -45,7 +45,7 @@ export function VerifyMFA() {
                 router.push(returnUrl);
                 router.refresh();
             } else {
-                router.push("/settings");
+                router.push("/");
             }
         } else {
             const supabase = createClient();
