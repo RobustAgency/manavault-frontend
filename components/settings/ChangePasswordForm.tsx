@@ -45,13 +45,11 @@ export default function ChangePasswordForm() {
     if (!state) return;
     if (state.success) {
       toast.success("Password updated");
-      sessionStorage.removeItem("pendingPasswordChange");
       formRef.current?.reset();
     } else if (state.message) {
       toast.error(state.message);
     }
     if (state.requiresMFA) {
-      sessionStorage.setItem("pendingPasswordChange", "1");
       sessionStorage.setItem("returnUrl", "/update-password");
       router.push("/verify-mfa");
       return;

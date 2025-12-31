@@ -41,7 +41,6 @@ export function VerifyMFA() {
             // Check for return URL (e.g., from update-password page) or default to settings page
             const returnUrl = sessionStorage.getItem("returnUrl");
             if (returnUrl) {
-                sessionStorage.removeItem("pendingPasswordChange");
                 sessionStorage.removeItem("returnUrl");
                 router.push(returnUrl);
                 router.refresh();
