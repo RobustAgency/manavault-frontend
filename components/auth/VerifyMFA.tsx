@@ -38,16 +38,16 @@ export function VerifyMFA() {
         if (result.success) {
             toast.success("Verified successfully!");
 
-            // Check for return URL (e.g., from update-password page)
-            const returnUrl = sessionStorage.getItem('returnUrl');
+            // Check for return URL (e.g., from update-password page) or default to settings page
+            const returnUrl = sessionStorage.getItem("returnUrl");
             if (returnUrl) {
-                sessionStorage.removeItem('returnUrl');
+                sessionStorage.removeItem("returnUrl");
                 router.push(returnUrl);
                 router.refresh();
-                return;
+            } else {
+                router.push("/");
             }
-
-            // Get user role to redirect appropriately
+        } else {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             const userRole = user?.user_metadata?.role;
@@ -59,7 +59,6 @@ export function VerifyMFA() {
                 router.push("/dashboard");
             }
             router.refresh();
-        } else {
             setError(result.message || "Verification failed");
             toast.error(result.message || "Verification failed");
             setVerifyCode("");

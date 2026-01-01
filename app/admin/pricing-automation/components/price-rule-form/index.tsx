@@ -162,7 +162,7 @@ const PriceRuleForm = ({
                         e.target.value === "" ? null : Number(e.target.value),
                     })
                   }
-                  className="h-9 w-20 text-center"
+                  className="h-9 w-20 text-left"
                 />
                 {errors.action_value && (
                   <p className="text-xs text-red-500">
@@ -187,11 +187,9 @@ const PriceRuleForm = ({
                     <SelectItem value="absolute">Number</SelectItem>
                   </SelectContent>
                 </Select>
+                
               </div>
-
-              <span>of the face value as</span>
-
-              {/* Operator */}
+                {/* Operator */}
               <div className="flex flex-col">
                 <Select
                   value={formData.action_operator}
@@ -199,7 +197,7 @@ const PriceRuleForm = ({
                     updateFormData({ action_operator: value })
                   }
                 >
-                  <SelectTrigger className="h-9 w-24">
+                  <SelectTrigger className="h-9 w-30">
                     <SelectValue placeholder="+ / -" />
                   </SelectTrigger>
                   <SelectContent>
@@ -208,6 +206,7 @@ const PriceRuleForm = ({
                   </SelectContent>
                 </Select>
               </div>
+              <span>of the face value</span>
             </div>
           </div>
 
