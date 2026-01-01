@@ -40,7 +40,15 @@ export async function GET(request: NextRequest) {
                     { onConflict: "id" }
                 );
 
-            // Check MFA status after email verification
+            // Handle password recovery separately - don't check MFA for password resets
+            if (type === 'recovery') {
+                // For password reset, redirect to update-password page (or use next param if provided)
+                redirectTo.pathname = next !== '/' ? next : '/update-password';
+                redirectTo.searchParams.delete('next')
+                return NextResponse.redirect(redirectTo)
+            }
+
+            // For other email verification types (signup, email change, etc.), check MFA status
             const { data: factorsData } = await supabase.auth.mfa.listFactors();
             const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0;
 
@@ -55,7 +63,7 @@ export async function GET(request: NextRequest) {
                 if (needsMFAVerification) {
                     redirectTo.pathname = '/verify-mfa';
                 } else {
-                    redirectTo.pathname = '/dashboard';
+                    redirectTo.pathname = next !== '/' ? next : '/dashboard';
                 }
             }
 
