@@ -177,13 +177,12 @@ export async function updatePassword(formData: FormData) {
         return { success: false, message: "Not authenticated" } as const;
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-    });
 
-    if (signInError) {
-        return { success: false, message: "Current password is incorrect" } as const;
+
+    const { data } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (data?.currentLevel !== "aal2") {
+        return { success: false, message: "MFA verification required" } as const;
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
