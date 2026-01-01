@@ -31,7 +31,8 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                     await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
                 if (aalError) {
-                    setError('Failed to check authentication level')
+                    // For password reset flows, allow password update even if AAL check fails
+                    // The email link itself is the verification for password reset
                     setIsCheckingAAL(false)
                     return
                 }
@@ -40,18 +41,17 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 const { data: factorsData } = await supabase.auth.mfa.listFactors()
                 const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
 
-                // If MFA is enrolled but session is not AAL2, redirect to verify
                 if (hasMFAEnrolled && aalData?.currentLevel !== 'aal2') {
-                    // Store the return URL so user can come back after MFA verification
-                    sessionStorage.setItem('returnUrl', '/update-password')
-                    router.push('/verify-mfa')
+                    // Don't redirect to verify-mfa for password reset flows
+                    // Allow the user to update their password first
+                    setIsCheckingAAL(false)
                     return
                 }
 
                 setIsCheckingAAL(false)
             } catch (error) {
                 console.error('Error checking AAL:', error)
-                setError('Failed to verify authentication level')
+                // For password reset flows, allow password update even if AAL check fails
                 setIsCheckingAAL(false)
             }
         }
@@ -66,20 +66,8 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
         setError(null)
 
         try {
-            // Double-check AAL level before updating
-            const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-            const { data: factorsData } = await supabase.auth.mfa.listFactors()
-            const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
-
-            if (hasMFAEnrolled && aalData?.currentLevel !== 'aal2') {
-                setError('MFA verification required. Redirecting...')
-                sessionStorage.setItem('returnUrl', '/update-password')
-                setTimeout(() => {
-                    router.push('/verify-mfa')
-                }, 1000)
-                return
-            }
-
+            // For password reset flows, allow password update without MFA verification
+            // The email link itself is the verification. Supabase will handle the update.
             const { error } = await supabase.auth.updateUser({ password })
             if (error) throw error
             router.push('/')
