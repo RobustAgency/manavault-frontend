@@ -41,7 +41,7 @@ const LowStockProductTable: React.FC<LowStockProductProps> = ({ data, isLoading 
   return (
       <div className="rounded-xl  w-[full] overflow-hidden shadow-sm bg-card border text-card-foreground animate-slide-up" style={{ animationDelay: "200ms" }}>
         {/* Table Heading */}
-        <div className="flex items-center gap-3 border-b border-border p-3">
+        <div className="flex items-center gap-3 border-b border-border p-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/20">
             <AlertTriangle className="h-4 w-4 text-warning" />
           </div>

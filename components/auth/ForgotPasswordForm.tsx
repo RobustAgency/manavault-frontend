@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'react-toastify'
 
 export function ForgotPasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
     const [email, setEmail] = useState('')
@@ -29,9 +31,12 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
 
         try {
             // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/update-password`,
             })
+            if (data) {
+                toast.success('Password reset instructions sent to your email')
+            }
             if (error) throw error
             setSuccess(true)
         } catch (error: unknown) {
@@ -77,10 +82,10 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
-                                </div>
                                 {error && <p className="text-sm text-red-500">{error}</p>}
+                                </div>
                                 <Button type="submit" className="w-full" disabled={isLoading}>
-                                    {isLoading ? 'Sending...' : 'Send reset email'}
+                                    {isLoading ? <Loader2 className="animate-spin" /> : 'Reset password'}
                                 </Button>
                             </div>
                             <div className="mt-4 text-center text-sm">

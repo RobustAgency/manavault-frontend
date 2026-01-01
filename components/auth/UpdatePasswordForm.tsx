@@ -11,12 +11,16 @@ import {
     CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify';
 
 export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-    const [password, setPassword] = useState('')
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [isCheckingAAL, setIsCheckingAAL] = useState(true)
@@ -66,13 +70,20 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
         setError(null)
 
         try {
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                setError('Passwords do not match')
+                setIsLoading(false)
+                return
+            }
+
             // Double-check AAL level before updating
             const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
             const { data: factorsData } = await supabase.auth.mfa.listFactors()
             const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
 
             if (hasMFAEnrolled && aalData?.currentLevel !== 'aal2') {
-                setError('MFA verification required. Redirecting...')
+                toast.error('MFA verification required. Redirecting...')
                 sessionStorage.setItem('returnUrl', '/update-password')
                 setTimeout(() => {
                     router.push('/verify-mfa')
@@ -84,7 +95,7 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
             if (error) throw error
             router.push('/')
         } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'An error occurred')
+            toast.error(error instanceof Error ? error.message : 'An error occurred')
         } finally {
             setIsLoading(false)
         }
@@ -116,16 +127,26 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="password">New password</Label>
-                                <Input
+                                <PasswordInput
                                     id="password"
-                                    type="password"
                                     placeholder="New password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
+                                {error && <p className="text-sm text-red-500">{error}</p>}
                             </div>
-                            {error && <p className="text-sm text-red-500">{error}</p>}
+                            <div className="grid gap-2">
+                                <Label htmlFor="confirm_password">Confirm new password</Label>
+                                <PasswordInput
+                                    id="confirm_password"
+                                    placeholder="Confirm new password"
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
+                                {error && <p className="text-sm text-red-500">{error}</p>}
+                            </div>
                             <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading ? 'Saving...' : 'Save new password'}
                             </Button>
