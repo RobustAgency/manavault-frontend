@@ -41,10 +41,6 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 const { data: factorsData } = await supabase.auth.mfa.listFactors()
                 const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0
 
-                // For password reset flows, allow password update without MFA verification
-                // The email link is sufficient verification. Only require MFA for regular password changes.
-                // We can detect password reset flow by checking if we're coming from a recovery token
-                // For now, allow password update if AAL check fails (common in password reset flows)
                 if (hasMFAEnrolled && aalData?.currentLevel !== 'aal2') {
                     // Don't redirect to verify-mfa for password reset flows
                     // Allow the user to update their password first

@@ -48,7 +48,6 @@ export async function updateSession(request: NextRequest) {
   const authRoutes = [
     "/login",
     "/forgot-password",
-    "/reset-password",
     "/update-password",
     "/auth/confirm",
     "/setup-mfa",
@@ -83,6 +82,14 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
+  // Allow /update-password for password reset flows - skip ALL MFA checks
+  // This must be checked before any MFA logic to prevent redirects
+  // Normalize pathname to handle any edge cases (trailing slashes, etc.)
+  const normalizedPath = pathname.replace(/\/$/, ""); // Remove trailing slash
+  if (normalizedPath === "/update-password" || pathname.startsWith("/update-password")) {
+    return response;
+  }
+
   // User is authenticated - check MFA status
   if (user) {
     // Get MFA status with error handling
@@ -107,12 +114,11 @@ export async function updateSession(request: NextRequest) {
     }
 
     // If user doesn't have MFA enrolled, redirect to setup (unless already on MFA routes)
-    if (!hasMFAEnrolled && !isMFARoute && !isAuthRoute) {
+    if (!hasMFAEnrolled && !isMFARoute && !isAuthRoute && pathname !== "/update-password") {
       return redirectWithCookies("/setup-mfa");
     }
 
-    // If user has MFA enrolled but not verified, redirect to verify (unless already on MFA routes or update-password)
-    // Allow /update-password for password reset flows even if MFA verification is needed
+    // If user has MFA enrolled but not verified, redirect to verify (unless already on MFA routes)
     if (hasMFAEnrolled && needsMFAVerification && !isMFARoute && !isAuthRoute && pathname !== "/update-password") {
       return redirectWithCookies("/verify-mfa");
     }
@@ -143,7 +149,9 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute && !isLogoutRoute && !isMFARoute) {
     // Allow /update-password for password reset flows - don't redirect away
-    if (pathname === "/update-password") {
+    // This is a safety check in case the early return above didn't catch it
+    const normalizedPath = pathname.replace(/\/$/, "");
+    if (normalizedPath === "/update-password" || pathname.startsWith("/update-password")) {
       return response;
     }
 
@@ -164,11 +172,11 @@ export async function updateSession(request: NextRequest) {
       console.error("Error checking MFA status:", error);
     }
 
-    if (!hasMFAEnrolled) {
+    if (!hasMFAEnrolled && pathname !== "/update-password") {
       return redirectWithCookies("/setup-mfa");
     }
 
-    if (needsMFAVerification) {
+    if (needsMFAVerification && pathname !== "/update-password") {
       return redirectWithCookies("/verify-mfa");
     }
 
