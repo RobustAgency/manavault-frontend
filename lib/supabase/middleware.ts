@@ -111,8 +111,9 @@ export async function updateSession(request: NextRequest) {
       return redirectWithCookies("/setup-mfa");
     }
 
-    // If user has MFA enrolled but not verified, redirect to verify (unless already on MFA routes)
-    if (hasMFAEnrolled && needsMFAVerification && !isMFARoute && !isAuthRoute) {
+    // If user has MFA enrolled but not verified, redirect to verify (unless already on MFA routes or update-password)
+    // Allow /update-password for password reset flows even if MFA verification is needed
+    if (hasMFAEnrolled && needsMFAVerification && !isMFARoute && !isAuthRoute && pathname !== "/update-password") {
       return redirectWithCookies("/verify-mfa");
     }
 
@@ -141,6 +142,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isAuthRoute && !isLogoutRoute && !isMFARoute) {
+    // Allow /update-password for password reset flows - don't redirect away
+    if (pathname === "/update-password") {
+      return response;
+    }
+
     // Check MFA status before redirecting to dashboard
     let hasMFAEnrolled = false;
     let needsMFAVerification = false;
