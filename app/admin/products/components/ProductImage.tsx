@@ -7,9 +7,11 @@ import Image from 'next/image';
 interface ProductImageProps {
   src: string;
   alt: string;
+  width?: number;
+  height?: number;
 }
 
-export function ProductImage({ src, alt }: ProductImageProps) {
+export function ProductImage({ src, alt, width, height }: ProductImageProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,7 +19,7 @@ export function ProductImage({ src, alt }: ProductImageProps) {
     return (
       <div className="w-full max-w-xs aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center">
         <div className="text-center">
-          <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+          <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <p className="text-xs text-gray-500">Image not available</p>
         </div>
       </div>
@@ -35,6 +37,10 @@ export function ProductImage({ src, alt }: ProductImageProps) {
         className={`w-full h-full object-cover transition-opacity duration-300 ${
           isLoading ? 'opacity-0' : 'opacity-100'
         }`}
+        width={width}
+        height={height}
+        unoptimized
+        loading="lazy"
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setHasError(true);

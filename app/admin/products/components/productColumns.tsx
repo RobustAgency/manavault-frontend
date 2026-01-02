@@ -31,6 +31,7 @@ export const getStatusColor = (status: ProductStatus): 'success' | 'default' | '
     default:
       return 'default';
   }
+
 };
 
 interface ProductColumnsProps {
@@ -78,11 +79,14 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => (
-      <Badge variant="filled" color={getStatusColor(row.original.status)}>
-        {row.original.status.replace('_', ' ')}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <Badge variant="filled" color={getStatusColor(status)}>
+          {status.replace('_', ' ')}
+        </Badge>
+      );
+    },
   },
   {
     id: 'actions',
