@@ -296,7 +296,7 @@ export function DataTable<TData, TValue>({
                     <div className="flex justify-end items-center pt-2">
                         <button
                             onClick={() => handleSave?.()}
-                            className="px-4 py-2 bg-primary text-white rounded disabled:opacity-50"
+                            className="px-6 py-2 bg-primary cursor-pointer text-white rounded-md disabled:opacity-50"
                         >
                             Save
                         </button>

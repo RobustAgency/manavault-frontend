@@ -19,7 +19,7 @@ const ProfileInfo = () => {
         <div className="flex items-center gap-3 justify-end px-4">
             <Link href="/settings" className="relative h-10 w-10 overflow-hidden rounded-full bg-muted">
                 {avatarUrl ? (
-                    <Image src={avatarUrl} alt={displayName} fill sizes="40px" className="object-cover" unoptimized />
+                    <Image src={avatarUrl} alt={displayName} fill sizes="40px" className="object-cover object-top" unoptimized />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center text-sm font-medium">
                         {displayName.slice(0, 2).toUpperCase()}
