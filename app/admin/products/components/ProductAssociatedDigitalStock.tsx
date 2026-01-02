@@ -12,9 +12,10 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from '@/components/custom/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Product, DigitalProduct as DigitalProductType } from '@/lib/redux/features/productsApi';
+import { Product, DigitalProduct as DigitalProductType, ProductStatus } from '@/lib/redux/features/productsApi';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
+import { getStatusColor } from './productColumns';
 
 
 interface ProductAssociatedDigitalStockProps {
@@ -85,23 +86,17 @@ const ProductAssociatedDigitalStock = ({
             cell: ({ row }) => formatCurrency(parseFloat(row.getValue('cost_price')), row.original.currency),
         },
         {
-            accessorKey: 'faceValue',
-            header: 'Face Value',
-            cell: ({ row }) => {
-                const faceValue = row.original.metadata?.faceValue;
-                return faceValue && typeof faceValue === 'string'
-                    ? formatCurrency(parseFloat(faceValue), row.original.currency)
-                    : 'N/A';
-            },
-        },
-        {
             accessorKey: 'status',
             header: 'Status',
-            cell: ({ row }) => (
-                <Badge variant="outlined" className="capitalize">
-                    {row.getValue('status')}
-                </Badge>
-            ),
+            cell: ({ row }) => {
+                const status = row.original.supplier?.status;
+                console.log(status)
+                return (
+                  <Badge variant="filled" color={getStatusColor(status as ProductStatus)}>
+                    {status}
+                  </Badge>
+                );
+              },
         },
         {
             accessorKey: 'last_synced_at',

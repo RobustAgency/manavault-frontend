@@ -196,7 +196,7 @@ const ProfilePhoto = () => {
                         alt="Profile Preview"
                         width={64}
                         height={64}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                        className="w-16 h-16 rounded-full object-cover object-top border-2 border-gray-200"
                         unoptimized
                     />
                     <div>
