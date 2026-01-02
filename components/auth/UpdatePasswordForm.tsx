@@ -91,7 +91,10 @@ export function UpdatePasswordForm({ className, ...props }: React.ComponentProps
                 return
             }
 
-            const { error } = await supabase.auth.updateUser({ password })
+            const {data, error } = await supabase.auth.updateUser({ password })
+            if(data.user){
+              toast.success("Password Updated Successfully")
+            }
             if (error) throw error
             router.push('/')
         } catch (error: unknown) {
