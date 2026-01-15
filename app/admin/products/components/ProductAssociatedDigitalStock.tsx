@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PackageIcon } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import {
@@ -30,7 +30,6 @@ const ProductAssociatedDigitalStock = ({
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
     const [sortTableData, setSortTableData] = useState<DigitalProductType[]>(product.digital_products || []);
 
-
     console.log(isDraggingRow)
     const handleSave = () => {
         if (!product) return;
@@ -39,7 +38,6 @@ const ProductAssociatedDigitalStock = ({
             digital_product_id: item.id,
             priority_order: index + 1,
         }));
-        console.log(isDraggingRow);
         createDigitalProductOrder({ id: product.id, data: data || [] })
             .unwrap().then(() => {
                 setIsDraggingRow(false);
@@ -48,11 +46,22 @@ const ProductAssociatedDigitalStock = ({
                 // Handle error appropriately
                 console.error('Failed to save digital product order:', error);
             });
-
           setIsDraggingRow(false);
-
     }
 
+    // sorting based on priority 
+    const sortDigitalProducts = () => {
+        const digitalProducts = [...( product.digital_products || [])];
+      
+        const sortedProducts = digitalProducts?.sort((product_a, product_b) => {
+            return (product_a?.pivot?.priority) - (product_b?.pivot?.priority);
+        }) || [];
+        setSortTableData(sortedProducts);
+    }
+    
+    useEffect(() => {
+        sortDigitalProducts();
+    }, [product.digital_products]);
 
     const digitalProductColumns: ColumnDef<DigitalProductType>[] = [
         {
