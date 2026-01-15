@@ -9,6 +9,7 @@ import { brandsApi } from "./features/brandsApi";
 import { loginLogsApi } from "./features/loginLogsApi";
 import { voucherAuditLogsApi } from "./features/voucherAuditLogsApi";
 import { priceAutomationApi } from "./features/priceAutomationApi";
+import { salesOrdersApi } from "./features/salesOrdersApi";
 
 export const makeStore = () => {
   return configureStore({
@@ -22,6 +23,7 @@ export const makeStore = () => {
       [loginLogsApi.reducerPath]: loginLogsApi.reducer,
       [voucherAuditLogsApi.reducerPath]: voucherAuditLogsApi.reducer,
       [priceAutomationApi.reducerPath]: priceAutomationApi.reducer,
+      [salesOrdersApi.reducerPath]: salesOrdersApi.reducer,
 
     },
     middleware: (getDefaultMiddleware) =>
@@ -35,6 +37,7 @@ export const makeStore = () => {
         loginLogsApi.middleware,
         voucherAuditLogsApi.middleware,
         priceAutomationApi.middleware,
+        salesOrdersApi.middleware,
       ),
   });
 };
