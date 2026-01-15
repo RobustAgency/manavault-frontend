@@ -47,6 +47,9 @@ export interface DigitalProduct {
     percentageOffFaceValue?: string;
     isInstantDeliverySupported?: boolean;
   };
+   pivot: {
+      priority: number;
+    };
   last_synced_at: string;
   created_at: string;
   updated_at: string;
