@@ -20,6 +20,7 @@ import {
   type CreateBrandData,
   type UpdateBrandData,
 } from '@/lib/redux/features';
+import { toast } from 'react-toastify';
 
 const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
@@ -112,6 +113,7 @@ export const BrandDialog = ({
       // Call success callback if provided
       if (onSuccess) {
         onSuccess(result);
+        toast.success(`Brand ${isEditMode ? 'updated' : 'created'} successfully`);
       }
 
       // Close dialog
@@ -124,6 +126,7 @@ export const BrandDialog = ({
         const errorMessage =
           err?.error?.data?.message || 'Failed to save brand';
         setErrors({ general: errorMessage });
+        toast.error(errorMessage);
       }
     }
   };

@@ -10,6 +10,7 @@ import { loginLogsApi } from "./features/loginLogsApi";
 import { voucherAuditLogsApi } from "./features/voucherAuditLogsApi";
 import { priceAutomationApi } from "./features/priceAutomationApi";
 import { salesOrdersApi } from "./features/salesOrdersApi";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 export const makeStore = () => {
   return configureStore({
@@ -40,6 +41,16 @@ export const makeStore = () => {
         salesOrdersApi.middleware,
       ),
   });
+};
+
+// creating store singleton
+let store: AppStore;
+export const getStore = () => {
+  if (!store) {
+    store = makeStore();
+    setupListeners(store.dispatch);
+  }
+  return store;
 };
 
 // Infer the type of makeStore

@@ -27,6 +27,7 @@ import { GlobalSupplierSelector } from './GlobalSupplierSelector';
 import { ProductFormFields } from './ProductFormFields';
 import { ProductAccordionItem } from './ProductAccordionItem';
 import { convertFormToSubmitData } from './formDataUtils';
+import { toast } from 'react-toastify';
 
 interface DigitalProductFormDialogProps {
   isOpen: boolean;
@@ -155,6 +156,7 @@ export const DigitalProductFormDialog = ({
   const handleCreateSupplier = async (data: CreateSupplierData) => {
     try {
       const newSupplier = await createSupplier(data).unwrap();
+      toast.success('Supplier created successfully');
       onSuppliersRefetch?.();
       if (newSupplier) {
         if (isEditMode) {
@@ -165,7 +167,7 @@ export const DigitalProductFormDialog = ({
       }
       setIsAddSupplierDialogOpen(false);
     } catch (error) {
-      console.error('Failed to create supplier:', error);
+      toast.error('Failed to create supplier');
     }
   };
 

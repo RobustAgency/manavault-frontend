@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Condition, PriceRule } from "@/lib/redux/features/priceAutomationApi";
 import { usePricingAutomationForm } from "../pricing-form-hook";
 import DynamicField from "../dynamic-field";
 import { useRouter } from "next/navigation";
@@ -22,6 +21,7 @@ import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
 import { useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
 import { toast } from "react-toastify";
+import { Condition, PriceRule } from "@/types";
 
 interface PriceRuleFormProps {
   mode: "create" | "edit";

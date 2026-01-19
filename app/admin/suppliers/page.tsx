@@ -23,6 +23,7 @@ import {
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { SupplierFormDialog, createSupplierColumns } from './components';
+import { toast } from 'react-toastify';
 
 export default function SuppliersPage() {
   const [page, setPage] = useState(1);
@@ -72,8 +73,9 @@ export default function SuppliersPage() {
     try {
       await createSupplier(data).unwrap();
       setIsCreateDialogOpen(false);
+      toast.success('Supplier created successfully');
     } catch (error) {
-      console.error('Failed to create supplier:', error);
+      toast.error('Failed to create supplier');
     }
   };
 
@@ -87,8 +89,9 @@ export default function SuppliersPage() {
       }).unwrap();
       setIsEditDialogOpen(false);
       setSelectedSupplier(null);
+      toast.success('Supplier updated successfully');
     } catch (error) {
-      console.error('Failed to update supplier:', error);
+      toast.error('Failed to update supplier');
     }
   };
 
@@ -99,8 +102,9 @@ export default function SuppliersPage() {
       await deleteSupplier(selectedSupplier.id).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedSupplier(null);
+      toast.success('Supplier deleted successfully');
     } catch (error) {
-      console.error('Failed to delete supplier:', error);
+      toast.error('Failed to delete supplier');
     }
   };
 

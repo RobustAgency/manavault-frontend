@@ -23,6 +23,7 @@ import { useProductForm } from '../../components/useProductForm';
 import { use, useEffect } from 'react';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../../components/BrandSelector';
+import { toast } from 'react-toastify';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -79,7 +80,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
     useEffect(() => {
         if (isError) {
-            console.error('Update product error:', error);
+            toast.error('Failed to update product');
         }
     }, [isError, error]);
 
@@ -123,8 +124,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
                 regions.forEach(region => submitData.append('regions[]', region));
             }
-
-            await updateProduct({ id: productId, data: submitData });
+            
+            try {
+                await updateProduct({ id: productId, data: submitData });
+                toast.success("Product updated successfully");
+            } catch (error) {
+                toast.error('Failed to update product');
+            }
         }
     };
     if (isLoadingProduct) {

@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Product } from '@/lib/redux/features/priceAutomationApi';
 import { DataTable } from '@/components/custom/DataTable';
 import { PreviewRulesColumns } from '../preview-product-column';
+import { Product } from '@/types';
 
 interface PreviewProductsDialogProps {
   open: boolean;

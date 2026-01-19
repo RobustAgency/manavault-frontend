@@ -22,6 +22,7 @@ import {
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createProductColumns } from './components';
+import { toast } from 'react-toastify';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -70,10 +71,11 @@ export default function ProductsPage() {
 
     try {
       await deleteProduct(selectedProduct.id).unwrap();
+      toast.success("Product deleted successfully");
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
     } catch (error) {
-      console.error('Failed to delete product:', error);
+      toast.error('Failed to delete product');
     }
   };
 
