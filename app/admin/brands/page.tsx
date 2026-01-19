@@ -13,9 +13,9 @@ import {
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { BrandDialog, createBrandColumns } from './components';
+import { toast } from 'react-toastify';
 
 export default function BrandsPage() {
-  const router = useRouter();
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const perPage = 10;
@@ -52,8 +52,10 @@ export default function BrandsPage() {
       await deleteBrand(selectedBrand.id).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedBrand(null);
+      toast.success("Brand deleted successfully");
     } catch (error) {
       console.error('Failed to delete brand:', error);
+      toast.error("Failed to delete brand");
     }
   };
 

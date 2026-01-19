@@ -1,159 +1,6 @@
-import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
-import { apiClient } from "@/lib/api";
-import { AxiosRequestConfig, AxiosError } from "axios";
-
-interface PaginationMeta {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number;
-  to: number;
-}
-
-export type DigitalProductStatus = "active" | "inactive";
-
-export type DigitalProductStock =  "high" | "low" | "all";
-
-export interface DigitalProduct {
-  id: number;
-  supplier_id: number;
-  name: string;
-  sku: string;
-  brand?: string | null;
-  description?: string | null;
-  tags?: string[] | null;
-  image?: string | null;
-  cost_price: string | number;
-  status: DigitalProductStatus;
-  region?: string | null;
-  metadata?: Record<string, unknown> | null;
-  created_at: string;
-  updated_at: string;
-  supplier_name?: string | null;
-  supplier_type?: string | null;
-  quantity?: string | null;
-  last_synced_at?: string | null;
-  source?: string | null;
-  currency?: string | null;
-  // Legacy nested supplier object (for backward compatibility)
-  supplier?: {
-    id: number;
-    name: string;
-    slug: string;
-    type?: string;
-    status?: string;
-  };
-}
-
-export interface DigitalProductFilters {
-  page?: number;
-  per_page?: number;
-  name?: string;
-  brand?: string;
-  supplier_id?: number;
-  currency?: DigitalProductStatus;
-  status?: DigitalProductStatus;
-  stock?: DigitalProductStock;
-}
-export interface GetLowStockProduct{
-  id: number;
-  supplier_id: number;
-  name: string;
-  brand: string | null;
-  description: string | null;
-  cost_price: string;
-  metadata: any | null;
-  created_at: string;
-  updated_at: string;
-  sku: string;
-  last_synced_at: string | null;
-  source: string | null;
-  supplier_name: string;
-  supplier_type: string;
-  quantity: string;  
-} 
-
-export interface CreateDigitalProductData {
-  supplier_id: number;
-  name: string;
-  sku: string;
-  brand?: string;
-  description?: string;
-  tags?: string[];
-  image?: string;
-  cost_price: number;
-  region?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface BulkCreateDigitalProductsData {
-  products: CreateDigitalProductData[];
-}
-
-export interface UpdateDigitalProductData {
-  name?: string;
-  brand?: string;
-  description?: string;
-  tags?: string[];
-  image?: string;
-  cost_price?: number;
-  region?: string;
-  metadata?: Record<string, unknown>;
-}
-
-// Custom base query using existing Axios client
-const axiosBaseQuery =
-  (): BaseQueryFn<
-    {
-      url: string;
-      method?: AxiosRequestConfig["method"];
-      data?: AxiosRequestConfig["data"];
-      params?: AxiosRequestConfig["params"];
-    },
-    unknown,
-    unknown
-  > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
-
-// Type for RTK Query mutation errors
-interface MutationError {
-  error?: {
-    status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-}
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "../base";
+import { BulkCreateDigitalProductsData, DigitalProduct, DigitalProductFilters, GetLowStockProduct, MutationError, PaginationMeta, UpdateDigitalProductData } from "@/types";
 
 export const digitalProductsApi = createApi({
   reducerPath: "digitalProductsApi",
@@ -334,21 +181,14 @@ export const digitalProductsApi = createApi({
       invalidatesTags: [{ type: "DigitalProduct", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const count = Array.isArray(data) ? data.length : 1;
-          toast.success(
-            `${count} digital product${
-              count > 1 ? "s" : ""
-            } created successfully`
-          );
+          await queryFulfilled;
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to create digital products";
-            toast.error(errorMessage);
-          }
+            console.error(errorMessage);}
         }
       },
       transformResponse: (response: {
@@ -379,14 +219,13 @@ export const digitalProductsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Digital product updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to update digital product";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -404,13 +243,12 @@ export const digitalProductsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Digital product deleted successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
             mutationError?.error?.data?.message ||
             "Failed to delete digital product";
-          toast.error(errorMessage);
+          console.error(errorMessage);
         }
       },
     }),

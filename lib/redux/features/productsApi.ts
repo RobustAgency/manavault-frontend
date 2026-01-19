@@ -1,202 +1,6 @@
-import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
-import { apiClient } from "@/lib/api";
-import { AxiosRequestConfig, AxiosError } from "axios";
-
-interface PaginationMeta {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number;
-  to: number;
-}
-
-export type ProductStatus = "in_active" | "active" | "archived";
-
-export interface DigitalProduct {
-  id: number;
-  supplier_id: number;
-  name: string;
-  sku: string;
-  brand: string;
-  description?: string | null;
-  cost_price: string;
-  status: string;
-  currency: string;
-  metadata?: {
-    sku: string;
-    name: string;
-    brand: string;
-    types?: string[];
-    format?: string;
-    prices?: Array<{
-      price: string;
-      toQuantity: number | null;
-      fromQuantity: number;
-    }>;
-    country?: string;
-    currency?: string;
-    imageUrl?: string;
-    faceValue?: string;
-    descriptions?: string[];
-    instructions?: string[];
-    brandCategory?: string | null;
-    termConditions?: string[];
-    brandSubCategory?: string | null;
-    percentageOffFaceValue?: string;
-    isInstantDeliverySupported?: boolean;
-  };
-  last_synced_at: string;
-  created_at: string;
-  updated_at: string;
-  supplier?: {
-    id: number;
-    name: string;
-    type: string;
-    contact_email: string;
-    contact_phone?: string | null;
-    status: string;
-    created_at: string;
-    updated_at: string;
-  };
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  brand?: string | null | {
-    id: number;
-    name: string;
-    created_at: string;
-    updated_at: string;
-  };
-  brand_id?: number;
-  description?: string | null;
-  short_description?: string | null;
-  long_description?: string | null;
-  sku: string;
-  selling_price: number;
-  status: ProductStatus;
-  tags?: string[];
-  image?: string | null;
-  regions?: string[];
-  created_at: string;
-  updated_at: string;
-  digital_products?: DigitalProduct[];
-  supplier?: {
-    id: number;
-    name: string;
-    slug: string;
-  };
-  currency : string;
-  face_value : number;
-}
-
-
-
-export interface ThirdPartyProduct {
-  id: string | number;
-  name: string;
-  description?: string;
-  sku?: string;
-  price?: number;
-  [key: string]: unknown; // For additional fields from third-party APIs
-}
-
-export interface ProductFilters {
-  page?: number;
-  per_page?: number;
-  name?: string;
-  brand?: string;
-  brand_id?: number;
-  status?: ProductStatus;
-}
-
-export interface ThirdPartyProductFilters {
-  slug: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface CreateProductData {
-  name: string;
-  sku: string;
-  brand?: string;
-  description?: string;
-  short_description?: string;
-  long_description?: string;
-  tags?: string[];
-  image?: string;
-  selling_price: number;
-  status: ProductStatus;
-  regions?: string[];
-}
-
-export interface UpdateProductData {
-  name?: string;
-  brand?: string;
-  description?: string;
-  short_description?: string;
-  long_description?: string;
-  tags?: string[];
-  image?: string;
-  selling_price?: number;
-  status?: ProductStatus;
-  regions?: string[];
-}
-
-// Custom base query using existing Axios client
-const axiosBaseQuery =
-  (): BaseQueryFn<
-    {
-      url: string;
-      method?: AxiosRequestConfig["method"];
-      data?: AxiosRequestConfig["data"];
-      params?: AxiosRequestConfig["params"];
-    },
-    unknown,
-    unknown
-  > =>
-    async ({ url, method = "GET", data, params }) => {
-      try {
-        const result = await apiClient({
-          url,
-          method,
-          data,
-          params,
-        });
-        return { data: result.data };
-      } catch (axiosError) {
-        const err = axiosError as AxiosError<{
-          data?: unknown;
-          message?: string;
-          error?: boolean;
-          errors?: Record<string, string[]>;
-        }>;
-        const error = {
-          status: err.response?.status || 500,
-          data: err.response?.data || {
-            message: err.message || "An error occurred",
-            error: true,
-          },
-        };
-        return {
-          error,
-        };
-      }
-    };
-
-// Type for RTK Query mutation errors
-interface MutationError {
-  error?: {
-    status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-}
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { CreateProductData, MutationError, PaginationMeta, Product, ProductFilters, ThirdPartyProduct, ThirdPartyProductFilters, UpdateProductData } from "@/types";
+import { axiosBaseQuery } from "../base";
 
 export const productsApi = createApi({
   reducerPath: "productsApi",
@@ -341,13 +145,12 @@ export const productsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Product created successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to create product";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -369,13 +172,12 @@ export const productsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Product updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to update product";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -393,12 +195,11 @@ export const productsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Product deleted successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
             mutationError?.error?.data?.message || "Failed to delete product";
-          toast.error(errorMessage);
+          console.error(errorMessage);
         }
       },
     }),
@@ -418,14 +219,13 @@ export const productsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Digital products assigned successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to assign digital products";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },

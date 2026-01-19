@@ -1,147 +1,7 @@
-import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
-import { apiClient } from "@/lib/api";
-import { AxiosRequestConfig, AxiosError } from "axios";
-
-export interface Voucher {
-  id: number;
-  code: string;
-  purchase_order_id: number;
-  created_at: string;
-  updated_at?: string;
-}
-
-interface ApiResponse<T> {
-  error?: boolean;
-  message?: string;
-  data?: T;
-}
-
-type Nullable<T> = T | null | undefined;
-
-interface PaginatedPayload<T> {
-  data: T[];
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: Nullable<number>;
-  to: Nullable<number>;
-  next_page_url?: Nullable<string>;
-  prev_page_url?: Nullable<string>;
-}
-
-export interface ImportVouchersResponse extends ApiResponse<unknown> {
-  error?: boolean;
-  message?: string;
-}
-
-export interface ImportVouchersData {
-  file: File;
-  purchase_order_id: number;
-}
-
-export interface VoucherCodeItem {
-  code: string;
-  digitalProductID: number;
-}
-
-export interface StoreVouchersData {
-  purchase_order_id: number;
-  voucher_codes: VoucherCodeItem[];
-}
-
-export interface StoreVouchersResponse extends ApiResponse<unknown> {
-  error?: boolean;
-  message?: string;
-}
-
-export interface GetVouchersParams {
-  purchase_order_id: number;
-  page?: number;
-  per_page?: number;
-}
-
-export interface GetVouchersResponse {
-  vouchers: Voucher[];
-  pagination: {
-    currentPage: number;
-    perPage: number;
-    total: number;
-    lastPage: number;
-    from: Nullable<number>;
-    to: Nullable<number>;
-  } | null;
-  message?: string;
-  error?: boolean;
-}
-
-export interface GetDecryptedVoucherResponse {
-  id: number;
-  code: string;
-  message?: string;
-  error?: boolean;
-}
-
-export interface GetDecryptedVoucherData {
-  voucherId: number;
-  ip_address: string;
-  user_agent: string;
-}
-
-// Custom base query using existing Axios client
-const axiosBaseQuery =
-  (): BaseQueryFn<
-    {
-      url: string;
-      method?: AxiosRequestConfig["method"];
-      data?: AxiosRequestConfig["data"];
-      params?: AxiosRequestConfig["params"];
-      headers?: AxiosRequestConfig["headers"];
-    },
-    unknown,
-    unknown
-  > =>
-    async ({ url, method = "GET", data, params, headers }) => {
-      try {
-        const result = await apiClient({
-          url,
-          method,
-          data,
-          params,
-          headers,
-        });
-        return { data: result.data };
-      } catch (axiosError) {
-        const err = axiosError as AxiosError<{
-          data?: unknown;
-          message?: string;
-          error?: boolean;
-          errors?: Record<string, string[]>;
-        }>;
-        const error = {
-          status: err.response?.status || 500,
-          data: err.response?.data || {
-            message: err.message || "An error occurred",
-            error: true,
-          },
-        };
-        return {
-          error,
-        };
-      }
-    };
-
-// Type for RTK Query mutation errors
-interface MutationError {
-  error?: {
-    status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-}
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { ApiResponse } from "@/lib/api";
+import { axiosBaseQuery } from "../base";
+import { GetDecryptedVoucherData, GetDecryptedVoucherResponse, GetVouchersParams, GetVouchersResponse, ImportVouchersData, ImportVouchersResponse, MutationError, PaginatedPayload, StoreVouchersData, StoreVouchersResponse, Voucher } from "@/types";
 
 export const vouchersApi = createApi({
   reducerPath: "vouchersApi",
@@ -234,20 +94,14 @@ export const vouchersApi = createApi({
       invalidatesTags: [{ type: "Voucher", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const isSuccess = data.error === false;
-          if (isSuccess) {
-            toast.success(data.message || "Vouchers imported successfully");
-          } else {
-            toast.error(data.message || "Failed to import vouchers");
-          }
+          await queryFulfilled;
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to import vouchers";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -269,19 +123,13 @@ export const vouchersApi = createApi({
       invalidatesTags: [{ type: "Voucher", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          const isSuccess = data.error === false;
-          if (isSuccess) {
-            toast.success(data.message || "Vouchers stored successfully");
-          } else {
-            toast.error(data.message || "Failed to store vouchers");
-          }
+           await queryFulfilled;
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to store vouchers";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },

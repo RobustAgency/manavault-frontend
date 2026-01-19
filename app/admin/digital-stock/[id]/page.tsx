@@ -192,9 +192,9 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                             Tags
                                         </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {tags?.map((tag, idx) => (
+                                            {tags?.map((tag: string, idx: number) => (
                                                 <Badge key={idx} variant="outlined">
-                                                   {tag}
+                                                    {tag}
                                                 </Badge>
                                             ))}
                                         </div>

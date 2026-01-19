@@ -50,7 +50,6 @@ export default function CreateDigitalProductPage() {
 
     useEffect(() => {
         if (isSuccess && createdProducts) {
-            // toast.success('Digital product(s) created successfully');
             // Navigate to first created product's detail page
             if (createdProducts.length > 0) {
                 // router.push(`/admin/digital-stock/${createdProducts[0].id}`);
@@ -63,7 +62,6 @@ export default function CreateDigitalProductPage() {
 
     useEffect(() => {
         if (isError) {
-            // toast.error('Failed to create digital product(s)');
             console.error('Create digital product error:', error);
         }
     }, [isError, error]);
@@ -80,7 +78,6 @@ export default function CreateDigitalProductPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-          console.log(productForms);
         // Validate supplier first
         if (!selectedSupplierId || selectedSupplierId === 0) {
             setSupplierError('Supplier is required');
@@ -90,13 +87,19 @@ export default function CreateDigitalProductPage() {
 
         // Validate all forms
         const allValid = productForms.every((form) => validateProductForm(form));
+        if (!allValid) return;
 
-        if (allValid) {
+        try {
             const products = productForms.map((form) =>
                 convertFormToSubmitData(form.formData, selectedSupplierId)
             );
-            console.log(products);
-            await createDigitalProducts({ products });
+
+            await createDigitalProducts({ products }).unwrap();
+            const count = Array.isArray(products) ? products.length : 1;
+            toast.success(`Digital product ${count > 1 ? 's' : ''} created successfully`);
+        } catch (error) {
+            console.error('Create digital product error:', error);
+            toast.error('Failed to create digital product(s)');
         }
     };
 

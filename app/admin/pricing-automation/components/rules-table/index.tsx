@@ -1,16 +1,17 @@
-'use client'
+'use client';
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 import { DataTable } from "@/components/custom/DataTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ProductStatus } from "@/lib/redux/features";
 import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createRulesColumns } from "../rules-column";
 import { ColumnDef } from "@tanstack/react-table";
-import { PriceRule, RuleStatus, useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
+import {  useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
+import { PriceRule, RuleStatus, ProductStatus } from "@/types";
+import { toast } from "react-toastify";
 
 const RulesTable = () => {
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
@@ -63,13 +64,13 @@ const RulesTable = () => {
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
-
     try {
       await deleteProduct(Number(selectedProduct.id)).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
-    } catch (error) {
-      console.error('Failed to delete product:', error);
+      toast.success("Price rule deleted successfully");
+    } catch {
+      toast.error("Failed to delete price rule");
     }
   };
 
@@ -114,7 +115,7 @@ const RulesTable = () => {
       </div>
 
       <DataTable
-        columns={columns as ColumnDef<PriceRule>[]}
+        columns={columns as ColumnDef<PriceRule, unknown>[]}
         data={priceRuleListData?.data ?? []}
         loading={PriceRuleListLoading}
         pagination={{
@@ -131,7 +132,7 @@ const RulesTable = () => {
       <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        title="Delete Product"
+        title="Delete Price Rule"
         description={`Are you sure you want to delete "${selectedProduct?.name}"? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={handleDelete}

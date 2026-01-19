@@ -16,7 +16,7 @@ export type {
   SupplierFilters,
   CreateSupplierData,
   UpdateSupplierData,
-} from "./suppliersApi";
+} from "./../../../types/index";
 
 export type {
   Product,
@@ -26,7 +26,7 @@ export type {
   UpdateProductData,
   ThirdPartyProduct,
   ThirdPartyProductFilters,
-} from "./productsApi";
+} from "./../../../types/index";
 
 export type {
   PurchaseOrder,
@@ -34,7 +34,7 @@ export type {
   PurchaseOrderItem,
   PurchaseOrderItemDetail,
   CreatePurchaseOrderData,
-} from "./purchaseOrdersApi";
+} from "./../../../types/index";
 
 export type {
   ImportVouchersResponse,
@@ -46,7 +46,7 @@ export type {
   GetVouchersResponse,
   GetDecryptedVoucherResponse,
   GetDecryptedVoucherData,
-} from "./vouchersApi";
+} from "./../../../types/index";
 
 export type {
   DigitalProduct,
@@ -55,25 +55,25 @@ export type {
   CreateDigitalProductData,
   BulkCreateDigitalProductsData,
   UpdateDigitalProductData,
-} from "./digitalProductsApi";
+} from "./../../../types/index";
 
 export type {
   Brand,
   BrandFilters,
   CreateBrandData,
   UpdateBrandData,
-} from "./brandsApi";
+} from "./../../../types/index";
 
 export type {
   LoginLog,
   LoginLogFilters,
   CreateLoginLogData,
-} from "./loginLogsApi";
+} from "./../../../types/index";
 
 export type {
   VoucherAuditLog,
   VoucherAuditLogFilters,
-} from "./voucherAuditLogsApi";
+} from "./../../../types/index";
 
 // Export all hooks
 export {
