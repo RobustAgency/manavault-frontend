@@ -21,6 +21,7 @@ import {
 import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
+import { toast } from 'react-toastify';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -55,25 +56,28 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         try {
             // Don't send SKU on update (it can't be updated)
             const { sku, ...updateData } = data;
-            await updateProduct({
+            const updateProductResult = await updateProduct({
                 id: product.id,
                 data: updateData,
             }).unwrap();
-            setIsEditDialogOpen(false);
+            if (updateProductResult) {
+                toast.success("Product updated successfully");
+                setIsEditDialogOpen(false);
+            }
         } catch (error) {
-            console.error('Failed to update product:', error);
+            toast.error('Failed to update product');
         }
     };
 
     const handleDelete = async () => {
         if (!product) return;
-
         try {
             await deleteProduct(product.id).unwrap();
+            toast.success("Product deleted successfully");
             setIsDeleteDialogOpen(false);
             router.push('/admin/products');
         } catch (error) {
-            console.error('Failed to delete product:', error);
+            toast.error('Failed to delete product');
         }
     };
 
@@ -85,9 +89,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 productId: product.id,
                 digitalProductIds,
             }).unwrap();
+            toast.success("Digital products assigned successfully");
             setIsAssignDialogOpen(false);
         } catch (error) {
-            console.error('Failed to assign digital products:', error);
+            toast.error('Failed to assign digital products');
         }
     };
 

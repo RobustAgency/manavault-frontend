@@ -1,11 +1,12 @@
-'use client'
+'use client';
 import { useParams, useRouter } from "next/navigation";
 import {
-  PriceRule,
   useGetPriceRuleQuery,
   useUpdatePriceRuleMutation
 } from "@/lib/redux/features/priceAutomationApi";
 import PriceRuleForm from "../../components/price-rule-form";
+import { toast } from "react-toastify";
+import { PriceRule } from "@/types";
 
 const EditPriceRulePage = () => {
   const router = useRouter();
@@ -18,12 +19,16 @@ const EditPriceRulePage = () => {
 
   const handleEdit = async (updateData: PriceRule) => {
     if (!id || !updateData) return;
-
-    await updatePriceRule({
-      id,
-      data: updateData
-    }).unwrap();
-    router.back();
+    try {
+      await updatePriceRule({
+        id,
+        data: updateData
+      }).unwrap();
+      toast.success("Price rule updated successfully");
+      router.back();
+    } catch {
+      toast.error("Failed to update price rule");
+    }
   };
 
   return (

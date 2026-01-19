@@ -1,4 +1,4 @@
-import { PriceRule } from "@/lib/redux/features/priceAutomationApi";
+import { PriceRule } from "@/types";
 import { useState } from "react";
 
 export interface PriceRuleErrors {

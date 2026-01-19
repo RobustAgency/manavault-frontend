@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { PencilIcon, TrashIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PriceRule, RuleStatus } from '@/lib/redux/features/priceAutomationApi';
+import { PriceRule, RuleStatus } from '@/types';
 import { Badge } from '@/components/ui/badge';
 
 export const formatCurrency = (amount: number) => {

@@ -19,6 +19,7 @@ import {
   useGetSuppliersQuery,
 } from '@/lib/redux/features';
 import { CreateOrderDialog, ViewOrderDialog, createOrderColumns } from './components';
+import { toast } from 'react-toastify';
 
 export default function PurchaseOrdersPage() {
   const [page, setPage] = useState(1);
@@ -58,9 +59,10 @@ export default function PurchaseOrdersPage() {
   const handleCreate = async (data: any) => {
     try {
       await createPurchaseOrder(data).unwrap();
+      toast.success('Purchase order created successfully');
       setIsCreateDialogOpen(false);
     } catch (error) {
-      console.error('Failed to create purchase order:', error);
+      toast.error('Failed to create purchase order');
     }
   };
 

@@ -1,5 +1,6 @@
+import { Product } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
-import { Product } from '@/lib/redux/features/priceAutomationApi';
+
 
 export const formatCurrency = (amount: number, currency?: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -19,7 +20,7 @@ const normalizeCurrency = (currency?: string): string => {
     }
 };
 
-export const PreviewRulesColumns = (): ColumnDef<Product>[] => [
+export const PreviewRulesColumns = (): ColumnDef<Product, unknown>[] => [
     {
         accessorKey: 'product_name',
         header: 'Name',

@@ -1,119 +1,6 @@
-import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
-import { apiClient } from "@/lib/api";
-import { AxiosRequestConfig, AxiosError } from "axios";
-
-interface PaginationMeta {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number;
-  to: number;
-}
-
-export type SupplierType = "internal" | "external";
-export type SupplierStatus = "active" | "inactive";
-
-export interface Supplier {
-  id: number;
-  name: string;
-  slug: string;
-  type: SupplierType;
-  contact_email?: string | null;
-  contact_phone?: string | null;
-  status: SupplierStatus;
-  created_at: string;
-  updated_at: string;
-  currency?: string | null;
-}
-
-export interface SupplierFilters {
-  page?: number;
-  per_page?: number;
-  name?: string;
-   type?: SupplierType;
-  status?: SupplierStatus;
-}
-
-export interface CreateSupplierData {
-  name: string;
-  contact_email?: string;
-  contact_phone?: string;
-  status?: SupplierStatus;
-}
-
-export interface UpdateSupplierData {
-  name?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  status?: SupplierStatus;
-}
-
-export interface GetSupplierKPI {
-  supplier_id: number;
-  supplier_name: string;
-  total_purchase_orders: number;
-  completed_purchase_orders: number;
-  processing_purchase_orders: number;
-  total_quantity_ordered: number;
-  total_amount_spent: number;
-  average_order_value: number;
-  completion_rate: number;
-}
-
-
-// Custom base query using existing Axios client
-const axiosBaseQuery =
-  (): BaseQueryFn<
-    {
-      url: string;
-      method?: AxiosRequestConfig["method"];
-      data?: AxiosRequestConfig["data"];
-      params?: AxiosRequestConfig["params"];
-    },
-    unknown,
-    unknown
-  > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
-
-// Type for RTK Query mutation errors
-interface MutationError {
-  error?: {
-    status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-}
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { CreateSupplierData, GetSupplierKPI, MutationError, PaginationMeta, Supplier, SupplierFilters, UpdateSupplierData } from "@/types";
+import { axiosBaseQuery } from "../base";
 
 export const suppliersApi = createApi({
   reducerPath: "suppliersApi",
@@ -242,14 +129,13 @@ providesTags: (result) =>
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Supplier created successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to create supplier";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -271,14 +157,13 @@ providesTags: (result) =>
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Supplier updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to update supplier";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -296,12 +181,11 @@ providesTags: (result) =>
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Supplier deleted successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
             mutationError?.error?.data?.message || "Failed to delete supplier";
-          toast.error(errorMessage);
+          console.error(errorMessage);
         }
       },
     }),

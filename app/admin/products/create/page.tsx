@@ -38,8 +38,8 @@ export default function CreateProductPage() {
 
     useEffect(() => {
         if (isError) {
-            toast.error('Failed to create product');
             console.error('Create product error:', error);
+            toast.error('Failed to create product');
         }
     }, [isError, error]);
 
@@ -126,12 +126,14 @@ export default function CreateProductPage() {
         try {
             const result = await createProduct(submitData).unwrap();
             if (result?.id) {
+                toast.success("Product created successfully");
                 router.push(`/admin/products/${result.id}`);
             } else {
                 router.push('/admin/products');
             }
         } catch (err) {
             console.error('Failed to create product:', err);
+            toast.error('Failed to create product');
         }
     };
 

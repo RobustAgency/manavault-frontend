@@ -21,6 +21,7 @@ import {
   useImportVouchersMutation,
   useStoreVouchersMutation,
 } from '@/lib/redux/features';
+import { toast } from 'react-toastify';
 
 interface ImportVouchersDialogProps {
   order: PurchaseOrder;
@@ -361,12 +362,15 @@ export const ImportVouchersDialog = ({
           result?.message ||
           'Failed to import vouchers. Please try again.',
       });
+      if (isSuccess)
+        toast.success(result.message || "Vouchers imported successfully");
+
     } catch (error) {
-      console.error('Failed to import vouchers:', error);
       setImportResult({
         error: true,
         message: 'Failed to import vouchers. Please try again.',
       });
+      toast.error('Failed to import vouchers');
     }
   }, [
     importVouchers,
@@ -413,7 +417,7 @@ export const ImportVouchersDialog = ({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="voucher-file">Vouchers File</Label>
+              <Label htmlFor="voucher-file">Vouchers File </Label>
               <a
                 href="/sample-csv/sample_vouchers.csv"
                 download

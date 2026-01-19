@@ -11,6 +11,7 @@ import {
     type UpdateDigitalProductData,
 } from '@/lib/redux/features';
 import { ProductFormFields, useDigitalProductForm } from '../../components';
+import { toast } from 'react-toastify';
 
 export default function EditDigitalProductPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -25,7 +26,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
         if (product) {
 
             setFormData({
-                supplier_id: product.supplier_id || 0 ,
+                supplier_id: product.supplier_id || 0,
                 name: product.name,
                 sku: product.sku || '',
                 brand: product.brand || '',
@@ -56,14 +57,22 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateForm()) return;
 
-        if (validateForm()) {
+        try {
             const submitData = getFormDataForSubmit();
+
             await updateDigitalProduct({
                 id: productId,
                 data: submitData as UpdateDigitalProductData,
-            });
+            }).unwrap();
+
+            toast.success('Digital product updated successfully');
+        } catch (error) {
+            toast.error('Failed to update digital product');
         }
+
+
     };
 
     if (isLoadingProduct) {
@@ -100,7 +109,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
         );
     }
 
-    return (  
+    return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
                 <Button
