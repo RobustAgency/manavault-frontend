@@ -53,7 +53,7 @@ const ProductAssociatedDigitalStock = ({
         const digitalProducts = [...( product.digital_products || [])];
       
         const sortedProducts = digitalProducts?.sort((product_a, product_b) => {
-            return (product_a?.pivot?.priority) - (product_b?.pivot?.priority);
+            return (product_a?.pivot?.priority || 0) - (product_b?.pivot?.priority || 0);
         }) || [];
         setSortTableData(sortedProducts);
     }

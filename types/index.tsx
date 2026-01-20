@@ -68,6 +68,9 @@ export interface DigitalProduct {
   last_synced_at?: string | null;
   source?: string | null;
   currency?: string | null;
+  pivot?: {
+    priority?: number;
+  };
   // Legacy nested supplier object (for backward compatibility)
   supplier?: {
     id: number;
