@@ -95,15 +95,15 @@ export default function DigitalProductsPage() {
   const handleDelete = async () => {
     if (!selectedProduct) return;
 
-      await deleteDigitalProduct(selectedProduct.id).unwrap()
-        .then(() => {
-          setIsDeleteDialogOpen(false);
-          setSelectedProduct(null);
-          toast.success('Digital product deleted successfully');
-        })
-        .catch(() => {
-          toast.error('Failed to delete digital product');
-        });
+    try {
+      await deleteDigitalProduct(selectedProduct.id).unwrap();
+      setIsDeleteDialogOpen(false);
+      setSelectedProduct(null);
+      toast.success('Digital product deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete digital product');
+      console.error(error);
+    }
   };
 
   const openEditPage = (product: DigitalProduct) => {
