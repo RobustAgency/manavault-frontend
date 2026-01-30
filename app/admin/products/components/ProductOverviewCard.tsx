@@ -9,10 +9,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Product } from '@/lib/redux/features/productsApi';
 import { getStatusColor } from './productColumns';
 import { ProductImage } from './ProductImage';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { Product } from '@/types';
 
 const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
@@ -100,8 +100,6 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
                     </p>
                   </div>
                 )}
-
-
             </div>
 
             {/* Right Column - Image and Pricing */}
@@ -109,9 +107,7 @@ export function ProductOverviewCard({ product }: ProductOverviewCardProps) {
               <p className="text-sm font-medium text-muted-foreground mb-3">Product Image</p>
               <ProductImage src={`${IMAGEPREFIX}${product.image}`} alt={product.name} width={20} height={20} />
             </div>
-
           </div>
-
         </div>
 
 

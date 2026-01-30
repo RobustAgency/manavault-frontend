@@ -18,6 +18,7 @@ import { GlobalSupplierSelector } from './GlobalSupplierSelector';
 import { CSVUploader } from './CsvUploader';
 import { useCreateCSVUploadMutation } from '@/lib/redux/features/purchaseOrdersApi';
 import { useCSVUpload } from './useCSVFileForm';
+import { toast } from 'react-toastify';
 
 interface CreateOrderDialogProps {
     isOpen: boolean;
@@ -36,7 +37,7 @@ export const UploadCsvDialogue = ({
     const { file, setFile, validateForm, selectedSupplierId, setSelectedSupplierId, resetForm, errors } = useCSVUpload();
 
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100, status: 'active', type: 'internal' });
-    const [createCSVUpload, { isLoading}] = useCreateCSVUploadMutation();
+    const [createCSVUpload] = useCreateCSVUploadMutation();
 
 
     const handleSupplierChange = (supplierId: number) => {
@@ -45,7 +46,6 @@ export const UploadCsvDialogue = ({
 
 
     const handleSubmit = async () => {
-     
         if (!validateForm()) {
             return;
         }
@@ -56,11 +56,12 @@ export const UploadCsvDialogue = ({
             if (file) {
                 formData.append('file', file);
                 await createCSVUpload(formData).unwrap();
+                toast.success('CSV uploaded successfully');
                 resetForm();
                 onClose();
             }
         } catch (error) {
-            console.error('Failed to upload CSV:', errors?.file);
+            toast.error('Failed to upload CSV file');
         }
 
     };

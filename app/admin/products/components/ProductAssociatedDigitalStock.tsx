@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from '@/components/custom/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Product, DigitalProduct as DigitalProductType, ProductStatus } from '@/lib/redux/features/productsApi';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
 import { getStatusColor } from './productColumns';
+import { toast } from 'react-toastify';
+import { DigitalProduct, Product, ProductStatus } from '@/types';
 
 
 interface ProductAssociatedDigitalStockProps {
@@ -28,33 +29,31 @@ const ProductAssociatedDigitalStock = ({
 
     const [createDigitalProductOrder] = useCreateDigitalProductOrderMutation();
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
-    const [sortTableData, setSortTableData] = useState<DigitalProductType[]>(product.digital_products || []);
+    const [sortTableData, setSortTableData] = useState<DigitalProduct[]>(product.digital_products || []);
 
-    console.log(isDraggingRow)
-    const handleSave = () => {
+    const handleSave = async() => {
         if (!product) return;
 
-        const data = sortTableData?.map((item, index) => ({
-            digital_product_id: item.id,
-            priority_order: index + 1,
-        }));
-        createDigitalProductOrder({ id: product.id, data: data || [] })
-            .unwrap().then(() => {
-                setIsDraggingRow(false);
-            })
-            .catch((error) => {
-                // Handle error appropriately
-                console.error('Failed to save digital product order:', error);
-            });
-          setIsDraggingRow(false);
-    }
+        try {
+            const data = sortTableData?.map((item, index) => ({
+                digital_product_id: item.id,
+                priority_order: index + 1,
+            }));
+            await createDigitalProductOrder({ id: product.id, data: data || [] })
+                .unwrap();
+            toast.success('Digital product order saved successfully');
+            setIsDraggingRow(false);
+        } catch {
+            toast.error('Failed to save digital product order');
+        }
+    };
 
     // sorting based on priority 
     const sortDigitalProducts = () => {
         const digitalProducts = [...( product.digital_products || [])];
       
         const sortedProducts = digitalProducts?.sort((product_a, product_b) => {
-            return (product_a?.pivot?.priority) - (product_b?.pivot?.priority);
+            return (product_a?.pivot?.priority || 0) - (product_b?.pivot?.priority || 0);
         }) || [];
         setSortTableData(sortedProducts);
     }
@@ -63,7 +62,7 @@ const ProductAssociatedDigitalStock = ({
         sortDigitalProducts();
     }, [product.digital_products]);
 
-    const digitalProductColumns: ColumnDef<DigitalProductType>[] = [
+    const digitalProductColumns: ColumnDef<DigitalProduct>[] = [
         {
             accessorKey: 'sku',
             header: 'SKU',
@@ -99,7 +98,6 @@ const ProductAssociatedDigitalStock = ({
             header: 'Status',
             cell: ({ row }) => {
                 const status = row.original.supplier?.status;
-                console.log(status)
                 return (
                   <Badge variant="filled" color={getStatusColor(status as ProductStatus)}>
                     {status}

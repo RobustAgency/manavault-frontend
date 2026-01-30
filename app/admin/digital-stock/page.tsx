@@ -24,19 +24,20 @@ import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createDigitalProductColumns } from './components';
 import { UploadCsvDialogue } from './components/uploadCsvDialogue';
 import CustomSelect from '@/components/custom/CustomSelect';
-import { DigitalProductStock } from '@/lib/redux/features/digitalProductsApi';
+import { toast } from 'react-toastify';
+import { DigitalProductStock } from '@/types';
 
 export default function DigitalProductsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [currencyFilter, setCurrencyFilter] = useState<DigitalProductStatus | 'all'>('all');
   const [stockFilter, setStockFilter] = useState<DigitalProductStock | 'all'>('all');
-  const [nameSearch, setNameSearch] = useState(''); 
+  const [nameSearch, setNameSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
-  const  stock  = useSearchParams();
+  const stock = useSearchParams();
 
 
 
@@ -79,10 +80,11 @@ export default function DigitalProductsPage() {
 
   const handleCreate = async (data: any) => {
     try {
-      await createPurchaseOrder(data).unwrap();
+      await createPurchaseOrder(data).unwrap()
+      toast.success('Purchase order created successfully');
       setIsCreateDialogOpen(false);
     } catch (error) {
-      console.error('Failed to create purchase order:', error);
+      toast.error('Failed to create purchase order');
     }
   };
 
@@ -97,8 +99,10 @@ export default function DigitalProductsPage() {
       await deleteDigitalProduct(selectedProduct.id).unwrap();
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
+      toast.success('Digital product deleted successfully');
     } catch (error) {
-      console.error('Failed to delete digital product:', error);
+      toast.error('Failed to delete digital product');
+      console.error(error);
     }
   };
 
@@ -182,7 +186,7 @@ export default function DigitalProductsPage() {
             onChange={(value) => setCurrencyFilter(value as DigitalProductStatus | 'all')}
           />
         </div>
-         <div className='sm:w-35 w-full'>
+        <div className='sm:w-35 w-full'>
           <CustomSelect
             value={stockFilter}
             placeholder="Filter by stock"

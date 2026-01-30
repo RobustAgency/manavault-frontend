@@ -1,92 +1,6 @@
-import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { toast } from "react-toastify";
-import { apiClient } from "@/lib/api";
-import { AxiosRequestConfig, AxiosError } from "axios";
-
-interface PaginationMeta {
-  current_page: number;
-  per_page: number;
-  total: number;
-  last_page: number;
-  from: number;
-  to: number;
-}
-
-export interface Brand {
-  id: number;
-  name: string;
-  image?: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface BrandFilters {
-  name?: string;
-  page?: number;
-  per_page?: number;
-}
-
-export interface CreateBrandData {
-  name: string;
-  image?: File | string;
-}
-
-export interface UpdateBrandData {
-  name?: string;
-  image?: File | string;
-}
-
-// Custom base query using existing Axios client
-const axiosBaseQuery =
-  (): BaseQueryFn<
-    {
-      url: string;
-      method?: AxiosRequestConfig["method"];
-      data?: AxiosRequestConfig["data"];
-      params?: AxiosRequestConfig["params"];
-    },
-    unknown,
-    unknown
-  > =>
-  async ({ url, method = "GET", data, params }) => {
-    try {
-      const result = await apiClient({
-        url,
-        method,
-        data,
-        params,
-      });
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError<{
-        data?: unknown;
-        message?: string;
-        error?: boolean;
-        errors?: Record<string, string[]>;
-      }>;
-      const error = {
-        status: err.response?.status || 500,
-        data: err.response?.data || {
-          message: err.message || "An error occurred",
-          error: true,
-        },
-      };
-      return {
-        error,
-      };
-    }
-  };
-
-// Type for RTK Query mutation errors
-interface MutationError {
-  error?: {
-    status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string[]>;
-    };
-  };
-}
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "../base";
+import { Brand, BrandFilters, CreateBrandData, MutationError, PaginationMeta, UpdateBrandData } from "@/types";
 
 export const brandsApi = createApi({
   reducerPath: "brandsApi",
@@ -179,13 +93,12 @@ export const brandsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Brand created successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to create brand";
-            toast.error(errorMessage);
+            console.error(errorMessage);
           }
         }
       },
@@ -217,13 +130,12 @@ export const brandsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Brand updated successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to update brand";
-            toast.error(errorMessage);
+              console.error(errorMessage);
           }
         }
       },
@@ -241,12 +153,11 @@ export const brandsApi = createApi({
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          toast.success("Brand deleted successfully");
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
-            mutationError?.error?.data?.message || "Failed to delete brand";
-          toast.error(errorMessage);
+          mutationError?.error?.data?.message || "Failed to delete brand";
+          console.error(errorMessage);
         }
       },
     }),

@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/layouts/AppShell";
 import ToastProvider from "@/providers/ToastProvider";
 import StoreProvider from "@/providers/StoreProvider";
+import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+import { ComponentType } from "react";
+import ErrorPage from "./error/page";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -71,11 +74,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body suppressHydrationWarning={true}>
         <AuthProvider initialUser={user} initialProfile={initialProfile}>
           <StoreProvider>
-            <AppShell>{children}</AppShell>
+            <ErrorBoundary FallbackComponent={ErrorPage as unknown as ComponentType<FallbackProps>}>
+              <AppShell>{children}</AppShell>
+            </ErrorBoundary>
           </StoreProvider>
         </AuthProvider>
         <ToastProvider />
       </body>
     </html>
-  );
+  )
 }

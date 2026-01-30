@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { SetStateAction, Dispatch, useEffect } from "react";
-import { Condition } from "@/lib/redux/features/priceAutomationApi";
+import { Condition } from "@/types";
 
 export interface Brand {
   id: number;
