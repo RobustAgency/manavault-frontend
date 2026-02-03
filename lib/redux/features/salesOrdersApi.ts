@@ -1,7 +1,7 @@
 import { createApi, BaseQueryFn } from "@reduxjs/toolkit/query/react";
 import { apiClient } from "@/lib/api";
 import { AxiosRequestConfig, AxiosError } from "axios";
-import { Product } from "./productsApi";
+import { Product } from "@/types";
 
 interface PaginationMeta {
   current_page: number;

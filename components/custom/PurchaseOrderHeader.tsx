@@ -4,9 +4,9 @@ import { ArrowLeftIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PurchaseOrder } from '@/lib/redux/features/purchaseOrdersApi';
 import { ImportVouchersDialog } from '@/app/admin/purchase-orders/components';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
+import { PurchaseOrder } from '@/types';
 
 interface PurchaseOrderHeaderProps {
   // either purchase order or sales order
