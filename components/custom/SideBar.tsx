@@ -15,7 +15,6 @@ import {
     Layers,
     Tag,
     TrendingUp,
-    UserCog,
     Shield
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
