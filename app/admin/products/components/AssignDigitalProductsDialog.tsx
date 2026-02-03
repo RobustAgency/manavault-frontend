@@ -23,10 +23,12 @@ import { useGetDigitalProductsListQuery, Supplier } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { DigitalProductCurrency } from '@/types';
 
 interface AssignDigitalProductsDialogProps {
     isOpen: boolean;
     productId: number;
+    currency: DigitalProductCurrency;
     suppliers: Supplier[];
     isSubmitting: boolean;
     onClose: () => void;
@@ -36,6 +38,7 @@ interface AssignDigitalProductsDialogProps {
 export const AssignDigitalProductsDialog = ({
     isOpen,
     productId,
+    currency,
     suppliers,
     isSubmitting,
     onClose,
@@ -76,6 +79,7 @@ export const AssignDigitalProductsDialog = ({
             page: currentPage,
             per_page: perPage,
             status: 'active',
+            currency: currency === 'usd' ? 'usd' : 'eur',
             supplier_id: supplierId > 0 ? supplierId : undefined,
             ...getSearchFilters(),
         },

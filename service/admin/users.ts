@@ -3,7 +3,7 @@ import { UserFilters, UsersApiResponse } from '@/interfaces/User';
 import { User } from '@/interfaces/User';
 
 export class UsersService {
-    private baseUrl = '/admin/users';
+    private baseUrl = '/users';
 
     async getUsers(filters: UserFilters = {}): Promise<UsersApiResponse> {
         const queryString = apiUtils.createQueryString(filters);

@@ -1,18 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { CreateSupplierData, GetSupplierKPI, MutationError, PaginationMeta, Supplier, SupplierFilters, UpdateSupplierData } from "@/types";
 import { axiosBaseQuery } from "../base";
+import { MutationError, PaginationMeta, Role, RoleFilters, CreateRoleData, UpdateRoleData  } from "@/types";
 
-export const suppliersApi = createApi({
-  reducerPath: "suppliersApi",
+export const rolesApi = createApi({
+  reducerPath: "rolesApi",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Supplier"],
+  tagTypes: ["Role"],
   endpoints: (builder) => ({
-    getSuppliers: builder.query<
-      { data: Supplier[]; pagination: PaginationMeta },
-      SupplierFilters | void
+    getRoles: builder.query<
+      { data: Role[]; pagination: PaginationMeta },
+      RoleFilters | void
     >({
       query: (filters) => ({
-        url: "/suppliers",
+        url: "/roles",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -20,15 +20,15 @@ export const suppliersApi = createApi({
         result?.data
           ? [
               ...result.data.map(({ id }) => ({
-                type: "Supplier" as const,
+                type: "Role" as const,
                 id: String(id),
               })),
-              { type: "Supplier", id: "LIST" },
+              { type: "Role", id: "LIST" },
             ]
-          : [{ type: "Supplier", id: "LIST" }],
+          : [{ type: "Role", id: "LIST" }],
       transformResponse: (response: {
         data: {
-          data: Supplier[];
+          data: Role[];
           current_page: number;
           per_page: number;
           total: number;
@@ -65,67 +65,44 @@ export const suppliersApi = createApi({
         };
       },
     }),
-getSupplierKpi: builder.query<GetSupplierKPI[], void>({
-  query: () => ({
-    url: `/suppliers/kpis`,
-    method: "GET",
-  }),
 
-providesTags: (result) =>
-  result
-    ? [
-        ...result.map((item) => ({
-          type: "Supplier" as const,
-          id: item.supplier_id,
-        })),
-        { type: "Supplier" as const, id: "LIST" },
-      ]
-    : [{ type: "Supplier" as const, id: "LIST" }],
-
-  transformResponse: (response: {
-    error?: boolean;
-    data?: {
-      data: GetSupplierKPI[];
-      current_page: number;
-      per_page: number;
-      total: number;
-      last_page: number;
-      from: number;
-      to: number;
-    };
-    message?: string;
-  }) => {
-    return response.data?.data ?? [];
-  },
-}),
-
-    getSupplier: builder.query<Supplier, number>({
+    getRole: builder.query<Role, number>({
       query: (id) => ({
-        url: `/suppliers/${id}`,
+        url: `/roles/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
-        { type: "Supplier", id: String(id) },
+        { type: "Role", id: String(id) },
       ],
       transformResponse: (response: {
-        data: Supplier;
+        data: Role;
         error?: boolean;
         message?: string;
       }) => {
         if (response.data) {
           return response.data;
         }
-        return response as unknown as Supplier;
+        return response as unknown as Role;
       },
     }),
 
-    createSupplier: builder.mutation<Supplier, CreateSupplierData>({
+    createRole: builder.mutation<Role, CreateRoleData>({
       query: (data) => ({
-        url: "/suppliers",
+        url: "/roles",
         method: "POST",
         data: data,
       }),
-      invalidatesTags: [{ type: "Supplier", id: "LIST" }],
+      invalidatesTags: [{ type: "Role", id: "LIST" }],
+      transformResponse: (response: {
+        data: Role;
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Role;
+      },
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -133,27 +110,33 @@ providesTags: (result) =>
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-              mutationError?.error?.data?.message ||
-              "Failed to create supplier";
+              mutationError?.error?.data?.message || "Failed to create role";
             console.error(errorMessage);
           }
         }
       },
     }),
 
-    updateSupplier: builder.mutation<
-      Supplier,
-      { id: number; data: UpdateSupplierData }
-    >({
+    updateRole: builder.mutation<Role, { id: number; data: UpdateRoleData }>({
       query: ({ id, data }) => ({
-        url: `/suppliers/${id}`,
+        url: `/roles/${id}`,
         method: "POST",
         data: data,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: "Supplier", id: String(id) },
-        { type: "Supplier", id: "LIST" },
+        { type: "Role", id: String(id) },
+        { type: "Role", id: "LIST" },
       ],
+      transformResponse: (response: {
+        data: Role;
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data) {
+          return response.data;
+        }
+        return response as unknown as Role;
+      },
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -161,22 +144,21 @@ providesTags: (result) =>
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-              mutationError?.error?.data?.message ||
-              "Failed to update supplier";
+              mutationError?.error?.data?.message || "Failed to update role";
             console.error(errorMessage);
           }
         }
       },
     }),
 
-    deleteSupplier: builder.mutation<void, number>({
+    deleteRole: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/suppliers/${id}`,
+        url: `/roles/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [
-        { type: "Supplier", id: String(id) },
-        { type: "Supplier", id: "LIST" },
+        { type: "Role", id: String(id) },
+        { type: "Role", id: "LIST" },
       ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
@@ -184,7 +166,28 @@ providesTags: (result) =>
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
-            mutationError?.error?.data?.message || "Failed to delete supplier";
+            mutationError?.error?.data?.message || "Failed to delete role";
+          console.error(errorMessage);
+        }
+      },
+    }),
+
+    assignUserRole: builder.mutation<
+      { error?: boolean; message?: string },
+      { userId: string; roleId: number }
+    >({
+      query: ({ userId, roleId }) => ({
+        url: `/users/${userId}/assign-roles`,
+        method: "POST",
+        data: { role_id: roleId },
+      }),
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          const mutationError = error as MutationError;
+          const errorMessage =
+            mutationError?.error?.data?.message || "Failed to assign role";
           console.error(errorMessage);
         }
       },
@@ -193,10 +196,10 @@ providesTags: (result) =>
 });
 
 export const {
-  useGetSupplierKpiQuery,
-  useGetSuppliersQuery,
-  useGetSupplierQuery,
-  useCreateSupplierMutation,
-  useUpdateSupplierMutation,
-  useDeleteSupplierMutation,
-} = suppliersApi;
+  useGetRolesQuery,
+  useGetRoleQuery,
+  useCreateRoleMutation,
+  useUpdateRoleMutation,
+  useDeleteRoleMutation,
+  useAssignUserRoleMutation,
+} = rolesApi;

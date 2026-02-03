@@ -14,31 +14,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { createUser } from "@/lib/admin-actions";
+import { useCreateUserMutation } from "@/lib/redux/features";
 import { Loader2, UserPlus } from "lucide-react";
 
 export function CreateUserForm({ onSuccess }: { onSuccess?: () => void }) {
     const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const formRef = useRef<HTMLFormElement | null>(null);
+    const [createUser, { isLoading }] = useCreateUserMutation();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsLoading(true);
-
         const formData = new FormData(e.currentTarget);
-        const result = await createUser(formData);
+        const payload = {
+            name: String(formData.get("full-name") || ""),
+            email: String(formData.get("email") || ""),
+            password: String(formData.get("password") || ""),
+        };
 
-        if (result.success) {
-            toast.success(result.message || "User created successfully");
+
+        try {
+            const result = await createUser(payload).unwrap();
+            toast.success(result?.message || "User created successfully");
             formRef.current?.reset();
             setOpen(false);
             onSuccess?.();
-        } else {
-            toast.error(result.message || "Failed to create user");
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to create user");
         }
-
-        setIsLoading(false);
     };
 
     // Reset form when dialog closes

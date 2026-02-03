@@ -12,7 +12,7 @@ export const voucherAuditLogsApi = createApi({
       VoucherAuditLogFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/voucher-audit-logs",
+        url: "/voucher-audit-logs",
         method: "GET",
         params: filters ?? undefined,
       }),

@@ -12,7 +12,7 @@ export const brandsApi = createApi({
       BrandFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/brands",
+        url: "/brands",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -27,7 +27,18 @@ export const brandsApi = createApi({
             ]
           : [{ type: "Brand", id: "LIST" }],
       transformResponse: (response: {
-        data: Brand[] | { data: Brand[]; pagination?: PaginationMeta };
+        data:
+          | Brand[]
+          | {
+              data: Brand[];
+              pagination?: PaginationMeta;
+              current_page?: number;
+              per_page?: number;
+              total?: number;
+              last_page?: number;
+              from?: number;
+              to?: number;
+            };
         error?: boolean;
         message?: string;
       }) => {
@@ -42,9 +53,22 @@ export const brandsApi = createApi({
           "data" in response.data &&
           Array.isArray(response.data.data)
         ) {
+          const pagination =
+            response.data.pagination ??
+            (typeof response.data.current_page === "number"
+              ? {
+                  current_page: response.data.current_page,
+                  per_page: response.data.per_page ?? response.data.data.length,
+                  total: response.data.total ?? response.data.data.length,
+                  last_page: response.data.last_page ?? response.data.current_page,
+                  from: response.data.from ?? 1,
+                  to: response.data.to ?? response.data.data.length,
+                }
+              : undefined);
+
           return {
             data: response.data.data,
-            pagination: response.data.pagination,
+            pagination,
           };
         }
         return {
@@ -55,7 +79,7 @@ export const brandsApi = createApi({
 
     getBrand: builder.query<Brand, number>({
       query: (id) => ({
-        url: `/admin/brands/${id}`,
+        url: `/brands/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -75,7 +99,7 @@ export const brandsApi = createApi({
 
     createBrand: builder.mutation<Brand, CreateBrandData | FormData>({
       query: (data) => ({
-        url: "/admin/brands",
+        url: "/brands",
         method: "POST",
         data: data,
       }),
@@ -109,7 +133,7 @@ export const brandsApi = createApi({
       { id: number; data: UpdateBrandData | FormData }
     >({
       query: ({ id, data }) => ({
-        url: `/admin/brands/${id}`,
+        url: `/brands/${id}`,
         method: "POST",
         data: data,
       }),
@@ -143,7 +167,7 @@ export const brandsApi = createApi({
 
     deleteBrand: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/admin/brands/${id}`,
+        url: `/brands/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [

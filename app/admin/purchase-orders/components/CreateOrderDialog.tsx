@@ -23,6 +23,9 @@ import { SupplierCard } from './SupplierCard';
 import { SupplierSelector } from './SupplierSelector';
 import { OrderSummary } from './OrderSummary';
 import { EmptyState } from './EmptyState';
+import { DigitalProductCurrency, PurchaseOrderItem } from '@/types';
+import CustomSelect from '@/components/custom/CustomSelect';
+import { toast } from 'react-toastify';
 
 interface CreateOrderDialogProps {
   isOpen: boolean;
@@ -40,7 +43,7 @@ export const CreateOrderDialog = ({
   onClose,
   onSubmit,
 }: CreateOrderDialogProps) => {
-  const { formData, errors, validateForm, resetForm, addItem, updateItem, removeItem } = usePurchaseOrderForm();
+  const { formData, errors, validateForm, resetForm, addItem, updateItem, removeItem, currency, setCurrency } = usePurchaseOrderForm();
 
   // Dialog states for adding new items
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
@@ -57,6 +60,10 @@ export const CreateOrderDialog = ({
     {
       per_page: 100,
       status: 'active',
+      currency: currency as DigitalProductCurrency,
+    },
+    {
+      skip: !currency, // Skip if no currency is selected
     }
   );
 
@@ -105,7 +112,7 @@ export const CreateOrderDialog = ({
       return !selectedInOtherSelect;
     });
   };
-  
+
   const getSingleSupplierDetail = selectedSupplierForProducts ? getSupplierDetails(selectedSupplierForProducts) : undefined;
 
   useEffect(() => {
@@ -124,6 +131,12 @@ export const CreateOrderDialog = ({
   const handleSupplierSelectChange = (selectIndex: number, supplierId: string) => {
     const id = parseInt(supplierId);
     if (id > 0) {
+      // Check if currency is selected
+      if (!currency) {
+        toast.error('Please select a currency first');
+        return;
+      }
+
       // Update the active select with the selected supplier
       const newSelects = [...activeSupplierSelects];
       newSelects[selectIndex] = id;
@@ -160,11 +173,14 @@ export const CreateOrderDialog = ({
       );
       if (existingIndex >= 0) {
         // Update quantity if product already exists for this supplier
-        updateItem(existingIndex, { quantity: item.quantity });
+        updateItem(existingIndex, { quantity: item.quantity, currency: currency as DigitalProductCurrency });
       } else {
-        // Add new item (without product field, as it's not part of the form data structure)
+        // Add new item with the selected currency
         const { product, ...itemData } = item;
-        addItem(itemData);
+        addItem({
+          ...itemData as unknown as PurchaseOrderItem,
+          currency: currency as DigitalProductCurrency,
+        });
       }
     });
 
@@ -214,8 +230,23 @@ export const CreateOrderDialog = ({
   };
 
   const handleSubmit = () => {
+    // Validate currency is selected
+    if (!currency) {
+      toast.error('Please select a currency');
+      return;
+    }
+
+    // Ensure all items have the selected currency before submitting
+    const itemsWithCurrency = formData.items.map(item => ({
+      ...item,
+      currency: currency as DigitalProductCurrency,
+    }));
+
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit({
+        ...formData,
+        items: itemsWithCurrency,
+      });
     }
   };
 
@@ -223,6 +254,8 @@ export const CreateOrderDialog = ({
     resetForm();
     onClose();
   };
+
+  console.log(formData);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -241,6 +274,28 @@ export const CreateOrderDialog = ({
             <p className="text-xs text-muted-foreground">
               Add suppliers and their products to create a purchase order. You can order from multiple suppliers in one order.
             </p>
+          </div>
+
+          {/* Currency Selection */}
+          <div className="space-y-2">
+            <CustomSelect
+              label="Currency *"
+              value={currency}
+              options={[{ value: 'usd', label: 'USD' }, { value: 'eur', label: 'EUR' }]}
+              onChange={(value) => {
+                const newCurrency = value as 'usd' | 'eur';
+                setCurrency(newCurrency);
+                // Update currency for all existing items
+                formData.items.forEach((_, index) => {
+                  updateItem(index, { currency: newCurrency as DigitalProductCurrency });
+                });
+                if (formData.items.length > 0) {
+                }
+              }}
+            />
+            {!currency && (
+              <p className="text-xs text-red-600">Please select a currency to continue</p>
+            )}
           </div>
 
           {/* Suppliers & Products Section */}
@@ -301,7 +356,7 @@ export const CreateOrderDialog = ({
 
                 return (
                   <SupplierSelector
-                    key={index}
+                    key={`supplier-select-${index}-${selectId}`}
                     selectId={selectId}
                     isWaitingForProducts={isWaitingForProducts}
                     availableSuppliers={availableSuppliers}
@@ -353,7 +408,8 @@ export const CreateOrderDialog = ({
 
       {/* Select Digital Products Dialog */}
       <SelectDigitalProductsDialog
-        supplierDetails={getSingleSupplierDetail }
+        currency={currency as DigitalProductCurrency}
+        supplierDetails={getSingleSupplierDetail}
         isOpen={isSelectProductsDialogOpen}
         supplierId={selectedSupplierForProducts || 0}
         isSubmitting={false}
