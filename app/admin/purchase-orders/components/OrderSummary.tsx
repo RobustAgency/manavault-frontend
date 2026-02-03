@@ -51,7 +51,7 @@ export const OrderSummary = ({
                                         </div>
                                     );
                                 })}
-                                <div className="flex justify-between items-center text-sm font-medium pt-1.5 border-t mt-1.5">
+                                <div className="flex justify-between items-center text-sm font-medium pt-1.5 mt-1.5">
                                     <span className="text-gray-700">Subtotal:</span>
                                     <span className="text-gray-900">{formatCurrency(supplierTotal, items[0]?.currency as string)}</span>
                                 </div>
@@ -59,7 +59,7 @@ export const OrderSummary = ({
                         </div>
                     );
                 })}
-                <div className="flex justify-between items-center pt-3 border-t-2">
+                <div className="flex justify-between items-center pt-3 ">
                     <span className="text-base font-semibold text-gray-900">Total Amount:</span>
                     <span className="text-2xl font-bold">
                         {formatCurrency(totalAmount)}

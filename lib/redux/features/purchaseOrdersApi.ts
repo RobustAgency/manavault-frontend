@@ -12,7 +12,7 @@ export const purchaseOrdersApi = createApi({
       PurchaseOrderFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/purchase-orders",
+        url: "/purchase-orders",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -87,7 +87,7 @@ export const purchaseOrdersApi = createApi({
 
     getPurchaseOrder: builder.query<PurchaseOrder, number>({
       query: (id) => ({
-        url: `/admin/purchase-orders/${id}`,
+        url: `/purchase-orders/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -148,7 +148,7 @@ export const purchaseOrdersApi = createApi({
       CreatePurchaseOrderData
     >({
       query: (data) => ({
-        url: "/admin/purchase-orders",
+        url: "/purchase-orders",
         method: "POST",
         data: data,
       }),
@@ -173,7 +173,7 @@ export const purchaseOrdersApi = createApi({
       createDigitalProductOrder
     >({
       query: ({ id, data }) => ({
-        url: `/admin/products/${id}/digital-products/priority`,
+        url: `/products/${id}/digital-products/priority`,
         method: "POST",
         data: {
           digital_products: data,
@@ -199,7 +199,7 @@ export const purchaseOrdersApi = createApi({
       CSVUploadData, FormData
     >({
       query: (data) => ({
-        url: "/admin/digital-products/batch-import",
+        url: "/digital-products/batch-import",
         method: "POST",
         data: data,
       }),

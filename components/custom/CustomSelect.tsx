@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Label } from '../ui/label';
 
 export interface SelectOption {
   value: string;
@@ -14,6 +15,7 @@ export interface SelectOption {
 }
 
 interface CustomSelectProps {
+  label?: string;
   value?: string;
   placeholder?: string;
   options: SelectOption[];
@@ -23,6 +25,7 @@ interface CustomSelectProps {
 }
 
  const CustomSelect = ({
+  label,
   value,
   placeholder = 'Select option',
   options,
@@ -31,6 +34,8 @@ interface CustomSelectProps {
   disabled = false,
 }: CustomSelectProps) => {
   return (
+    <>
+    {label && <Label className="text-sm font-medium">{label}</Label>}
     <Select
       value={value}
       onValueChange={onChange}
@@ -48,6 +53,7 @@ interface CustomSelectProps {
         ))}
       </SelectContent>
     </Select>
+    </>
   );
 };
 

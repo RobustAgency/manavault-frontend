@@ -10,7 +10,7 @@ export const vouchersApi = createApi({
   endpoints: (builder) => ({
     getVouchers: builder.query<GetVouchersResponse, GetVouchersParams>({
       query: (params) => ({
-        url: "/admin/vouchers",
+        url: "/vouchers",
         method: "GET",
         params,
       }),
@@ -55,7 +55,7 @@ export const vouchersApi = createApi({
       GetDecryptedVoucherData
     >({
       query: ({ voucherId, ip_address, user_agent }) => ({
-        url: `/admin/vouchers/${voucherId}/code`,
+        url: `/vouchers/${voucherId}/code`,
         method: "POST",
         data: {
           ip_address,
@@ -83,7 +83,7 @@ export const vouchersApi = createApi({
         formData.append("purchase_order_id", purchase_order_id.toString());
 
         return {
-          url: "/admin/vouchers/store",
+          url: "/vouchers/store",
           method: "POST",
           data: formData,
           headers: {
@@ -109,7 +109,7 @@ export const vouchersApi = createApi({
     storeVouchers: builder.mutation<StoreVouchersResponse, StoreVouchersData>({
       query: ({ purchase_order_id, voucher_codes }) => {
         return {
-          url: "/admin/vouchers/store",
+          url: "/vouchers/store",
           method: "POST",
           data: {
             purchase_order_id,

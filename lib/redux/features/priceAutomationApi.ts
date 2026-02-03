@@ -13,7 +13,7 @@ export const priceAutomationApi = createApi({
       PriceRuleQuery | void
     >({
       query: (filters) => ({
-        url: "/admin/price-rules",
+        url: "/price-rules",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -69,7 +69,7 @@ export const priceAutomationApi = createApi({
 
     getPriceRule: builder.query<PriceRule, number>({
       query: (id) => ({
-        url: `/admin/price-rules/${id}`,
+        url: `/price-rules/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -89,7 +89,7 @@ export const priceAutomationApi = createApi({
 
     createPriceRule: builder.mutation<PriceRule, PriceRule | FormData>({
       query: (data) => ({
-        url: "/admin/price-rules",
+        url: "/price-rules",
         method: "POST",
         data: data,
       }),
@@ -129,7 +129,7 @@ export const priceAutomationApi = createApi({
       { id: number; data: PriceRule | FormData }
     >({
       query: ({ id, data }) => ({
-        url: `/admin/price-rules/${id}`,
+        url: `/price-rules/${id}`,
         method: "POST",
         data: data,
       }),
@@ -169,7 +169,7 @@ export const priceAutomationApi = createApi({
 
     deletePriceRule: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/admin/price-rules/${id}`,
+        url: `/price-rules/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [
@@ -190,7 +190,7 @@ export const priceAutomationApi = createApi({
 
     getPreviewRuleAffectedProducts: builder.query<Product[], PriceRule>({
       query: (data) => ({
-        url: "/admin/price-rules/preview",
+        url: "/price-rules/preview",
         method: "POST",
         data: data,
       }),

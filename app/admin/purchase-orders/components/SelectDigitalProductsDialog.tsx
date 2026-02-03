@@ -17,6 +17,7 @@ import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } fr
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { DigitalProductCurrency } from '@/types';
 
 interface SelectedProduct {
     id: number;
@@ -26,15 +27,17 @@ interface SelectedProduct {
 interface SelectDigitalProductsDialogProps {
     isOpen: boolean;
     supplierId: number;
+    currency: DigitalProductCurrency;
     isSubmitting: boolean;
     onClose: () => void;
     onSubmit: (products: Array<{ supplier_id: number; digital_product_id: number; quantity: number; product?: DigitalProduct; currency: string }>) => void;
     onAddNewProduct?: () => void;
-    supplierDetails? : Supplier ;
+    supplierDetails?: Supplier;
 }
 
 export const SelectDigitalProductsDialog = ({
     supplierDetails,
+    currency,
     isOpen,
     supplierId,
     isSubmitting,
@@ -42,7 +45,7 @@ export const SelectDigitalProductsDialog = ({
     onSubmit,
     onAddNewProduct,
 }: SelectDigitalProductsDialogProps) => {
-    const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(new Map()); 
+    const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(new Map());
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -75,6 +78,7 @@ export const SelectDigitalProductsDialog = ({
             page: currentPage,
             per_page: perPage,
             status: 'active',
+            currency: currency === 'usd' ? 'usd' : 'eur',
             supplier_id: supplierId > 0 ? supplierId : undefined,
             ...getSearchFilters(),
         },
@@ -180,7 +184,7 @@ export const SelectDigitalProductsDialog = ({
                 digital_product_id,
                 quantity,
                 product, // Include product details
-                currency: supplierDetails?.currency || 'USD',
+                currency: currency || 'usd',
             };
         });
         onSubmit(items);
@@ -188,7 +192,7 @@ export const SelectDigitalProductsDialog = ({
 
     const totalItems = selectedProducts.size;
     const totalQuantity = Array.from(selectedProducts.values()).reduce((sum, qty) => sum + qty, 0);
-   
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
@@ -202,10 +206,10 @@ export const SelectDigitalProductsDialog = ({
                 <div className="flex-1 overflow-hidden flex flex-col gap-4">
                     {/* Search Input */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 justify-center items-center">
-                         <div className="relative flex gap-2">
+                        <div className="relative flex gap-2">
                             <Label>Supplier Name: </Label>
                             <Badge variant="filled" className="capitalize">
-                               {supplierDetails?.name}
+                                {supplierDetails?.name}
                             </Badge>
                         </div>
                         <div className="relative">
@@ -214,10 +218,9 @@ export const SelectDigitalProductsDialog = ({
                                 placeholder="Search by product name..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className='pl-9'  
+                                className='pl-9'
                             />
                         </div>
-                        
                     </div>
 
                     {/* Select All Button */}
@@ -299,7 +302,7 @@ export const SelectDigitalProductsDialog = ({
                                                     <div className="flex items-center gap-3 shrink-0">
                                                         <div className="text-right">
                                                             <p className="text-sm font-medium">
-                                                          {formatCurrency(Number(product.cost_price), product.currency)}
+                                                                {formatCurrency(Number(product.cost_price), product.currency)}
                                                             </p>
                                                         </div>
                                                         {isSelected && (

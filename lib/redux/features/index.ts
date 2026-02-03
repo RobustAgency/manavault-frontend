@@ -7,6 +7,9 @@ export { digitalProductsApi } from "./digitalProductsApi";
 export { brandsApi } from "./brandsApi";
 export { loginLogsApi } from "./loginLogsApi";
 export { voucherAuditLogsApi } from "./voucherAuditLogsApi";
+export { rolesApi } from "./rolesApi";
+export { modulesApi } from "./modulesApi";
+export { usersApi } from "./usersApi";
 
 // Export all types
 export type {
@@ -75,6 +78,19 @@ export type {
   VoucherAuditLogFilters,
 } from "./../../../types/index";
 
+export type {
+  Role,
+  RolePermission,
+  RolePermissionValue,
+  RolePermissionPayload,
+  ModulePermission,
+  RoleFilters,
+  CreateRoleData,
+  UpdateRoleData,
+} from "./../../../types/index";
+
+export type { Module } from "./../../../types/index";
+
 // Export all hooks
 export {
   useGetSuppliersQuery,
@@ -134,3 +150,15 @@ export {
   useGetVoucherAuditLogsQuery,
   useLazyGetVoucherAuditLogsQuery,
 } from "./voucherAuditLogsApi";
+
+export {
+  useGetRolesQuery,
+  useGetRoleQuery,
+  useCreateRoleMutation,
+  useUpdateRoleMutation,
+  useDeleteRoleMutation,
+  useAssignUserRoleMutation,
+} from "./rolesApi";
+
+export { useGetModulesQuery } from "./modulesApi";
+export { useGetUsersQuery, useCreateUserMutation } from "./usersApi";

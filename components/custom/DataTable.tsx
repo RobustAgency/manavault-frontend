@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
         columns,
         enableSorting: !sortable,
         getRowId: (row) =>
-        getRowId ? getRowId(row) : String((row as any).id),
+            getRowId ? getRowId(row) : String((row as any).id),
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: serverSide ? undefined : getPaginationRowModel(),
         onSortingChange: setSorting,
@@ -256,7 +256,7 @@ export function DataTable<TData, TValue>({
     return (
         <div>
             {searchKey && (
-                <div className="flex justify-center items-center gap-4">
+                <div className="flex justify-start items-center gap-4 py-1">
                     <div className="flex items-center pb-3 w-1/2">
                         <Input
                             placeholder={searchPlaceholder}
@@ -268,7 +268,7 @@ export function DataTable<TData, TValue>({
                     </div>
 
 
-                    <div className="flex justify-end items-center pb-3 gap-2 w-1/2">
+                    {sortable ? (  <div className="flex justify-end items-center pb-3 gap-2 w-1/2">
                         <Checkbox.Root
                             checked={sortable}
                             onCheckedChange={(value) => {
@@ -282,7 +282,7 @@ export function DataTable<TData, TValue>({
                         </Checkbox.Root>
 
                         <label>Rearrange Order List</label>
-                    </div>
+                    </div>) : null}
 
                 </div>
             )}
