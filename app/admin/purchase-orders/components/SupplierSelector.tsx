@@ -31,7 +31,7 @@ export const SupplierSelector = ({
                 {isWaitingForProducts ? 'Select Products' : 'Add Supplier'}
             </Label>
             <Select
-                value={selectId > 0 ? selectId.toString() : undefined}
+                value={selectId > 0 ? selectId.toString() : ""}
                 onValueChange={onSupplierChange}
                 disabled={isWaitingForProducts}
             >

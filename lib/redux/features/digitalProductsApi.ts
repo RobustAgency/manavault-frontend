@@ -12,7 +12,7 @@ export const digitalProductsApi = createApi({
       DigitalProductFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/digital-stocks",
+        url: "/digital-stocks",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -71,7 +71,7 @@ export const digitalProductsApi = createApi({
       DigitalProductFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/digital-products",
+        url: "/digital-products",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -127,7 +127,7 @@ export const digitalProductsApi = createApi({
 
     getDigitalProduct: builder.query<DigitalProduct, number>({
       query: (id) => ({
-        url: `/admin/digital-products/${id}`,
+        url: `/digital-products/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -147,7 +147,7 @@ export const digitalProductsApi = createApi({
 
    getLowStockProduct: builder.query<GetLowStockProduct[], void>({
   query: () => ({
-    url: `/admin/digital-stocks/low-stock`,
+    url: `/digital-stocks/low-stock`,
     method: "GET",
   }),
   providesTags: () => [{ type: "DigitalProduct" }],
@@ -174,7 +174,7 @@ export const digitalProductsApi = createApi({
       BulkCreateDigitalProductsData
     >({
       query: (data) => ({
-        url: "/admin/digital-products",
+        url: "/digital-products",
         method: "POST",
         data: data,
       }),
@@ -208,7 +208,7 @@ export const digitalProductsApi = createApi({
       { id: number; data: UpdateDigitalProductData }
     >({
       query: ({ id, data }) => ({
-        url: `/admin/digital-products/${id}`,
+        url: `/digital-products/${id}`,
         method: "POST",
         data: data,
       }),
@@ -233,7 +233,7 @@ export const digitalProductsApi = createApi({
 
     deleteDigitalProduct: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/admin/digital-products/${id}`,
+        url: `/digital-products/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [

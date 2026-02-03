@@ -20,11 +20,11 @@ lib/redux/features/
 ### 1. **Suppliers API** (`suppliersApi.ts`)
 
 **Endpoints:**
-- ✅ `GET /admin/suppliers` - List all suppliers (paginated)
-- ✅ `GET /admin/suppliers/:id` - Get single supplier details
-- ✅ `POST /admin/suppliers` - Create new supplier
-- ✅ `POST /admin/suppliers/:id` - Update supplier
-- ✅ `DELETE /admin/suppliers/:id` - Delete supplier
+- ✅ `GET /suppliers` - List all suppliers (paginated)
+- ✅ `GET /suppliers/:id` - Get single supplier details
+- ✅ `POST /suppliers` - Create new supplier
+- ✅ `POST /suppliers/:id` - Update supplier
+- ✅ `DELETE /suppliers/:id` - Delete supplier
 
 **Hooks:**
 ```typescript
@@ -46,12 +46,12 @@ useDeleteSupplierMutation()
 ### 2. **Products API** (`productsApi.ts`)
 
 **Endpoints:**
-- ✅ `GET /admin/products` - List products (paginated, filterable)
-- ✅ `GET /admin/products/third-party` - Fetch third-party supplier products
-- ✅ `GET /admin/products/:id` - Get single product details
-- ✅ `POST /admin/products` - Create new product
-- ✅ `POST /admin/products/:id` - Update product
-- ✅ `DELETE /admin/products/:id` - Delete product
+- ✅ `GET /products` - List products (paginated, filterable)
+- ✅ `GET /products/third-party` - Fetch third-party supplier products
+- ✅ `GET /products/:id` - Get single product details
+- ✅ `POST /products` - Create new product
+- ✅ `POST /products/:id` - Update product
+- ✅ `DELETE /products/:id` - Delete product
 
 **Hooks:**
 ```typescript
@@ -74,9 +74,9 @@ useDeleteProductMutation()
 ### 3. **Purchase Orders API** (`purchaseOrdersApi.ts`)
 
 **Endpoints:**
-- ✅ `GET /admin/purchase-orders` - List purchase orders (paginated)
-- ✅ `GET /admin/purchase-orders/:id` - Get purchase order details
-- ✅ `POST /admin/purchase-orders` - Create purchase order
+- ✅ `GET /purchase-orders` - List purchase orders (paginated)
+- ✅ `GET /purchase-orders/:id` - Get purchase order details
+- ✅ `POST /purchase-orders` - Create purchase order
 
 **Hooks:**
 ```typescript
@@ -94,7 +94,7 @@ useCreatePurchaseOrderMutation()
 ### 4. **Vouchers API** (`vouchersApi.ts`)
 
 **Endpoints:**
-- ✅ `POST /admin/vouchers/import` - Import vouchers from file
+- ✅ `POST /vouchers/import` - Import vouchers from file
 
 **Hooks:**
 ```typescript

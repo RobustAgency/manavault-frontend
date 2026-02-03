@@ -22,6 +22,7 @@ import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 import { toast } from 'react-toastify';
+import { DigitalProductCurrency } from '@/types';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -144,6 +145,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
             {/* Assign Digital Products Dialog */}
             <AssignDigitalProductsDialog
+                currency={product.currency as unknown as DigitalProductCurrency}
                 isOpen={isAssignDialogOpen}
                 productId={product.id}
                 suppliers={suppliersData?.data || []}

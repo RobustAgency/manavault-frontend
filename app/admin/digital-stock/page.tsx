@@ -68,11 +68,11 @@ export default function DigitalProductsPage() {
   const { data, isLoading } = useGetDigitalProductsQuery({
     page,
     per_page: perPage,
-    currency: currencyFilter === 'all' ? undefined : currencyFilter,
     stock: stockFilter === 'all' ? undefined : stockFilter,
     name: debouncedNameSearch || undefined,
     brand: debouncedBrandSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
+    
   });
 
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
@@ -95,15 +95,15 @@ export default function DigitalProductsPage() {
   const handleDelete = async () => {
     if (!selectedProduct) return;
 
-      await deleteDigitalProduct(selectedProduct.id).unwrap()
-        .then(() => {
-          setIsDeleteDialogOpen(false);
-          setSelectedProduct(null);
-          toast.success('Digital product deleted successfully');
-        })
-        .catch(() => {
-          toast.error('Failed to delete digital product');
-        });
+    try {
+      await deleteDigitalProduct(selectedProduct.id).unwrap();
+      setIsDeleteDialogOpen(false);
+      setSelectedProduct(null);
+      toast.success('Digital product deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete digital product');
+      console.error(error);
+    }
   };
 
   const openEditPage = (product: DigitalProduct) => {
@@ -173,18 +173,6 @@ export default function DigitalProductsPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-        <div className='sm:w-35 w-full'>
-          <CustomSelect
-            value={currencyFilter}
-            placeholder="Filter by status"
-            options={[
-              { value: 'all', label: 'All Currency' },
-              { value: 'usd', label: 'USD' },
-              { value: 'eur', label: 'EUR' },
-            ]}
-            onChange={(value) => setCurrencyFilter(value as DigitalProductStatus | 'all')}
-          />
         </div>
         <div className='sm:w-35 w-full'>
           <CustomSelect

@@ -6,6 +6,23 @@ import { TableUser } from "@/hooks/admin/useUsers"
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog"
 import { deleteUser } from "@/lib/admin-actions"
 import { toast } from "react-toastify"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { useAssignUserRoleMutation, useGetRolesQuery } from "@/lib/redux/features"
 
 interface ActionCellProps {
     user: TableUser
@@ -14,8 +31,16 @@ interface ActionCellProps {
 
 const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const [showDialog, setShowDialog] = useState(false)
+    const [showAssignDialog, setShowAssignDialog] = useState(false)
     const [currentAction, setCurrentAction] = useState<"approve" | "delete" | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
+
+    const { data: rolesData, isLoading: isRolesLoading } = useGetRolesQuery(
+        { per_page: 100 },
+        { skip: !showAssignDialog }
+    )
+    const [assignUserRole, { isLoading: isAssigning }] = useAssignUserRoleMutation()
 
     const handleActionClick = (action: "approve" | "delete") => {
         setCurrentAction(action)
@@ -26,6 +51,13 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
         if (!isLoading) {
             setShowDialog(false)
             setCurrentAction(null)
+        }
+    }
+
+    const handleAssignClose = () => {
+        if (!isAssigning) {
+            setShowAssignDialog(false)
+            setSelectedRoleId(null)
         }
     }
 
@@ -47,7 +79,7 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const handleDelete = async () => {
         setIsLoading(true)
         try {
-            const result = await deleteUser(user.id)
+            const result = await deleteUser(user.id.toString())
             if (!result.success) {
                 toast.error(result.message || "Failed to delete user")
             } else {
@@ -60,6 +92,21 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
             console.error("Delete error:", error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const handleAssignSubmit = async () => {
+        if (!selectedRoleId) {
+            toast.error("Please select a role")
+            return
+        }
+        try {
+            await assignUserRole({ userId: user.id.toString(), roleId: selectedRoleId }).unwrap()
+            toast.success("Role assigned successfully")
+            handleAssignClose()
+            onRefresh?.()
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to assign role")
         }
     }
 
@@ -101,10 +148,20 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
 
     return (
         <>
-            <Button
-                color="red"
-                onClick={() => handleActionClick("delete")}
-            >Delete</Button>
+            <div className="flex gap-2">
+                <Button
+                    variant="outline"
+                    onClick={() => setShowAssignDialog(true)}
+                >
+                    Assign Role
+                </Button>
+                <Button
+                    color="red"
+                    onClick={() => handleActionClick("delete")}
+                >
+                    Delete
+                </Button>
+            </div>
             {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -141,6 +198,55 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                     isLoading={isLoading}
                 />
             )}
+
+            <Dialog open={showAssignDialog} onOpenChange={(open) => !open && handleAssignClose()}>
+                <DialogContent className="sm:max-w-[420px]">
+                    <DialogHeader>
+                        <DialogTitle>Assign Role</DialogTitle>
+                        <DialogDescription>
+                            Select a role to assign to {user.full_name}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {isRolesLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
+                            Loading roles...
+                        </div>
+                    ) : (
+                        <div className="grid gap-2">
+                            <Label htmlFor={`role-select-${user.id}`}>Role</Label>
+                            <Select
+                                value={selectedRoleId ? selectedRoleId.toString() : undefined}
+                                onValueChange={(value) => setSelectedRoleId(Number(value))}
+                            >
+                                <SelectTrigger id={`role-select-${user.id}`}>
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {(rolesData?.data ?? []).map((role) => (
+                                        <SelectItem key={role.id} value={role.id.toString()}>
+                                            {role.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {(rolesData?.data ?? []).length === 0 && (
+                                <p className="text-xs text-muted-foreground">No roles available.</p>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={handleAssignClose} disabled={isAssigning}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAssignSubmit} disabled={isAssigning || isRolesLoading}>
+                            {isAssigning ? "Assigning..." : "Assign Role"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

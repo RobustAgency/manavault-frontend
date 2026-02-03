@@ -13,6 +13,7 @@ export const usePurchaseOrderForm = () => {
   const [formData, setFormData] = useState<CreatePurchaseOrderData>({
     items: [],
   });
+  const [currency, setCurrency] = useState<'usd' | 'eur'>('usd');
 
   const [errors, setErrors] = useState<PurchaseOrderFormErrors>({});
 
@@ -45,6 +46,7 @@ export const usePurchaseOrderForm = () => {
     setFormData({
       items: [],
     });
+    setCurrency('usd');
     setErrors({});
   }, []);
 
@@ -92,5 +94,7 @@ export const usePurchaseOrderForm = () => {
     addItem,
     updateItem,
     removeItem,
+    currency,
+    setCurrency,
   };
 };

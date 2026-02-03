@@ -14,7 +14,9 @@ import {
     ClipboardList,
     Layers,
     Tag,
-    TrendingUp
+    TrendingUp,
+    UserCog,
+    Shield
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
@@ -31,6 +33,7 @@ const adminRoutes = [
     { href: "/admin/voucher-audit-logs", label: "Voucher Audit", icon: ClipboardList },
     { href: "/admin/brands", label: "Brands", icon: Layers },
     { href: "/admin/pricing-automation", label: "Pricing Automation", icon: Tag },
+    { href: "/admin/roles", label: "Roles", icon: Shield },
     // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
 ];
 const userRoutes = [
@@ -57,9 +60,11 @@ export function Sidebar({
     // Determine base routes based on role
     let navigationRoutes = (role === "admin" || role === "super_admin") ? adminRoutes : userRoutes;
 
-    // Filter out Users route if not super_admin
+    // Filter out Users and Roles routes if not super_admin
     if (role === "admin") {
-        navigationRoutes = navigationRoutes.filter(route => route.href !== "/admin/users");
+        navigationRoutes = navigationRoutes.filter(route => 
+            route.href !== "/admin/users" && route.href !== "/admin/roles"
+        );
     }
 
     const pathname = usePathname();

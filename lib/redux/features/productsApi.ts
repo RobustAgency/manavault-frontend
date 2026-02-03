@@ -12,7 +12,7 @@ export const productsApi = createApi({
       ProductFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/products",
+        url: "/products",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -71,7 +71,7 @@ export const productsApi = createApi({
       ThirdPartyProductFilters
     >({
       query: (filters) => ({
-        url: "/admin/products/third-party",
+        url: "/products/third-party",
         method: "GET",
         params: {
           slug: filters.slug,
@@ -107,7 +107,7 @@ export const productsApi = createApi({
 
     getProduct: builder.query<Product, number>({
       query: (id) => ({
-        url: `/admin/products/${id}`,
+        url: `/products/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -127,7 +127,7 @@ export const productsApi = createApi({
 
     createProduct: builder.mutation<Product, CreateProductData | FormData>({
       query: (data) => ({
-        url: "/admin/products",
+        url: "/products",
         method: "POST",
         data: data,
       }),
@@ -161,7 +161,7 @@ export const productsApi = createApi({
       { id: number; data: UpdateProductData | FormData }
     >({
       query: ({ id, data }) => ({
-        url: `/admin/products/${id}`,
+        url: `/products/${id}`,
         method: "POST",
         data: data,
       }),
@@ -185,7 +185,7 @@ export const productsApi = createApi({
 
     deleteProduct: builder.mutation<void, number>({
       query: (id) => ({
-        url: `/admin/products/${id}`,
+        url: `/products/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: (result, error, id) => [
@@ -209,7 +209,7 @@ export const productsApi = createApi({
       { productId: number; digitalProductIds: number[] }
     >({
       query: ({ productId, digitalProductIds }) => ({
-        url: `/admin/products/${productId}/digital_products`,
+        url: `/products/${productId}/digital_products`,
         method: "POST",
         data: { digital_product_ids: digitalProductIds },
       }),

@@ -44,8 +44,8 @@ export interface MutationError {
 
 
 export type DigitalProductStatus = "active" | "inactive";
-
-export type DigitalProductStock =  "high" | "low" | "all";
+export type DigitalProductCurrency = "usd" | "eur" ;
+export type DigitalProductStock = "high" | "low" | "all";
 
 export interface DigitalProduct {
   id: number;
@@ -87,11 +87,11 @@ export interface DigitalProductFilters {
   name?: string;
   brand?: string;
   supplier_id?: number;
-  currency?: DigitalProductStatus;
+  currency?: string;
   status?: DigitalProductStatus;
   stock?: DigitalProductStock;
 }
-export interface GetLowStockProduct{
+export interface GetLowStockProduct {
   id: number;
   supplier_id: number;
   name: string;
@@ -106,8 +106,8 @@ export interface GetLowStockProduct{
   source: string | null;
   supplier_name: string;
   supplier_type: string;
-  quantity: string;  
-} 
+  quantity: string;
+}
 
 export interface CreateDigitalProductData {
   supplier_id: number;
@@ -219,11 +219,11 @@ export interface Product {
     name: string;
     slug: string;
   };
-  product_name? : string;
-  current_selling_price : number;
-  new_selling_price : number;
-  currency : string;
-  face_value : number;
+  product_name?: string;
+  current_selling_price: number;
+  new_selling_price: number;
+  currency: string;
+  face_value: number;
 }
 
 
@@ -290,7 +290,7 @@ export interface VoucherAuditLog {
   updated_at: string;
   digital_product?: string | null;
   voucher?: {
-    id: number; 
+    id: number;
     code: string;
     serial_number?: string;
     pin_code?: string | null;
@@ -427,7 +427,7 @@ export interface PurchaseOrderItem {
   supplier_id: number;
   digital_product_id: number;
   quantity: number;
-  currency: string;
+  currency: DigitalProductCurrency;
 }
 
 export interface CreatePurchaseOrderData {
@@ -468,7 +468,7 @@ export interface SupplierFilters {
   page?: number;
   per_page?: number;
   name?: string;
-   type?: SupplierType;
+  type?: SupplierType;
   status?: SupplierStatus;
 }
 
@@ -603,4 +603,56 @@ export interface PriceRule {
   action_value: number | null;
   action_operator: string;
   action_mode: string,
+}
+
+export interface ModulePermission {
+  id: number;
+  action: string;
+  label?: string;
+}
+
+export interface Module {
+  key: string;
+  label?: string;
+  name?: string;
+  id?: string | number;
+  permissions?: Array<ModulePermission | number>;
+}
+
+export interface RolePermission {
+  id?: number;
+  permission_id?: number;
+  action?: string;
+  module?: string;
+  module_id?: number;
+}
+
+export type RolePermissionPayload = number;
+export type RolePermissionValue = RolePermission | number;
+
+export interface Role {
+  id: number;
+  name: string;
+  description?: string;
+  permissions: RolePermissionValue[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoleFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+}
+
+export interface CreateRoleData {
+  name: string;
+  description?: string;
+  permission_ids: number[];
+}
+
+export interface UpdateRoleData {
+  name?: string;
+  description?: string;
+  permission_ids?: number[];
 }

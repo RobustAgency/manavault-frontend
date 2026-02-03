@@ -86,7 +86,7 @@ export const salesOrdersApi = createApi({
       salesOrderFilters | void
     >({
       query: (filters) => ({
-        url: "/admin/sale-orders",
+        url: "/sale-orders",
         method: "GET",
         params: filters ?? undefined,
       }),
@@ -135,7 +135,7 @@ export const salesOrdersApi = createApi({
 
     getSalesOrder: builder.query<SalesOrderDetails, number>({
       query: (id) => ({
-        url: `/admin/sale-orders/${id}`,
+        url: `/sale-orders/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [

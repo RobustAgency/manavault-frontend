@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
@@ -89,6 +88,7 @@ export default function BrandsPage() {
     onDelete: openDeleteDialog,
   });
 
+  console.log(data);
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">

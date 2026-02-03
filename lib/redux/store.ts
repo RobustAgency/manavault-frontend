@@ -10,6 +10,9 @@ import { loginLogsApi } from "./features/loginLogsApi";
 import { voucherAuditLogsApi } from "./features/voucherAuditLogsApi";
 import { priceAutomationApi } from "./features/priceAutomationApi";
 import { salesOrdersApi } from "./features/salesOrdersApi";
+import { rolesApi } from "./features/rolesApi";
+import { modulesApi } from "./features/modulesApi";
+import { usersApi } from "./features/usersApi";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 export const makeStore = () => {
@@ -25,6 +28,9 @@ export const makeStore = () => {
       [voucherAuditLogsApi.reducerPath]: voucherAuditLogsApi.reducer,
       [priceAutomationApi.reducerPath]: priceAutomationApi.reducer,
       [salesOrdersApi.reducerPath]: salesOrdersApi.reducer,
+      [rolesApi.reducerPath]: rolesApi.reducer,
+      [modulesApi.reducerPath]: modulesApi.reducer,
+      [usersApi.reducerPath]: usersApi.reducer,
 
     },
     middleware: (getDefaultMiddleware) =>
@@ -39,6 +45,9 @@ export const makeStore = () => {
         voucherAuditLogsApi.middleware,
         priceAutomationApi.middleware,
         salesOrdersApi.middleware,
+        rolesApi.middleware,
+        modulesApi.middleware,
+        usersApi.middleware,
       ),
   });
 };
