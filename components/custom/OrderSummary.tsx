@@ -8,10 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { PurchaseOrder } from '@/lib/redux/features/purchaseOrdersApi';
 import { formatDate } from '@/utils/formatDate';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
+import { PurchaseOrder } from '@/types';
 
 interface OrderSummaryCardProps {
   type: 'purchase' | 'sales';

@@ -9,9 +9,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DataTable } from '@/components/custom/DataTable';
-import { PurchaseOrderItemDetail } from '@/lib/redux/features/purchaseOrdersApi';
 import { ColumnDef } from '@tanstack/react-table';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
+import { PurchaseOrderItemDetail } from '@/types';
 
 interface OrderItemsTableProps {
   type: 'purchase' | 'sales';
