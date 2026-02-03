@@ -46,6 +46,9 @@ export default function RolesPage() {
   });
   const [deleteRole, { isLoading: isDeleting }] = useDeleteRoleMutation();
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
   // Check if user is super_admin
   useEffect(() => {
     if (role !== 'super_admin') {
@@ -72,10 +75,6 @@ export default function RolesPage() {
       </div>
     );
   }
-
-  // Dialog states
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const handleDelete = async () => {
     if (!selectedRole) return;
