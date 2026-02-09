@@ -27,6 +27,7 @@ export const userInfoApi = createApi({
               { type: "UserInfo", id: "LIST" },
             ]
           : [{ type: "UserInfo", id: "LIST" }],
+                                                      
       transformResponse: (response:
         | UserInfoModule[]
         | {
@@ -71,6 +72,7 @@ export const userInfoApi = createApi({
             dataObject?.user?.role ??
             null;
         }
+
 
         return { modules, role };
       },
