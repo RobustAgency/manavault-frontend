@@ -10,6 +10,8 @@ export { voucherAuditLogsApi } from "./voucherAuditLogsApi";
 export { rolesApi } from "./rolesApi";
 export { modulesApi } from "./modulesApi";
 export { usersApi } from "./usersApi";
+export { userInfoApi } from "./userInfoApi";
+export { clearUserRole, selectUserRole } from "./userInfoSlice";
 
 // Export all types
 export type {
@@ -90,6 +92,7 @@ export type {
 } from "./../../../types/index";
 
 export type { Module } from "./../../../types/index";
+export type { UserInfoModule } from "./../../../types/index";
 
 // Export all hooks
 export {
@@ -162,3 +165,4 @@ export {
 
 export { useGetModulesQuery } from "./modulesApi";
 export { useGetUsersQuery, useCreateUserMutation } from "./usersApi";
+export { useGetUserInfoQuery } from "./userInfoApi";

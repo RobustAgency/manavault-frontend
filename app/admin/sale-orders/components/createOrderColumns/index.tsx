@@ -20,7 +20,6 @@ export const formatDate = (dateString: string) => {
 const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'info' | 'default' => {
   if (!status) return 'default';
   const lowerStatus = status.toLowerCase();
-
   if (lowerStatus === 'completed') return 'success';
   if (lowerStatus === 'pending') return 'warning';
   if (lowerStatus === 'cancelled') return 'error';
@@ -72,7 +71,7 @@ export const createOrderColumns = ({  }: OrderColumnsProps): ColumnDef<SalesOrde
         size="sm"
         asChild
       >
-        <Link href={`/admin/sales-orders/${row.original.id}`}>
+        <Link href={`/admin/sale-orders/${row.original.id}`}>
           <EyeIcon className="h-4 w-4" />
         </Link>
       </Button>

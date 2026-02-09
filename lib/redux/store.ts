@@ -13,6 +13,8 @@ import { salesOrdersApi } from "./features/salesOrdersApi";
 import { rolesApi } from "./features/rolesApi";
 import { modulesApi } from "./features/modulesApi";
 import { usersApi } from "./features/usersApi";
+import { userInfoApi } from "./features/userInfoApi";
+import userInfoReducer from "./features/userInfoSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 export const makeStore = () => {
@@ -31,6 +33,8 @@ export const makeStore = () => {
       [rolesApi.reducerPath]: rolesApi.reducer,
       [modulesApi.reducerPath]: modulesApi.reducer,
       [usersApi.reducerPath]: usersApi.reducer,
+      [userInfoApi.reducerPath]: userInfoApi.reducer,
+      userInfo: userInfoReducer,
 
     },
     middleware: (getDefaultMiddleware) =>
@@ -48,6 +52,7 @@ export const makeStore = () => {
         rolesApi.middleware,
         modulesApi.middleware,
         usersApi.middleware,
+        userInfoApi.middleware,
       ),
   });
 };

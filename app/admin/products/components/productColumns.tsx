@@ -37,20 +37,33 @@ export const getStatusColor = (status: ProductStatus): 'success' | 'default' | '
 interface ProductColumnsProps {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  canView: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
-export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps): ColumnDef<Product>[] => [
+export const createProductColumns = ({
+  onEdit,
+  onDelete,
+  canView,
+  canEdit,
+  canDelete,
+}: ProductColumnsProps): ColumnDef<Product>[] => {
+  const baseColumns: ColumnDef<Product>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
-    cell: ({ row }) => (
-      <Link
-        href={`/admin/products/${row.original.id}`}
-        className="font-medium text-primary hover:underline"
-      >
-        {row.original.name}
-      </Link>
-    ),
+    cell: ({ row }) =>
+      canView ? (
+        <Link
+          href={`/admin/products/${row.original.id}`}
+          className="font-medium text-primary hover:underline"
+        >
+          {row.original.name}
+        </Link>
+      ) : (
+        <span className="font-medium">{row.original.name}</span>
+      ),
   },
   {
     accessorKey: 'brand',
@@ -88,36 +101,50 @@ export const createProductColumns = ({ onEdit, onDelete }: ProductColumnsProps):
       );
     },
   },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <div className="flex gap-2">
-        <Link href={`/admin/products/${row.original.id}`}>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-            <EyeIcon className="h-4 w-4" />
-        </Button>
-          </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(row.original)}
-        >
-          <PencilIcon className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDelete(row.original)}
-        >
-          <TrashIcon className="h-4 w-4 text-red-500" />
-        </Button>
-      </div>
-    ),
-  },
-];
+  ];
+
+  if (!canView && !canEdit && !canDelete) {
+    return baseColumns;
+  }
+
+  return [
+    ...baseColumns,
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          {canView && (
+            <Link href={`/admin/products/${row.original.id}`}>
+              <Button
+                variant="outline"
+                size="sm"
+              >
+                <EyeIcon className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+          {canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(row.original)}
+            >
+              <PencilIcon className="h-4 w-4" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(row.original)}
+            >
+              <TrashIcon className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+};
 

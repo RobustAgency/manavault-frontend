@@ -23,6 +23,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useAssignUserRoleMutation, useGetRolesQuery } from "@/lib/redux/features"
+import { userInfoApi } from "@/lib/redux/features/userInfoApi"
+import { useAppDispatch } from "@/lib/redux/hooks"
+import { usePermissions } from "@/hooks/usePermissions"
+import { getModulePermission, hasPermission } from "@/lib/permissions"
 
 interface ActionCellProps {
     user: TableUser
@@ -30,6 +34,8 @@ interface ActionCellProps {
 }
 
 const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
+    const { permissionSet } = usePermissions()
+    const dispatch = useAppDispatch()
     const [showDialog, setShowDialog] = useState(false)
     const [showAssignDialog, setShowAssignDialog] = useState(false)
     const [currentAction, setCurrentAction] = useState<"approve" | "delete" | null>(null)
@@ -104,6 +110,7 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
             await assignUserRole({ userId: user.id.toString(), roleId: selectedRoleId }).unwrap()
             toast.success("Role assigned successfully")
             handleAssignClose()
+            dispatch(userInfoApi.util.invalidateTags([{ type: "UserInfo", id: "LIST" }]))
             onRefresh?.()
         } catch (error: any) {
             toast.error(error?.data?.message || "Failed to assign role")
@@ -145,22 +152,32 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     }
 
     const dialogConfig = getDialogConfig()
+    const canAssignRole = hasPermission(getModulePermission("edit", "user"), permissionSet)
+    const canDelete = hasPermission(getModulePermission("delete", "user"), permissionSet)
+
+    if (!canAssignRole && !canDelete) {
+        return null
+    }
 
     return (
         <>
             <div className="flex gap-2">
-                <Button
-                    variant="outline"
-                    onClick={() => setShowAssignDialog(true)}
-                >
-                    Assign Role
-                </Button>
-                <Button
-                    color="red"
-                    onClick={() => handleActionClick("delete")}
-                >
-                    Delete
-                </Button>
+                {canAssignRole && (
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowAssignDialog(true)}
+                    >
+                        Assign Role
+                    </Button>
+                )}
+                {canDelete && (
+                    <Button
+                        color="red"
+                        onClick={() => handleActionClick("delete")}
+                    >
+                        Delete
+                    </Button>
+                )}
             </div>
             {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -23,11 +23,17 @@ import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 import { toast } from 'react-toastify';
 import { DigitalProductCurrency } from '@/types';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
+import { selectUserRole } from '@/lib/redux/features';
+import { useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
     const productId = parseInt(id, 10);
+    const { permissionSet } = usePermissions();
+    const role = useAppSelector(selectUserRole) ?? "user";
 
     const {
         data: product,
@@ -105,6 +111,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         return <ProductDetailError error={!!error} />;
     }
 
+    const isSuperAdmin = role === "super_admin";
+    const canEdit = isSuperAdmin || hasPermission(getModulePermission("edit", "product"), permissionSet);
+    const canDelete = isSuperAdmin || hasPermission(getModulePermission("delete", "product"), permissionSet);
+    const canAssignSuppliers =
+        isSuperAdmin || hasPermission(getModulePermission("edit", "supplier"), permissionSet);
+
     return (
         <div className="container mx-auto py-8 px-4">
             <ProductDetailHeader
@@ -112,6 +124,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 onEdit={() => setIsEditDialogOpen(true)}
                 onDelete={() => setIsDeleteDialogOpen(true)}
                 onAssignDigitalProducts={() => setIsAssignDialogOpen(true)}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canAssignSuppliers={canAssignSuppliers}
             />
 
             <div className="grid gap-6">

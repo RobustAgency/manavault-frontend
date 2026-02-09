@@ -2,29 +2,29 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuth } from '@/providers/AuthProvider';
 import {
   useGetModulesQuery,
   useGetRoleQuery,
   useUpdateRoleMutation,
   type ModulePermission,
-  type RolePermissionValue,
 } from '@/lib/redux/features';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { selectUserRole } from '@/lib/redux/features';
+import { useAppSelector } from '@/lib/redux/hooks';
 
-export default function EditRolePage() {
-  const { user } = useAuth();
+type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | null;
+
+function EditRolePage() {
   const router = useRouter();
   const params = useParams();
   const roleId = Number(params.id);
-  const userRole = user?.user_metadata?.role;
+  const userRole = useAppSelector(selectUserRole);
 
   // Check if user is super_admin
   useEffect(() => {
@@ -99,15 +99,96 @@ export default function EditRolePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role?.id, modules.length, initializedRoleId]);
 
+  const getPermissionActionType = useCallback((permission: ModulePermission): PermissionAction => {
+    const source = `${permission.action ?? ''} ${permission.label ?? ''}`.toLowerCase();
+    if (source.includes('view')) return 'view';
+    if (source.includes('create') || source.includes('add')) return 'create';
+    if (source.includes('edit') || source.includes('update')) return 'edit';
+    if (source.includes('delete') || source.includes('remove')) return 'delete';
+    return null;
+  }, []);
+
+  const { permissionMeta, modulePermissionMap, moduleLabelMap } = useMemo(() => {
+    const nextPermissionMeta: Record<
+      number,
+      { moduleKey: string; moduleLabel: string; actionType: PermissionAction }
+    > = {};
+    const nextModulePermissionMap: Record<string, { viewId?: number; nonViewIds: number[] }> = {};
+    const nextModuleLabelMap: Record<string, string> = {};
+
+    modules.forEach((module) => {
+      const moduleKey = getModuleKey(module);
+      const moduleLabel = module.label ?? module.name ?? moduleKey;
+      nextModuleLabelMap[moduleKey] = moduleLabel;
+      if (!nextModulePermissionMap[moduleKey]) {
+        nextModulePermissionMap[moduleKey] = { nonViewIds: [] };
+      }
+
+      normalizeModulePermissions(module.permissions).forEach((permission) => {
+        const actionType = getPermissionActionType(permission);
+        nextPermissionMeta[permission.id] = { moduleKey, moduleLabel, actionType };
+        if (actionType === 'view') {
+          nextModulePermissionMap[moduleKey].viewId = permission.id;
+        } else if (actionType) {
+          nextModulePermissionMap[moduleKey].nonViewIds.push(permission.id);
+        }
+      });
+    });
+
+    return {
+      permissionMeta: nextPermissionMeta,
+      modulePermissionMap: nextModulePermissionMap,
+      moduleLabelMap: nextModuleLabelMap,
+    };
+  }, [modules, getModuleKey, normalizeModulePermissions, getPermissionActionType]);
+
+  const violatesViewRequirement = useCallback(
+    (permissions: Record<number, boolean>) =>
+      Object.values(modulePermissionMap).some((moduleInfo) => {
+        if (!moduleInfo.viewId) return false;
+        const hasNonView = moduleInfo.nonViewIds.some((id) => permissions[id]);
+        return hasNonView && !permissions[moduleInfo.viewId];
+      }),
+    [modulePermissionMap]
+  );
+
   const handlePermissionChange = (permissionId: number, checked: boolean) => {
-    setSelectedPermissions((prev) => ({
-      ...prev,
-      [permissionId]: checked,
-    }));
+    setSelectedPermissions((prev) => {
+      const meta = permissionMeta[permissionId];
+      if (!meta) {
+        return { ...prev, [permissionId]: checked };
+      }
+
+      const next = { ...prev, [permissionId]: checked };
+      const moduleInfo = modulePermissionMap[meta.moduleKey];
+      const moduleLabel = moduleLabelMap[meta.moduleKey] ?? meta.moduleKey;
+
+      if (meta.actionType === 'view' && !checked) {
+        const hasNonView = moduleInfo?.nonViewIds.some((id) => next[id]);
+        if (hasNonView) {
+          return prev;
+        }
+        return next;
+      }
+
+      if (meta.actionType && meta.actionType !== 'view' && checked) {
+        const viewId = moduleInfo?.viewId;
+        if (viewId && !next[viewId]) {
+          next[viewId] = true;
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleSave = async () => {
     try {
+      if (violatesViewRequirement(selectedPermissions)) {
+        toast.error('View permission is required when create, edit, or delete is selected.');
+        return;
+      }
+
       const permissionsArray = modules.flatMap((module) =>
         normalizeModulePermissions(module.permissions)
           .filter((permission) => selectedPermissions[permission.id])
@@ -176,17 +257,17 @@ export default function EditRolePage() {
       </div>
     );
   }
-
+  // move back to previous page
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
         <Button
           variant="outline"
-          onClick={() => router.push(`/admin/roles/${roleId}`)}
+          onClick={() => router.push('/admin/roles')}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Role View
+          Back to Roles
         </Button>
         <h1 className="text-3xl font-bold">Edit Role: {role.name}</h1>
         <p className="text-muted-foreground mt-1">
@@ -282,7 +363,6 @@ export default function EditRolePage() {
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </>
             )}
@@ -292,3 +372,5 @@ export default function EditRolePage() {
     </div>
   );
 }
+
+export default EditRolePage;

@@ -55,7 +55,7 @@ const UsersTable = forwardRef<UsersTableRef>((props, ref) => {
                 onPageChange={handlePageChange}
                 onSearch={handleSearch}
                 loading={loading}
-                serverSide={false}
+                serverSide={true}
             />
         </TableCard>
     )

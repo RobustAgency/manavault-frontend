@@ -14,6 +14,7 @@ import { DataTable } from '@/components/custom/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
+import { useUpdateProductMutation } from '@/lib/redux/features';
 import { getStatusColor } from './productColumns';
 import { toast } from 'react-toastify';
 import { DigitalProduct, Product, ProductStatus } from '@/types';
@@ -28,10 +29,30 @@ const ProductAssociatedDigitalStock = ({
 }: ProductAssociatedDigitalStockProps) => {
 
     const [createDigitalProductOrder] = useCreateDigitalProductOrderMutation();
+    const [updateProduct, { isLoading: isUpdatingProduct }] = useUpdateProductMutation();
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
     const [sortTableData, setSortTableData] = useState<DigitalProduct[]>(product.digital_products || []);
 
-    const handleSave = async() => {
+    useEffect(() => {
+        setIsDraggingRow(product?.is_custom_priority ?? false);
+    }, [product?.is_custom_priority]);
+
+    const handleToggleCustomFulfillmentMode = async (checked: boolean) => {
+        if (!product) return;
+        const previousValue = isDraggingRow;
+        setIsDraggingRow(checked);
+
+        try {
+            await updateProduct({
+                id: product.id,
+                data: { is_custom_priority: checked },
+            }).unwrap();
+        } catch {
+            setIsDraggingRow(previousValue);
+        }
+    };
+
+    const handleSave = async () => {
         if (!product) return;
 
         try {
@@ -42,25 +63,28 @@ const ProductAssociatedDigitalStock = ({
             await createDigitalProductOrder({ id: product.id, data: data || [] })
                 .unwrap();
             toast.success('Digital product order saved successfully');
-            setIsDraggingRow(false);
         } catch {
             toast.error('Failed to save digital product order');
         }
     };
 
-    // sorting based on priority 
-    const sortDigitalProducts = () => {
-        const digitalProducts = [...( product.digital_products || [])];
-      
-        const sortedProducts = digitalProducts?.sort((product_a, product_b) => {
-            return (product_a?.pivot?.priority || 0) - (product_b?.pivot?.priority || 0);
-        }) || [];
+    const setDigitalProductsForView = () => {
+        const digitalProducts = [...(product.digital_products || [])];
+        if (!isDraggingRow) {
+            setSortTableData(digitalProducts);
+            return;
+        }
+
+        const sortedProducts =
+            digitalProducts?.sort((product_a, product_b) => {
+                return (product_a?.pivot?.priority || 0) - (product_b?.pivot?.priority || 0);
+            }) || [];
         setSortTableData(sortedProducts);
-    }
-    
+    };
+
     useEffect(() => {
-        sortDigitalProducts();
-    }, [product.digital_products]);
+        setDigitalProductsForView();
+    }, [product.digital_products, isDraggingRow]);
 
     const digitalProductColumns: ColumnDef<DigitalProduct>[] = [
         {
@@ -99,11 +123,11 @@ const ProductAssociatedDigitalStock = ({
             cell: ({ row }) => {
                 const status = row.original.supplier?.status;
                 return (
-                  <Badge variant="filled" color={getStatusColor(status as ProductStatus)}>
-                    {status}
-                  </Badge>
+                    <Badge variant="filled" color={getStatusColor(status as ProductStatus)}>
+                        {status}
+                    </Badge>
                 );
-              },
+            },
         },
         {
             accessorKey: 'last_synced_at',
@@ -116,7 +140,6 @@ const ProductAssociatedDigitalStock = ({
         },
     ];
 
-    // Only render if there are digital products
     if (!product.digital_products || product.digital_products.length === 0) {
         return null;
     }
@@ -140,9 +163,12 @@ const ProductAssociatedDigitalStock = ({
                     sortTableData={sortTableData}
                     setSortTableData={setSortTableData}
                     searchKey="name"
+                    isDraggingRow={isDraggingRow}
                     sortable={isDraggingRow}
                     setIsDraggingRow={setIsDraggingRow}
                     handleSave={handleSave}
+                    onToggleSortMode={handleToggleCustomFulfillmentMode}
+                    toggleDisabled={isUpdatingProduct}
                     searchPlaceholder="Search digital products..."
                 />
 

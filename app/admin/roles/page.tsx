@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/providers/AuthProvider';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,8 @@ import {
   useDeleteRoleMutation,
   type Role,
 } from '@/lib/redux/features';
+import { selectUserRole } from '@/lib/redux/features';
+import { useAppSelector } from '@/lib/redux/hooks';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { toast } from 'react-toastify';
 import { ColumnDef } from '@tanstack/react-table';
@@ -18,13 +19,14 @@ import { EyeIcon, TrashIcon, Plus, PencilIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function RolesPage() {
-  const { user } = useAuth();
   const router = useRouter();
-  const role = user?.user_metadata?.role;
+  const role = useAppSelector(selectUserRole);
 
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const perPage = 10;
+
+  console.log(role)
 
   // Debounced search state for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
@@ -57,24 +59,14 @@ export default function RolesPage() {
     }
   }, [role, router]);
 
-  // Check if user is super_admin - show unauthorized message
-  if (role !== 'super_admin') {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Unauthorized</CardTitle>
-            <CardDescription>Only super admins can access this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/admin/dashboard')}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (!role) {
+    return null;
   }
+
+  if (role !== 'super_admin') {
+    return null;
+  }
+
 
   const handleDelete = async () => {
     if (!selectedRole) return;
@@ -161,7 +153,6 @@ export default function RolesPage() {
     },
   ];
 
-  console.log('Query data:', data);
 
   return (
     <div className="container mx-auto py-8">

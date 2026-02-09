@@ -246,6 +246,7 @@ export const CreateOrderDialog = ({
       onSubmit({
         ...formData,
         items: itemsWithCurrency,
+        currency: currency as DigitalProductCurrency,
       });
     }
   };
