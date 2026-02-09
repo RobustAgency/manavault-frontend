@@ -24,8 +24,12 @@ import { use, useEffect } from 'react';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../../components/BrandSelector';
 import { toast } from 'react-toastify';
+import { withPermission } from '@/components/auth/withPermission';
+import { getModulePermission } from '@/lib/permissions';
 
-export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+type EditProductPageProps = { params: Promise<{ id: string }> };
+
+function EditProductPage({ params }: EditProductPageProps) {
     const router = useRouter();
     const { id } = use(params);
     const productId = parseInt(id);
@@ -124,7 +128,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
                 regions.forEach(region => submitData.append('regions[]', region));
             }
-            
+
             try {
                 await updateProduct({ id: productId, data: submitData });
                 toast.success("Product updated successfully");
@@ -248,8 +252,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="usd">Dollars ($)</SelectItem>
-                                        <SelectItem value="eur">Euro (€)</SelectItem>
+                                        <SelectItem value="usd">USD ($)</SelectItem>
+                                        <SelectItem value="eur">EUR (€)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -395,3 +399,15 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
     );
 }
+
+export default withPermission<EditProductPageProps>(
+    [
+        getModulePermission("view", "product"),
+        getModulePermission("edit", "product"),
+    ],
+    {
+        redirectTo: "/admin/products",
+        requireAll: true,
+        denyMessage: "View permission is required to edit products.",
+    }
+)(EditProductPage);

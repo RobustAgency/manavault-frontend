@@ -22,8 +22,10 @@ import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../components/BrandSelector';
+import { withPermission } from '@/components/auth/withPermission';
+import { getModulePermission } from '@/lib/permissions';
 
-export default function CreateProductPage() {
+function CreateProductPage() {
     const router = useRouter();
     const { formData, errors, validateForm, updateFormData } = useProductForm(false);
     const [createProduct, { isLoading, isSuccess, isError, error }] = useCreateProductMutation();
@@ -58,9 +60,9 @@ export default function CreateProductPage() {
                 const element = field.ref.current;
                 if (element) {
                     // Scroll to the element with smooth behavior
-                    element.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center' 
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
                     });
                     // Focus the element after a small delay to ensure scroll completes
                     setTimeout(() => {
@@ -216,22 +218,22 @@ export default function CreateProductPage() {
                             </div>
                         </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
-                            <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
-                            <Select
-                                value={formData.currency}
-                                onValueChange={(value) => updateFormData({ currency: value })}
-                            >
-                                <SelectTrigger ref={statusRef} className="h-10" id="status">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="usd">Dollars ($)</SelectItem>
-                                    <SelectItem value="eur">Euro (€)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                                <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
+                                <Select
+                                    value={formData.currency}
+                                    onValueChange={(value) => updateFormData({ currency: value })}
+                                >
+                                    <SelectTrigger ref={statusRef} className="h-10" id="status">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="usd">USD ($)</SelectItem>
+                                        <SelectItem value="eur">EUR (€)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
@@ -249,7 +251,7 @@ export default function CreateProductPage() {
                                 {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                             <Select
@@ -378,3 +380,15 @@ export default function CreateProductPage() {
         </div>
     );
 }
+
+export default withPermission(
+    [
+        getModulePermission("view", "product"),
+        getModulePermission("create", "product"),
+    ],
+    {
+        redirectTo: "/admin/products",
+        requireAll: true,
+        denyMessage: "View permission is required to create products.",
+    }
+)(CreateProductPage);

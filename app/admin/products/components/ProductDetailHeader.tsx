@@ -13,9 +13,20 @@ interface ProductDetailHeaderProps {
   onEdit: () => void;
   onDelete: () => void;
   onAssignDigitalProducts: () => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canAssignSuppliers?: boolean;
 }
 
-export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigitalProducts }: ProductDetailHeaderProps) {
+export function ProductDetailHeader({
+  product,
+  onEdit,
+  onDelete,
+  onAssignDigitalProducts,
+  canEdit = true,
+  canDelete = true,
+  canAssignSuppliers = true,
+}: ProductDetailHeaderProps) {
   const router = useRouter();
 
   return (
@@ -57,32 +68,38 @@ export function ProductDetailHeader({ product, onEdit, onDelete, onAssignDigital
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            onClick={onAssignDigitalProducts}
-            className="gap-2"
-          >
-            <LinkIcon className="h-4 w-4" />
-            Add Suppliers
-          </Button>
-          <Link href={`/admin/products/edit/${product.id}`}>
+          {canAssignSuppliers && (
             <Button
               variant="outline"
-              // onClick={onEdit}
+              onClick={onAssignDigitalProducts}
               className="gap-2"
             >
-              <PencilIcon className="h-4 w-4" />
-              Edit
+              <LinkIcon className="h-4 w-4" />
+              Add Suppliers
             </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={onDelete}
-            className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-          >
-            <TrashIcon className="h-4 w-4" />
-            Delete
-          </Button>
+          )}
+          {canEdit && (
+            <Link href={`/admin/products/edit/${product.id}`}>
+              <Button
+                variant="outline"
+                // onClick={onEdit}
+                className="gap-2"
+              >
+                <PencilIcon className="h-4 w-4" />
+                Edit
+              </Button>
+            </Link>
+          )}
+          {canDelete && (
+            <Button
+              variant="outline"
+              onClick={onDelete}
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+            >
+              <TrashIcon className="h-4 w-4" />
+              Delete
+            </Button>
+          )}
         </div>
       </div>
     </div>

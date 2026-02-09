@@ -2,24 +2,23 @@
 
 import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useAuth } from '@/providers/AuthProvider';
 import {
   useGetModulesQuery,
   useGetRoleQuery,
-  type ModulePermission,
-  type RolePermissionValue,
+  type ModulePermission,      
 } from '@/lib/redux/features';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Edit, Loader2, Check, X } from 'lucide-react';
+import { selectUserRole } from '@/lib/redux/features';
+import { useAppSelector } from '@/lib/redux/hooks';
 
 export default function RoleViewPage() {
-  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const roleId = Number(params.id);
-  const userRole = user?.user_metadata?.role;
+  const userRole = useAppSelector(selectUserRole);
 
   // Check if user is super_admin
   useEffect(() => {
@@ -96,7 +95,7 @@ export default function RoleViewPage() {
     );
 
   const getRolePermissionState = (
-    rolePermissions: RolePermissionValue[] | undefined
+    rolePermissions: ModulePermission[] | undefined
   ) => {
     const permissionIds = new Set<number>();
 
@@ -108,17 +107,15 @@ export default function RoleViewPage() {
       if (typeof perm.id === 'number') {
         permissionIds.add(perm.id);
       }
-      if (typeof perm.permission_id === 'number') {
-        permissionIds.add(perm.permission_id);
-      }
     });
 
     return { permissionIds };
   };
 
-  const { permissionIds } = getRolePermissionState(
-    role.permissions
+    const rolePermissionState = getRolePermissionState(
+    normalizeModulePermissions(role.permissions as Array<ModulePermission | number>)
   );
+  const permissionIds = rolePermissionState?.permissionIds ?? new Set<number>();
 
   return (
     <div className="container mx-auto py-8">

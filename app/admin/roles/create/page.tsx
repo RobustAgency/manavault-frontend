@@ -12,8 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Save, Loader2, Plus } from 'lucide-react';
+import { withPermission } from '@/components/auth/withPermission';
+import { getModulePermission } from '@/lib/permissions';
 
-export default function CreateRolePage() {
+type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | null;
+
+function CreateRolePage() {
   const { user } = useAuth();
   const router = useRouter();
   const userRole = user?.user_metadata?.role;
@@ -36,6 +40,12 @@ export default function CreateRolePage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<Record<number, boolean>>({});
+
+  const getModuleKey = useCallback(
+    (module: { key?: string; id?: string | number; name?: string }) =>
+      module.key ?? module.id?.toString() ?? module.name ?? '',
+    []
+  );
 
   const normalizeModulePermissions = useCallback((
     permissions: Array<ModulePermission | number> | undefined
@@ -66,17 +76,98 @@ export default function CreateRolePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modules.length]);
 
+  const getPermissionActionType = useCallback((permission: ModulePermission): PermissionAction => {
+    const source = `${permission.action ?? ''} ${permission.label ?? ''}`.toLowerCase();
+    if (source.includes('view')) return 'view';
+    if (source.includes('create') || source.includes('add')) return 'create';
+    if (source.includes('edit') || source.includes('update')) return 'edit';
+    if (source.includes('delete') || source.includes('remove')) return 'delete';
+    return null;
+  }, []);
+
+  const { permissionMeta, modulePermissionMap, moduleLabelMap } = useMemo(() => {
+    const nextPermissionMeta: Record<
+      number,
+      { moduleKey: string; moduleLabel: string; actionType: PermissionAction }
+    > = {};
+    const nextModulePermissionMap: Record<string, { viewId?: number; nonViewIds: number[] }> = {};
+    const nextModuleLabelMap: Record<string, string> = {};
+
+    modules.forEach((module) => {
+      const moduleKey = getModuleKey(module);
+      const moduleLabel = module.label ?? module.name ?? moduleKey;
+      nextModuleLabelMap[moduleKey] = moduleLabel;
+      if (!nextModulePermissionMap[moduleKey]) {
+        nextModulePermissionMap[moduleKey] = { nonViewIds: [] };
+      }
+
+      normalizeModulePermissions(module.permissions).forEach((permission) => {
+        const actionType = getPermissionActionType(permission);
+        nextPermissionMeta[permission.id] = { moduleKey, moduleLabel, actionType };
+        if (actionType === 'view') {
+          nextModulePermissionMap[moduleKey].viewId = permission.id;
+        } else if (actionType) {
+          nextModulePermissionMap[moduleKey].nonViewIds.push(permission.id);
+        }
+      });
+    });
+
+    return {
+      permissionMeta: nextPermissionMeta,
+      modulePermissionMap: nextModulePermissionMap,
+      moduleLabelMap: nextModuleLabelMap,
+    };
+  }, [modules, getModuleKey, normalizeModulePermissions, getPermissionActionType]);
+
+  const violatesViewRequirement = useCallback(
+    (permissions: Record<number, boolean>) =>
+      Object.values(modulePermissionMap).some((moduleInfo) => {
+        if (!moduleInfo.viewId) return false;
+        const hasNonView = moduleInfo.nonViewIds.some((id) => permissions[id]);
+        return hasNonView && !permissions[moduleInfo.viewId];
+      }),
+    [modulePermissionMap]
+  );
+
   const handlePermissionChange = (permissionId: number, checked: boolean) => {
-    setSelectedPermissions((prev) => ({
-      ...prev,
-      [permissionId]: checked,
-    }));
+    setSelectedPermissions((prev) => {
+      const meta = permissionMeta[permissionId];
+      if (!meta) {
+        return { ...prev, [permissionId]: checked };
+      }
+
+      const next = { ...prev, [permissionId]: checked };
+      const moduleInfo = modulePermissionMap[meta.moduleKey];
+      const moduleLabel = moduleLabelMap[meta.moduleKey] ?? meta.moduleKey;
+
+      if (meta.actionType === 'view' && !checked) {
+        const hasNonView = moduleInfo?.nonViewIds.some((id) => next[id]);
+        if (hasNonView) {
+          return prev;
+        }
+        return next;
+      }
+
+      if (meta.actionType && meta.actionType !== 'view' && checked) {
+        const viewId = moduleInfo?.viewId;
+        if (viewId && !next[viewId]) {
+          next[viewId] = true;
+        }
+      }
+
+      return next;
+    });
   };
 
   const handleCreate = async () => {
     // Validate form
     if (!name.trim()) {
       toast.error('Please enter a role name');
+      return;
+    }
+
+    if (violatesViewRequirement(selectedPermissions)) {
+      toast.error('View permission is required when create, edit, or delete is selected.');
       return;
     }
 
@@ -254,7 +345,6 @@ export default function CreateRolePage() {
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4 mr-2" />
                 Create Role
               </>
             )}
@@ -264,3 +354,12 @@ export default function CreateRolePage() {
     </div>
   );
 }
+
+export default withPermission(
+  [getModulePermission("view", "role"), getModulePermission("create", "role")],
+  {
+    redirectTo: "/admin/roles",
+    requireAll: true,
+    denyMessage: "View permission is required to create roles.",
+  }
+)(CreateRolePage);

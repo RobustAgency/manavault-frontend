@@ -20,8 +20,8 @@ import {
 } from "@dnd-kit/sortable";
 import Pagniation from "./Pagniation";
 import { SortableTableRow } from "./SortableTableRow";
-import * as Checkbox from "@radix-ui/react-checkbox";
-import { CheckIcon } from 'lucide-react';
+import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
+import { usePathname } from "next/navigation";
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -46,6 +46,8 @@ interface DataTableProps<TData, TValue> {
     isDraggingRow?: boolean;
     setIsDraggingRow?: React.Dispatch<React.SetStateAction<boolean>>;
     handleSave?: () => void;
+    onToggleSortMode?: (checked: boolean) => void;
+    toggleDisabled?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -66,12 +68,14 @@ export function DataTable<TData, TValue>({
     isDraggingRow,
     setIsDraggingRow,
     handleSave,
+    onToggleSortMode,
+    toggleDisabled = false,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [searchValue, setSearchValue] = React.useState("");
-
-
+    const pathname = usePathname();
+    const isProductPage = pathname.includes("/products");
 
     const table = useReactTable({
         data: sortTableData ?? data,
@@ -268,21 +272,22 @@ export function DataTable<TData, TValue>({
                     </div>
 
 
-                    {sortable ? (  <div className="flex justify-end items-center pb-3 gap-2 w-1/2">
-                        <Checkbox.Root
-                            checked={sortable}
-                            onCheckedChange={(value) => {
-                                setIsDraggingRow?.(value === true);
-                            }}
-                            className="h-4 w-4 rounded border border-gray-400 flex items-center justify-center"
-                        >
-                            <Checkbox.Indicator>
-                                <CheckIcon className='w-4 h-4 font-medium' />
-                            </Checkbox.Indicator>
-                        </Checkbox.Root>
-
-                        <label>Rearrange Order List</label>
-                    </div>) : null}
+                    <div className="flex justify-end items-center pb-3 gap-2 w-1/2">
+                        {isProductPage && (
+                            <>
+                                <ToggleSwitch
+                                    id="rearrange-order-list"
+                                    checked={isDraggingRow}
+                                    onCheckedChange={(checked) => {
+                                        setIsDraggingRow?.(checked);
+                                        onToggleSortMode?.(checked);
+                                    }}
+                                    disabled={toggleDisabled}
+                                />
+                                <label htmlFor="rearrange-order-list">Rearrange Order List</label>
+                            </>
+                        )}
+                    </div>
 
                 </div>
             )}

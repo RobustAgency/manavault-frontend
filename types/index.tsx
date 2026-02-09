@@ -44,7 +44,7 @@ export interface MutationError {
 
 
 export type DigitalProductStatus = "active" | "inactive";
-export type DigitalProductCurrency = "usd" | "eur" ;
+export type DigitalProductCurrency = "usd" | "eur";
 export type DigitalProductStock = "high" | "low" | "all";
 
 export interface DigitalProduct {
@@ -219,6 +219,7 @@ export interface Product {
     name: string;
     slug: string;
   };
+  is_custom_priority?: boolean;
   product_name?: string;
   current_selling_price: number;
   new_selling_price: number;
@@ -277,6 +278,7 @@ export interface UpdateProductData {
   selling_price?: number;
   status?: ProductStatus;
   regions?: string[];
+  is_custom_priority?: boolean;
 }
 
 export interface VoucherAuditLog {
@@ -432,6 +434,7 @@ export interface PurchaseOrderItem {
 
 export interface CreatePurchaseOrderData {
   items: PurchaseOrderItem[];
+  currency?: DigitalProductCurrency;
 }
 export interface CSVUploadData {
   supplier_id: number;
@@ -617,6 +620,13 @@ export interface Module {
   name?: string;
   id?: string | number;
   permissions?: Array<ModulePermission | number>;
+}
+
+export interface UserInfoModule {
+  id: number;
+  name: string;
+  slug: string;
+  permissions: string[];
 }
 
 export interface RolePermission {
