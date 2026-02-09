@@ -1,7 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../base";
 import { User, UserFilters } from "@/interfaces/User";
-import { PaginatedResponse } from "@/interfaces/Pagination";
 
 export const usersApi = createApi({
   reducerPath: "usersApi",
@@ -36,31 +35,34 @@ export const usersApi = createApi({
             ]
           : [{ type: "User", id: "LIST" }],
       transformResponse: (response: {
-        data?: PaginatedResponse<User>;
+        data: {
+          data: User[];
+          current_page?: number;
+          per_page?: number;
+          total?: number;
+          last_page?: number;
+        };
         error?: boolean;
         message?: string;
       }) => {
-        const emptyResult = {
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return {
+            data: response.data.data,
+            pagination: {
+              page: response.data.current_page ?? 1,
+              limit: response.data.per_page ?? 10,
+              total: response.data.total ?? 0,
+              totalPages: response.data.last_page ?? 1,
+            },
+          };
+        }
+        return {
           data: [],
           pagination: {
             page: 1,
             limit: 10,
             total: 0,
-            totalPages: 0,
-          },
-        };
-
-        if (!response?.data?.data || !Array.isArray(response.data.data)) {
-          return emptyResult;
-        }
-
-        return {
-          data: response.data.data,
-          pagination: {
-            page: response.data.page ?? response.data.current_page ?? 1,
-            limit: response.data.limit ?? response.data.per_page ?? 10,
-            total: response.data.total ?? 0,
-            totalPages: response.data.totalPages ?? response.data.last_page ?? 1,
+            totalPages: 1,
           },
         };
       },

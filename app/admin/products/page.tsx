@@ -23,9 +23,15 @@ import {
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createProductColumns } from './components';
 import { toast } from 'react-toastify';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
+import { usePermissions } from '@/hooks/usePermissions';
+import { selectUserRole } from '@/lib/redux/features';
+import { useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { permissionSet } = usePermissions();
+  const role = useAppSelector(selectUserRole) ?? "user";
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
@@ -88,9 +94,22 @@ export default function ProductsPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const isSuperAdmin = role === "super_admin";
+  const canView =
+    isSuperAdmin ||
+    hasPermission(getModulePermission("create", "product"), permissionSet) ||
+    hasPermission(getModulePermission("edit", "product"), permissionSet) ||
+    hasPermission(getModulePermission("delete", "product"), permissionSet);
+  const canCreate = isSuperAdmin || hasPermission(getModulePermission("create", "product"), permissionSet);
+  const canEdit = isSuperAdmin || hasPermission(getModulePermission("edit", "product"), permissionSet);
+  const canDelete = isSuperAdmin || hasPermission(getModulePermission("delete", "product"), permissionSet);
+
   const columns = createProductColumns({
     onEdit: openEditPage,
     onDelete: openDeleteDialog,
+    canView,
+    canEdit,
+    canDelete,
   });
 
   return (
@@ -101,10 +120,12 @@ export default function ProductsPage() {
           <p className="text-muted-foreground mt-1">Manage your product inventory</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => router.push('/admin/products/create')}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          {canCreate && (
+            <Button onClick={() => router.push('/admin/products/create')}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          )}
         </div>
       </div>
 

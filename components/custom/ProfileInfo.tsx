@@ -2,12 +2,14 @@ import { useAuth } from '@/providers/AuthProvider'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect } from 'react'
+import { useAppSelector } from '@/lib/redux/hooks'
+import { selectUserRole } from '@/lib/redux/features'
 
 const ProfileInfo = () => {
-    const { profile, fetchProfile, user } = useAuth()
+    const { profile, fetchProfile, user } = useAuth();
     const avatarUrl = profile?.avatar_url
-    const displayName = profile?.full_name ?? "User"
-    const role = user?.user_metadata?.role ?? "user"
+    const displayName = user?.user_metadata?.name ?? "User"
+    const role = useAppSelector(selectUserRole) ?? "user";
 
     useEffect(() => {
         if (!profile) {

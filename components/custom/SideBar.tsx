@@ -1,50 +1,9 @@
 import Link from "next/link";
-import {
-    LayoutDashboard,
-    Settings as SettingsIcon,
-    LogOut,
-    CreditCard,
-    FileChartColumnIncreasing,
-    Users,
-    Package,
-    ShoppingCart,
-    FileText,
-    Gift,
-    ShieldCheck,
-    ClipboardList,
-    Layers,
-    Tag,
-    TrendingUp,
-    Shield
-} from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
-
-const adminRoutes = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/suppliers", label: "Suppliers", icon: Package },
-    { href: "/admin/products", label: "Products", icon: ShoppingCart },
-    { href: "/admin/digital-stock", label: "Digital Stock", icon: Gift },
-    { href: "/admin/purchase-orders", label: "Purchase Orders", icon: FileText },
-    { href: "/admin/sales-orders", label: "Sales Orders", icon: TrendingUp },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/login-logs", label: "Login Logs", icon: ShieldCheck },
-    { href: "/admin/voucher-audit-logs", label: "Voucher Audit", icon: ClipboardList },
-    { href: "/admin/brands", label: "Brands", icon: Layers },
-    { href: "/admin/pricing-automation", label: "Pricing Automation", icon: Tag },
-    { href: "/admin/roles", label: "Roles", icon: Shield },
-    // { href: "/admin/vouchers", label: "Vouchers", icon: Upload },
-];
-const userRoutes = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/plans", label: "Plans", icon: CreditCard },
-    { href: "/invoices", label: "Invoices", icon: FileChartColumnIncreasing },
-];
-
-const baseRoutes = [
-    // { href: "/settings", label: "Settings", icon: SettingsIcon },
-    { href: "/logout", label: "Logout", icon: LogOut },
-];
+import { adminRoutes, userRoutes, baseRoutes } from "@/lib/navigationRoutes";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAppSelector } from "@/lib/redux/hooks";
+import { selectUserRole } from "@/lib/redux/features";
 
 export function Sidebar({
     collapsed = false,
@@ -53,15 +12,32 @@ export function Sidebar({
     collapsed?: boolean;
     onNavigate: () => void;
 }) {
-    const { user } = useAuth();
-    const role = user?.user_metadata?.role ?? "user"
+    const role = useAppSelector(selectUserRole) ?? "user";
+    const { modules } = usePermissions();
 
     // Determine base routes based on role
-    let navigationRoutes = (role === "admin" || role === "super_admin") ? adminRoutes : userRoutes;
+    const allowedModuleSlugs = new Set(modules.map((module) => module.slug));
+    const moduleRoutes = adminRoutes.filter(
+        (route) =>
+            route.moduleSlug &&
+            allowedModuleSlugs.has(route.moduleSlug)
+    );
+    const dashboardRoute = adminRoutes.find((route) => route.href === "/admin/dashboard");
+    const adminDynamicRoutes = [
+        ...(dashboardRoute ? [dashboardRoute] : []),
+        ...moduleRoutes,
+    ];
+
+    let navigationRoutes =
+        role === "super_admin"
+            ? adminRoutes
+            : role === "admin"
+                ? (adminDynamicRoutes.length > 0 ? adminDynamicRoutes : adminRoutes)
+                : [...userRoutes, ...moduleRoutes];
 
     // Filter out Users and Roles routes if not super_admin
     if (role === "admin") {
-        navigationRoutes = navigationRoutes.filter(route => 
+        navigationRoutes = navigationRoutes.filter(route =>
             route.href !== "/admin/users" && route.href !== "/admin/roles"
         );
     }

@@ -147,11 +147,21 @@ export const purchaseOrdersApi = createApi({
       PurchaseOrder,
       CreatePurchaseOrderData
     >({
-      query: (data) => ({
+      query: (data) => {
+        const currency =
+          data.currency ?? data.items?.[0]?.currency ?? undefined;
+        const items = (data.items ?? []).map(({ currency: itemCurrency, ...rest }) => rest);
+
+        return {
         url: "/purchase-orders",
         method: "POST",
-        data: data,
-      }),
+          data: {
+            ...data,
+            currency,
+            items,
+          },
+        };
+      },
       invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
       async onQueryStarted(_, { queryFulfilled }) {
         try {

@@ -276,8 +276,7 @@ export async function getUsers(
 }
 
 /**
- * Delete a user from Supabase (Admin only)
- * This uses Supabase Admin API to delete users
+ * Delete a user via API (Admin only)
  */
 export async function deleteUser(userId: string): Promise<{
   success: boolean;
@@ -311,58 +310,47 @@ export async function deleteUser(userId: string): Promise<{
   }
 
   try {
-    // Use admin client to delete user
-    let adminClient;
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.access_token) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+    const response = await fetch(`${normalizedBaseUrl}/users/${userId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    let responseBody: {
+      message?: string;
+      error?: boolean;
+    } | null = null;
+
     try {
-      adminClient = createAdminClient();
-    } catch (adminError) {
-      console.error("Admin client creation error:", adminError);
-      return {
-        success: false,
-        message:
-          adminError instanceof Error
-            ? adminError.message
-            : "Service role key not configured. Please add SUPABASE_SERVICE_ROLE_KEY to your .env.local file.",
-      };
+      responseBody = await response.json();
+    } catch {
+      responseBody = null;
     }
 
-    // Get the user to check if they're a super_admin (prevent deleting super_admin)
-    const { data: targetUserData, error: getUserError } =
-      await adminClient.auth.admin.getUserById(userId);
-
-    if (getUserError) {
-      return { success: false, message: getUserError.message };
-    }
-
-    if (targetUserData?.user?.user_metadata?.role === "super_admin") {
-      return {
-        success: false,
-        message: "Cannot delete super admin users.",
-      };
-    }
-
-    // Delete the user
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(
-      userId
-    );
-
-    if (deleteError) {
-      console.error("Error deleting user:", deleteError);
-      return { success: false, message: deleteError.message };
-    }
-
-    // Also delete from profiles table if it exists
-    try {
-      await adminClient.from("profiles").delete().eq("id", userId);
-    } catch (profileError) {
-      // Ignore profile deletion errors - user is already deleted from auth
-      console.warn("Failed to delete profile:", profileError);
+    if (!response.ok || responseBody?.error) {
+      const message =
+        responseBody?.message || "Failed to delete user via API";
+      return { success: false, message };
     }
 
     revalidatePath("/admin/dashboard", "page");
     return {
       success: true,
-      message: "User deleted successfully",
+      message: responseBody?.message || "User deleted successfully",
     };
   } catch (error) {
     console.error("Error deleting user:", error);

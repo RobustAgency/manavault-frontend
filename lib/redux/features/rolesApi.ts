@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../base";
 import { MutationError, PaginationMeta, Role, RoleFilters, CreateRoleData, UpdateRoleData  } from "@/types";
+import { userInfoApi } from "./userInfoApi";
 
 export const rolesApi = createApi({
   reducerPath: "rolesApi",
@@ -137,9 +138,10 @@ export const rolesApi = createApi({
         }
         return response as unknown as Role;
       },
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          dispatch(userInfoApi.util.invalidateTags([{ type: "UserInfo", id: "LIST" }]));
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
@@ -181,9 +183,10 @@ export const rolesApi = createApi({
         method: "POST",
         data: { role_id: roleId },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          dispatch(userInfoApi.util.invalidateTags([{ type: "UserInfo", id: "LIST" }]));
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
