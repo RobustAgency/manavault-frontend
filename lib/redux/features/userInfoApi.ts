@@ -27,32 +27,52 @@ export const userInfoApi = createApi({
               { type: "UserInfo", id: "LIST" },
             ]
           : [{ type: "UserInfo", id: "LIST" }],
-      transformResponse: (response: {
-        data?: UserInfoModule[] | { modules?: UserInfoModule[]; data?: UserInfoModule[]; role?: string; user?: { role?: string } };
-        modules?: UserInfoModule[];
-        role?: string;
-        user?: { role?: string };
-        error?: boolean;
-        message?: string;
-      }) => {
+                                                      
+      transformResponse: (response:
+        | UserInfoModule[]
+        | {
+            data?: UserInfoModule[] | {
+              modules?: UserInfoModule[];
+              data?: UserInfoModule[];
+              role?: string;
+              user?: { role?: string };
+            };
+            modules?: UserInfoModule[];
+            role?: string;
+            user?: { role?: string };
+            error?: boolean;
+            message?: string;
+          }) => {
+        const responseObject = Array.isArray(response) ? null : response;
+
         const modules = Array.isArray(response)
           ? response
-          : Array.isArray(response.data)
-            ? response.data
-            : response.data?.modules && Array.isArray(response.data.modules)
-              ? response.data.modules
-              : response.data?.data && Array.isArray(response.data.data)
-                ? response.data.data
-                : response.modules && Array.isArray(response.modules)
-                  ? response.modules
+          : Array.isArray(responseObject?.data)
+            ? responseObject?.data
+            : responseObject?.data?.modules && Array.isArray(responseObject.data.modules)
+              ? responseObject.data.modules
+              : responseObject?.data?.data && Array.isArray(responseObject.data.data)
+                ? responseObject.data.data
+                : responseObject?.modules && Array.isArray(responseObject.modules)
+                  ? responseObject.modules
                   : [];
 
-        const role =
-          response?.role ??
-          response?.data?.role ??
-          response?.user?.role ??
-          response?.data?.user?.role ??
-          null;
+        let role: string | null = null;
+
+        if (responseObject) {
+          const dataObject =
+            responseObject.data && !Array.isArray(responseObject.data)
+              ? responseObject.data
+              : null;
+
+          role =
+            responseObject.role ??
+            dataObject?.role ??
+            responseObject.user?.role ??
+            dataObject?.user?.role ??
+            null;
+        }
+
 
         return { modules, role };
       },

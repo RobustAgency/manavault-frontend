@@ -70,6 +70,7 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   };
 
+
   // Block access to signup route
   if (pathname === "/signup") {
     return redirectWithCookies("/login");
@@ -218,7 +219,7 @@ export async function updateSession(request: NextRequest) {
     if (userRole === "admin" || userRole === "super_admin") {
       return redirectWithCookies("/admin/dashboard");
     } else {
-      return redirectWithCookies("/dashboard");
+      return redirectWithCookies("/admin/dashboard");
     }
   }
 
