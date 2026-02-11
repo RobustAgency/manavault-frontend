@@ -56,7 +56,7 @@ export function VerifyMFA() {
             if (isAdmin) {
                 router.push("/admin/dashboard");
             } else {
-                router.push("/dashboard");
+                router.push("/admin/dashboard");
             }
             router.refresh();
             setError(result.message || "Verification failed");

@@ -42,12 +42,11 @@ const getActionBadge = (action: string) => {
         </Badge>
     );
 };
-
 export const createColumns = (): ColumnDef<VoucherAuditLog>[] => [
     {
         accessorKey: "user_email",
         header: "User",
-        cell: ({ row }) => {
+        cell: ({ row }) => {           
             const email = row.original.user?.email;
             const name = row.original.user?.name;
             return (
@@ -68,8 +67,8 @@ export const createColumns = (): ColumnDef<VoucherAuditLog>[] => [
         accessorKey: "digital_product",
         header: "Digital Product",
         cell: ({ row }) => {
-            const digitalProduct = row.original.digital_product;
-            return <div>{digitalProduct || "-"}</div>;
+            const digitalProduct = row.original.voucher?.purchase_order_item?.digital_product;
+            return <div>{digitalProduct?.name || "-"}</div>;
         },
     },
     {
