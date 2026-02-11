@@ -143,7 +143,7 @@ export async function updateSession(request: NextRequest) {
       if (user.user_metadata?.role === "admin") {
         return redirectWithCookies("/admin/dashboard");
       } else {
-        return redirectWithCookies("/dashboard");
+        return redirectWithCookies("/admin/dashboard");
       }
     }
   }
@@ -185,7 +185,7 @@ export async function updateSession(request: NextRequest) {
     if (userRole === "admin" || userRole === "super_admin") {
       return redirectWithCookies("/admin/dashboard");
     } else {
-      return redirectWithCookies("/dashboard");
+      return redirectWithCookies("/admim/dashboard");
     }
   }
 

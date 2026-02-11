@@ -6,16 +6,16 @@ import { useAppSelector } from '@/lib/redux/hooks'
 import { selectUserRole } from '@/lib/redux/features'
 
 const ProfileInfo = () => {
-    const { profile, fetchProfile, user } = useAuth();
+    const { profile, user } = useAuth();
     const avatarUrl = profile?.avatar_url
     const displayName = user?.user_metadata?.name ?? "User"
     const role = useAppSelector(selectUserRole) ?? "user";
 
-    useEffect(() => {
-        if (!profile) {
-            fetchProfile()
-        }
-    }, [profile, fetchProfile])
+    // useEffect(() => {
+    //     if (!profile) {
+    //         fetchProfile()
+    //     }
+    // }, [profile, fetchProfile])
 
     return (
         <div className="flex items-center gap-3 justify-end px-4">

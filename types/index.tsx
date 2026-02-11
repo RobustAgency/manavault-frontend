@@ -302,7 +302,18 @@ export interface VoucherAuditLog {
     stock_id?: number | null;
     created_at?: string;
     updated_at?: string;
+    purchase_order_item?: {
+      id: number;
+      digital_product?: {
+        id: number;
+        name: string;
+        sku: string;
+        brand?: string | null;
+        description?: string | null;
+      };
+    };
   };
+ 
   user?: {
     id: number;
     supabase_id?: string;

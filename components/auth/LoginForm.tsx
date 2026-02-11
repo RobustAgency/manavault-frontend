@@ -80,7 +80,7 @@ export function LoginForm() {
                         const userRole = state.data?.user_metadata?.role;
                         const redirectPath = (userRole === "admin" || userRole === "super_admin")
                             ? "/admin/dashboard"
-                            : "/dashboard";
+                            : "/admin/dashboard";
                         window.location.href = redirectPath;
                     }
                 })();

@@ -282,6 +282,7 @@ export const CreateOrderDialog = ({
             <CustomSelect
               label="Currency *"
               value={currency}
+              disabled={formData.items.length > 0}
               options={[{ value: 'usd', label: 'USD' }, { value: 'eur', label: 'EUR' }]}
               onChange={(value) => {
                 const newCurrency = value as 'usd' | 'eur';
