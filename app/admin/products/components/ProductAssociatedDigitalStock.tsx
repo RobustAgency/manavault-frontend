@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { PackageIcon } from 'lucide-react';
+import { PackageIcon, TrashIcon } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import {
     Card,
@@ -12,9 +12,10 @@ import {
 } from '@/components/ui/card';
 import { DataTable } from '@/components/custom/DataTable';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
-import { useUpdateProductMutation } from '@/lib/redux/features';
+import { useRemoveDigitalProductMutation, useUpdateProductMutation } from '@/lib/redux/features';
 import { getStatusColor } from './productColumns';
 import { toast } from 'react-toastify';
 import { DigitalProduct, Product, ProductStatus } from '@/types';
@@ -30,6 +31,8 @@ const ProductAssociatedDigitalStock = ({
 
     const [createDigitalProductOrder] = useCreateDigitalProductOrderMutation();
     const [updateProduct, { isLoading: isUpdatingProduct }] = useUpdateProductMutation();
+    const [removeDigitalProduct, { isLoading: isRemovingDigitalProduct }] =
+        useRemoveDigitalProductMutation();
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
     const [sortTableData, setSortTableData] = useState<DigitalProduct[]>(product.digital_products || []);
 
@@ -65,6 +68,22 @@ const ProductAssociatedDigitalStock = ({
             toast.success('Digital product order saved successfully');
         } catch {
             toast.error('Failed to save digital product order');
+        }
+    };
+
+    const handleRemoveDigitalProduct = async (digitalProductId: number) => {
+        if (!product) return;
+
+        try {
+            await removeDigitalProduct({
+                productId: product.id,
+                digitalProductId,
+            }).unwrap();
+
+            setSortTableData((prev) => prev.filter((item) => item.id !== digitalProductId));
+            toast.success('Digital product removed successfully');
+        } catch {
+            toast.error('Failed to remove digital product');
         }
     };
 
@@ -138,6 +157,21 @@ const ProductAssociatedDigitalStock = ({
                 </span>
             ),
         },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRemoveDigitalProduct(row.original.id)}
+                    disabled={isRemovingDigitalProduct}
+                    title="Delete"
+                >
+                    <TrashIcon className="h-4 w-4 text-red-500" />
+                </Button>
+            ),
+        },
     ];
 
     if (!product.digital_products || product.digital_products.length === 0) {
@@ -168,7 +202,7 @@ const ProductAssociatedDigitalStock = ({
                     setIsDraggingRow={setIsDraggingRow}
                     handleSave={handleSave}
                     onToggleSortMode={handleToggleCustomFulfillmentMode}
-                    toggleDisabled={isUpdatingProduct}
+                    toggleDisabled={isUpdatingProduct || isRemovingDigitalProduct}
                     searchPlaceholder="Search digital products..."
                 />
 

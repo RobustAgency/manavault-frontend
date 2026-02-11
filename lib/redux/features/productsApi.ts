@@ -230,6 +230,29 @@ export const productsApi = createApi({
         }
       },
     }),
+    removeDigitalProduct: builder.mutation<
+      { error?: boolean; message?: string },
+      { productId: number; digitalProductId: number }
+    >({
+      query: ({ productId, digitalProductId }) => ({
+        url: `/products/${productId}/digital_products/${digitalProductId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { productId }) => [
+        { type: "Product", id: String(productId) },
+      ],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          const mutationError = error as MutationError;
+          const errorMessage =
+            mutationError?.error?.data?.message ||
+            "Failed to remove digital product";
+          console.error(errorMessage);
+        }
+      },
+    }),
   }),
 });
 
@@ -241,4 +264,5 @@ export const {
   useUpdateProductMutation,
   useDeleteProductMutation,
   useAssignDigitalProductsMutation,
+  useRemoveDigitalProductMutation,
 } = productsApi;

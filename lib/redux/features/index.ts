@@ -111,6 +111,7 @@ export {
   useUpdateProductMutation,
   useDeleteProductMutation,
   useAssignDigitalProductsMutation,
+  useRemoveDigitalProductMutation,
 } from "./productsApi";
 
 export {
