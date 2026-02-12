@@ -10,8 +10,6 @@ import {
   useDeleteRoleMutation,
   type Role,
 } from '@/lib/redux/features';
-import { selectUserRole } from '@/lib/redux/features';
-import { useAppSelector } from '@/lib/redux/hooks';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { toast } from 'react-toastify';
 import { ColumnDef } from '@tanstack/react-table';
@@ -20,13 +18,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function RolesPage() {
   const router = useRouter();
-  const role = useAppSelector(selectUserRole);
 
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const perPage = 10;
-
-  console.log(role)
 
   // Debounced search state for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
@@ -50,23 +45,6 @@ export default function RolesPage() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-
-  // Check if user is super_admin
-  useEffect(() => {
-    if (role !== 'super_admin') {
-      toast.error('Unauthorized. Only super admins can access this page.');
-      router.push('/admin/dashboard');
-    }
-  }, [role, router]);
-
-  if (!role) {
-    return null;
-  }
-
-  if (role !== 'super_admin') {
-    return null;
-  }
-
 
   const handleDelete = async () => {
     if (!selectedRole) return;

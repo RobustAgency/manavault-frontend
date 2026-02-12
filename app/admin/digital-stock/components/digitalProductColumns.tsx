@@ -20,11 +20,15 @@ export const getStatusColor = (status: DigitalProductStatus): 'success' | 'defau
 interface DigitalProductColumnsProps {
   onEdit: (product: DigitalProduct) => void;
   onDelete: (product: DigitalProduct) => void;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 export const createDigitalProductColumns = ({
   onEdit,
   onDelete,
+  canEdit,
+  canDelete,
 }: DigitalProductColumnsProps): ColumnDef<DigitalProduct>[] => [
     {
       accessorKey: 'name',
@@ -145,20 +149,24 @@ export const createDigitalProductColumns = ({
             </Button>
             {!isExternal && (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(row.original)}
-                >
-                  <PencilIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(row.original)}
-                >
-                  <TrashIcon className="h-4 w-4 text-red-500" />
-                </Button>
+                {canEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(row.original)}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
+                )}
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDelete(row.original)}
+                  >
+                    <TrashIcon className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
               </>
             )}
           </div>

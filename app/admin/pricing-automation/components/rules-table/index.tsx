@@ -12,6 +12,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import {  useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PriceRule, RuleStatus, ProductStatus } from "@/types";
 import { toast } from "react-toastify";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getModulePermission, hasPermission } from "@/lib/permissions";
 
 const RulesTable = () => {
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
@@ -21,6 +23,10 @@ const RulesTable = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PriceRule | null>(null);
+  const { permissionSet } = usePermissions();
+  const canCreate = hasPermission(getModulePermission('create', 'price_rule'), permissionSet);
+  const canEdit = hasPermission(getModulePermission('edit', 'price_rule'), permissionSet);
+  const canDelete = hasPermission(getModulePermission('delete', 'price_rule'), permissionSet);
 
   const [deleteProduct, { isLoading: isDeleting }] =  useDeletePriceRuleMutation();
 
@@ -36,6 +42,8 @@ const RulesTable = () => {
   const columns = createRulesColumns({
     onEdit: openEditPage,
     onDelete: openDeleteDialog,
+    canEdit,
+    canDelete,
   });
 
   const perPage = 10;
@@ -82,10 +90,12 @@ const RulesTable = () => {
           <p className="text-muted-foreground mt-1">Manage pricing rules for your products</p>
         </div>
         <div className="flex md:gap-2">
-          <Button onClick={() => router.push('/admin/pricing-automation/create')}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Rule
-          </Button>
+          {canCreate && (
+            <Button onClick={() => router.push('/admin/pricing-automation/create')}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Rule
+            </Button>
+          )}
         </div>
 
       </div>
