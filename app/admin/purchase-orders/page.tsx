@@ -20,6 +20,8 @@ import {
 } from '@/lib/redux/features';
 import { CreateOrderDialog, ViewOrderDialog, createOrderColumns } from './components';
 import { toast } from 'react-toastify';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
 
 export default function PurchaseOrdersPage() {
   const [page, setPage] = useState(1);
@@ -27,6 +29,8 @@ export default function PurchaseOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [orderNumberSearch, setOrderNumberSearch] = useState('');
   const perPage = 10;
+  const { permissionSet } = usePermissions();
+  const canCreate = hasPermission(getModulePermission('create', 'purchase_order'), permissionSet);
 
   const { data, isLoading } = useGetPurchaseOrdersQuery({
     page,
@@ -85,10 +89,12 @@ export default function PurchaseOrdersPage() {
           <h1 className="text-3xl font-bold">Purchase Orders</h1>
           <p className="text-muted-foreground mt-1">Manage your purchase orders and inventory</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Create Purchase Order
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Create Purchase Order
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

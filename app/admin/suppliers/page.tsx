@@ -24,6 +24,8 @@ import {
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { SupplierFormDialog, createSupplierColumns } from './components';
 import { toast } from 'react-toastify';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
 
 export default function SuppliersPage() {
   const [page, setPage] = useState(1);
@@ -48,8 +50,8 @@ export default function SuppliersPage() {
   // Reset page to 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [statusFilter,typeFilter]);
-  
+  }, [statusFilter, typeFilter]);
+
   //this was the dependency of setPage useEffect typeFilter,
 
   const { data, isLoading } = useGetSuppliersQuery({
@@ -118,9 +120,16 @@ export default function SuppliersPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const { permissionSet } = usePermissions();
+  const canCreate = hasPermission(getModulePermission('create', 'supplier'), permissionSet);
+  const canEdit = hasPermission(getModulePermission('edit', 'supplier'), permissionSet);
+  const canDelete = hasPermission(getModulePermission('delete', 'supplier'), permissionSet);
+
   const columns = createSupplierColumns({
     onEdit: openEditDialog,
     onDelete: openDeleteDialog,
+    canEdit,
+    canDelete,
   });
 
   return (
@@ -130,10 +139,12 @@ export default function SuppliersPage() {
           <h1 className="text-3xl font-bold">Suppliers</h1>
           <p className="text-muted-foreground mt-1">Manage your suppliers and vendors</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Supplier
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add Supplier
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

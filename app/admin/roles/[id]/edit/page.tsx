@@ -15,8 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { selectUserRole } from '@/lib/redux/features';
-import { useAppSelector } from '@/lib/redux/hooks';
 
 type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | null;
 
@@ -24,15 +22,6 @@ function EditRolePage() {
   const router = useRouter();
   const params = useParams();
   const roleId = Number(params.id);
-  const userRole = useAppSelector(selectUserRole);
-
-  // Check if user is super_admin
-  useEffect(() => {
-    if (userRole !== 'super_admin') {
-      toast.error('Unauthorized. Only super admins can access this page.');
-      router.push('/admin/dashboard');
-    }
-  }, [userRole, router]);
 
   const { data: role, isLoading, error } = useGetRoleQuery(roleId);
   const [updateRole, { isLoading: isUpdating }] = useUpdateRoleMutation();
@@ -152,6 +141,8 @@ function EditRolePage() {
     [modulePermissionMap]
   );
 
+
+
   const handlePermissionChange = (permissionId: number, checked: boolean) => {
     setSelectedPermissions((prev) => {
       const meta = permissionMeta[permissionId];
@@ -210,24 +201,6 @@ function EditRolePage() {
       toast.error(error?.data?.message || 'Failed to update role permissions');
     }
   };
-
-  if (userRole !== 'super_admin') {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Unauthorized</CardTitle>
-            <CardDescription>Only super admins can access this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/admin/dashboard')}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (isLoading || isModulesLoading) {
     return (

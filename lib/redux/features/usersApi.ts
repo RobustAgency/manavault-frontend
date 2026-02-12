@@ -78,7 +78,16 @@ export const usersApi = createApi({
       }),
       invalidatesTags: [{ type: "User", id: "LIST" }],
     }),
+
+    deleteUser: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "User", id: "LIST" }],
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useCreateUserMutation } = usersApi;
+
+export const { useGetUsersQuery, useCreateUserMutation, useDeleteUserMutation } = usersApi;
