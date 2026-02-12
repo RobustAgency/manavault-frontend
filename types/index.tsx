@@ -225,6 +225,7 @@ export interface Product {
   new_selling_price: number;
   currency: string;
   face_value: number;
+  is_out_of_stock?: boolean;
 }
 
 
@@ -257,6 +258,7 @@ export interface CreateProductData {
   name: string;
   sku: string;
   brand?: string;
+  brand_id?: number;
   description?: string;
   short_description?: string;
   long_description?: string;
@@ -265,11 +267,15 @@ export interface CreateProductData {
   selling_price: number;
   status: ProductStatus;
   regions?: string[];
+  currency?: string;
+  face_value?: number;
+  is_out_of_stock?: boolean;
 }
 
 export interface UpdateProductData {
   name?: string;
   brand?: string;
+  brand_id?: number;
   description?: string;
   short_description?: string;
   long_description?: string;
@@ -279,6 +285,9 @@ export interface UpdateProductData {
   status?: ProductStatus;
   regions?: string[];
   is_custom_priority?: boolean;
+  currency?: string;
+  face_value?: number;
+  is_out_of_stock?: boolean;
 }
 
 export interface VoucherAuditLog {
@@ -313,7 +322,7 @@ export interface VoucherAuditLog {
       };
     };
   };
- 
+
   user?: {
     id: number;
     supabase_id?: string;
