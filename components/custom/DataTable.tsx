@@ -114,10 +114,15 @@ export function DataTable<TData, TValue>({
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value
-        setSearchValue(value)
+        const trimmedValue = value.trim()
+        if (trimmedValue === '') {
+            setSearchValue('')
+            return
+        }
+        setSearchValue(trimmedValue)
 
         if (!serverSide && searchKey) {
-            table.getColumn(searchKey)?.setFilterValue(value)
+            table.getColumn(searchKey)?.setFilterValue(trimmedValue)
         }
     }
 
