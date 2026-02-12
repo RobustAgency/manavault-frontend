@@ -35,10 +35,10 @@ export function Sidebar({
                 ? (adminDynamicRoutes.length > 0 ? adminDynamicRoutes : adminRoutes)
                 : [...userRoutes, ...moduleRoutes];
 
-    // Filter out Users and Roles routes if not super_admin
+    // Filter out Users route if not super_admin
     if (role === "admin") {
         navigationRoutes = navigationRoutes.filter(route =>
-            route.href !== "/admin/users" && route.href !== "/admin/roles"
+            route.href !== "/admin/users"
         );
     }
 

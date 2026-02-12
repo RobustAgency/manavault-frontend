@@ -13,11 +13,17 @@ import {
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { BrandDialog, createBrandColumns } from './components';
 import { toast } from 'react-toastify';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
 
 export default function BrandsPage() {
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const perPage = 10;
+  const { permissionSet } = usePermissions();
+  const canCreate = hasPermission(getModulePermission('create', 'brand'), permissionSet);
+  const canEdit = hasPermission(getModulePermission('edit', 'brand'), permissionSet);
+  const canDelete = hasPermission(getModulePermission('delete', 'brand'), permissionSet);
 
   // Debounced search state for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
@@ -86,6 +92,8 @@ export default function BrandsPage() {
   const columns = createBrandColumns({
     onEdit: openEditDialog,
     onDelete: openDeleteDialog,
+    canEdit,
+    canDelete,
   });
 
   console.log(data);
@@ -97,10 +105,12 @@ export default function BrandsPage() {
           <p className="text-muted-foreground mt-1">Manage your brand inventory</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={openCreateDialog}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Brand
-          </Button>
+          {canCreate && (
+            <Button onClick={openCreateDialog}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Brand
+            </Button>
+          )}
         </div>
       </div>
 

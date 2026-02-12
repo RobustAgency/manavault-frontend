@@ -27,6 +27,7 @@ import { userInfoApi } from "@/lib/redux/features/userInfoApi"
 import { useAppDispatch } from "@/lib/redux/hooks"
 import { usePermissions } from "@/hooks/usePermissions"
 import { getModulePermission, hasPermission } from "@/lib/permissions"
+import { useDeleteUserMutation } from "@/lib/redux/features/usersApi"
 
 interface ActionCellProps {
     user: TableUser
@@ -47,6 +48,7 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
         { skip: !showAssignDialog }
     )
     const [assignUserRole, { isLoading: isAssigning }] = useAssignUserRoleMutation()
+    const [deleteUser] = useDeleteUserMutation()
 
     const handleActionClick = (action: "approve" | "delete") => {
         setCurrentAction(action)
@@ -85,17 +87,12 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     const handleDelete = async () => {
         setIsLoading(true)
         try {
-            const result = await deleteUser(user.id.toString())
-            if (!result.success) {
-                toast.error(result.message || "Failed to delete user")
-            } else {
-                toast.success(result.message || "User deleted successfully")
-                handleClose()
-                onRefresh?.()
-            }
-        } catch (error) {
+            await deleteUser(user.id.toString()).unwrap()
+            toast.success("User deleted successfully")
+            handleClose()
+            onRefresh?.()
+        } catch {
             toast.error("Error deleting user")
-            console.error("Delete error:", error)
         } finally {
             setIsLoading(false)
         }

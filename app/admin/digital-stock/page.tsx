@@ -26,6 +26,8 @@ import { UploadCsvDialogue } from './components/uploadCsvDialogue';
 import CustomSelect from '@/components/custom/CustomSelect';
 import { toast } from 'react-toastify';
 import { DigitalProductStock } from '@/types';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getModulePermission, hasPermission } from '@/lib/permissions';
 
 export default function DigitalProductsPage() {
   const router = useRouter();
@@ -38,6 +40,10 @@ export default function DigitalProductsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
   const stock = useSearchParams();
+  const { permissionSet } = usePermissions();
+  const canCreate = hasPermission(getModulePermission('create', 'digital_stock'), permissionSet);
+  const canEdit = hasPermission(getModulePermission('edit', 'digital_stock'), permissionSet);
+  const canDelete = hasPermission(getModulePermission('delete', 'digital_stock'), permissionSet);
 
 
 
@@ -118,6 +124,8 @@ export default function DigitalProductsPage() {
   const columns = createDigitalProductColumns({
     onEdit: openEditPage,
     onDelete: openDeleteDialog,
+    canEdit,
+    canDelete,
   });
 
   const handleUploadClick = () => {
@@ -140,17 +148,21 @@ export default function DigitalProductsPage() {
         </div>
         <div className='flex md:flex-row flex-col justify-between gap-2'>
 
-          <label htmlFor="file">
-            <Button type="button" onClick={handleUploadClick}>
-              <File className="h-4 w-4 mr-2" />
-              Upload CSV
-            </Button>
-          </label>
+          {canCreate && (
+            <label htmlFor="file">
+              <Button type="button" onClick={handleUploadClick}>
+                <File className="h-4 w-4 mr-2" />
+                Upload CSV
+              </Button>
+            </label>
+          )}
 
-          <Button onClick={() => router.push('/admin/digital-stock/create')}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Digital Stock
-          </Button>
+          {canCreate && (
+            <Button onClick={() => router.push('/admin/digital-stock/create')}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Digital Stock
+            </Button>
+          )}
         </div>
       </div>
 

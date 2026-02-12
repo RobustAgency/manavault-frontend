@@ -2,33 +2,19 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/providers/AuthProvider';
 import { useCreateRoleMutation, useGetModulesQuery, type ModulePermission } from '@/lib/redux/features';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Save, Loader2, Plus } from 'lucide-react';
-import { withPermission } from '@/components/auth/withPermission';
-import { getModulePermission } from '@/lib/permissions';
 
 type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | null;
 
 function CreateRolePage() {
-  const { user } = useAuth();
   const router = useRouter();
-  const userRole = user?.user_metadata?.role;
-
-  // Check if user is super_admin
-  useEffect(() => {
-    if (userRole !== 'super_admin') {
-      toast.error('Unauthorized. Only super admins can access this page.');
-      router.push('/admin/dashboard');
-    }
-  }, [userRole, router]);
 
   const [createRole, { isLoading: isCreating }] = useCreateRoleMutation();
   const {
@@ -191,24 +177,6 @@ function CreateRolePage() {
     }
   };
 
-  if (userRole !== 'super_admin') {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Unauthorized</CardTitle>
-            <CardDescription>Only super admins can access this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/admin/dashboard')}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (isModulesLoading) {
     return (
       <div className="container mx-auto py-8">
@@ -355,11 +323,4 @@ function CreateRolePage() {
   );
 }
 
-export default withPermission(
-  [getModulePermission("view", "role"), getModulePermission("create", "role")],
-  {
-    redirectTo: "/admin/roles",
-    requireAll: true,
-    denyMessage: "View permission is required to create roles.",
-  }
-)(CreateRolePage);
+export default CreateRolePage;

@@ -1,32 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   useGetModulesQuery,
   useGetRoleQuery,
-  type ModulePermission,      
+  type ModulePermission,
 } from '@/lib/redux/features';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'react-toastify';
 import { ArrowLeft, Edit, Loader2, Check, X } from 'lucide-react';
-import { selectUserRole } from '@/lib/redux/features';
-import { useAppSelector } from '@/lib/redux/hooks';
 
 export default function RoleViewPage() {
   const router = useRouter();
   const params = useParams();
   const roleId = Number(params.id);
-  const userRole = useAppSelector(selectUserRole);
-
-  // Check if user is super_admin
-  useEffect(() => {
-    if (userRole !== 'super_admin') {
-      toast.error('Unauthorized. Only super admins can access this page.');
-      router.push('/admin/dashboard');
-    }
-  }, [userRole, router]);
 
   const { data: role, isLoading, error } = useGetRoleQuery(roleId);
   const {
@@ -34,24 +21,6 @@ export default function RoleViewPage() {
     isLoading: isModulesLoading,
     error: modulesError,
   } = useGetModulesQuery();
-
-  if (userRole !== 'super_admin') {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Unauthorized</CardTitle>
-            <CardDescription>Only super admins can access this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/admin/dashboard')}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (isLoading || isModulesLoading) {
     return (
@@ -112,7 +81,7 @@ export default function RoleViewPage() {
     return { permissionIds };
   };
 
-    const rolePermissionState = getRolePermissionState(
+  const rolePermissionState = getRolePermissionState(
     normalizeModulePermissions(role.permissions as Array<ModulePermission | number>)
   );
   const permissionIds = rolePermissionState?.permissionIds ?? new Set<number>();
