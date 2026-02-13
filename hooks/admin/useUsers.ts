@@ -34,7 +34,7 @@ export const useUsers = (): UseUsersReturn => {
     const [filters, setFilters] = useState<UserFilters>({
         page: 1,
         status: undefined,
-        search: undefined
+        term: undefined
     })
 
     const transformUserToTableUser = (user: any): TableUser => ({
@@ -46,7 +46,7 @@ export const useUsers = (): UseUsersReturn => {
 
     const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery({
         page: filters.page || 1,
-        search: filters.search,
+        term: filters.search,
         status: filters.status
     })
 

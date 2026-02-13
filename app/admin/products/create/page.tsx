@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +17,7 @@ import {
 import {
     useCreateProductMutation,
     type ProductStatus,
+    type CreateProductData,
 } from '@/lib/redux/features';
 import { useProductForm } from '../components/useProductForm';
 import { useEffect, useRef } from 'react';
@@ -83,50 +85,65 @@ function CreateProductPage() {
             return;
         }
 
-        const submitData = new FormData();
+        const submitData: CreateProductData = {
+            name: formData.name.trim(),
+            sku: formData.sku.trim(),
+            selling_price: parseFloat(formData.selling_price),
+            face_value: parseFloat(formData.face_value),
+            currency: formData.currency,
+            status: formData.status,
+            is_out_of_stock: formData.is_out_of_stock,
+        };
 
-        // Add required fields
-        submitData.append('name', formData.name.trim());
-        submitData.append('sku', formData.sku.trim());
-        submitData.append('selling_price', formData.selling_price);
-        submitData.append('face_value', formData.face_value);
-        submitData.append('currency', formData.currency);
-        submitData.append('status', formData.status);
-
-        // Add optional fields only if they have values
         if (formData.brand_id.trim()) {
             const brandId = parseInt(formData.brand_id);
             if (!isNaN(brandId)) {
-                submitData.append('brand_id', brandId.toString());
+                submitData.brand_id = brandId;
             }
         }
-        // if (formData.description.trim()) submitData.append('description', formData.description.trim());
-        if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
-        if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
+        if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
+        if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
 
-        // Handle image - append the File object directly
-        if (formData.image) {
-            if (formData.image instanceof File) {
-                submitData.append('image', formData.image);
-            } else if (typeof formData.image === 'string' && formData.image.trim()) {
-                submitData.append('image', formData.image.trim());
-            }
+        if (typeof formData.image === 'string' && formData.image.trim()) {
+            submitData.image = formData.image.trim();
         }
 
-        // Parse tags from comma-separated string
         if (formData.tags.trim()) {
-            const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-            tags.forEach(tag => submitData.append('tags[]', tag));
+            submitData.tags = formData.tags
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0);
         }
 
-        // Parse regions from comma-separated string
         if (formData.regions.trim()) {
-            const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
-            regions.forEach(region => submitData.append('regions[]', region));
+            submitData.regions = formData.regions
+                .split(',')
+                .map(region => region.trim())
+                .filter(region => region.length > 0);
+        }
+
+        let payload: FormData | typeof submitData = submitData;
+        if (formData.image instanceof File) {
+            const formPayload = new FormData();
+            Object.entries(submitData).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
+                    return;
+                }
+                if (typeof value === "boolean") {
+                    formPayload.append(key, value ? "true" : "false");
+                    return;
+                }
+                if (value !== undefined && value !== null) {
+                    formPayload.append(key, String(value));
+                }
+            });
+            formPayload.append('image', formData.image);
+            payload = formPayload;
         }
 
         try {
-            const result = await createProduct(submitData).unwrap();
+            const result = await createProduct(payload).unwrap();
             if (result?.id) {
                 toast.success("Product created successfully");
                 router.push(`/admin/products/${result.id}`);
@@ -159,9 +176,24 @@ function CreateProductPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Information */}
                 <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b px-6 py-4">
-                        <h2 className="text-lg font-semibold">Basic Information</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
+                    <div className="border-b flex justify-between items-center px-6 py-4">
+                        <div>
+                            <h2 className="text-lg font-semibold">Basic Information</h2>
+                            <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-md px-0 py-2">
+                            <Checkbox
+                                id="is_out_of_stock"
+                                checked={formData.is_out_of_stock}
+                                className="cursor-pointer"
+                                onCheckedChange={(checked) =>
+                                    updateFormData({ is_out_of_stock: checked === true })
+                                }
+                            />
+                            <Label htmlFor="is_out_of_stock" className="text-sm font-medium">
+                                Out of stock
+                            </Label>
+                        </div>
                     </div>
                     <div className="p-6 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -252,21 +284,23 @@ function CreateProductPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
-                            >
-                                <SelectTrigger ref={statusRef} className="h-10" id="status">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="in_active">Inactive</SelectItem>
-                                    <SelectItem value="archived">Archived</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                                <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
+                                >
+                                    <SelectTrigger ref={statusRef} className="h-10" id="status">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="in_active">Inactive</SelectItem>
+                                        <SelectItem value="archived">Archived</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
 
