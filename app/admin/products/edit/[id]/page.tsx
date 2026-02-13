@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +34,16 @@ function EditProductPage({ params }: EditProductPageProps) {
     const router = useRouter();
     const { id } = use(params);
     const productId = parseInt(id);
-    const { data: product, isLoading: isLoadingProduct } = useGetProductQuery(productId);
+    const toBoolean = (value: unknown) => {
+        if (typeof value === "boolean") return value;
+        if (typeof value === "number") return value === 1;
+        if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+        return false;
+    };
+    const { data: product, isLoading: isLoadingProduct } = useGetProductQuery(
+        productId,
+        { refetchOnMountOrArgChange: true }
+    );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
     const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
@@ -66,7 +76,8 @@ function EditProductPage({ params }: EditProductPageProps) {
                 tags: product.tags?.join(', ') || '',
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
-                face_value: product.face_value?.toString() ?? ''
+                face_value: product.face_value?.toString() ?? '',
+                is_out_of_stock: toBoolean(product.is_out_of_stock),
             }
         );
     }, [product, brandsData]);
@@ -90,47 +101,61 @@ function EditProductPage({ params }: EditProductPageProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (validateForm(false, '')) {
-            const submitData = new FormData();
+            const submitData: Record<string, unknown> = {
+                name: formData.name.trim(),
+                selling_price: formData.selling_price,
+                status: formData.status,
+                currency: formData.currency,
+                face_value: formData.face_value,
+                is_out_of_stock: formData.is_out_of_stock,
+            };
 
-            // Add required fields
-            submitData.append('name', formData.name.trim());
-            submitData.append('selling_price', formData.selling_price);
-            submitData.append('status', formData.status);
-            submitData.append('currency', formData.currency);
-            submitData.append('face_value', formData.face_value);
-
-            // Add optional fields only if they have values
             if (formData.brand_id.trim()) {
                 const brandId = parseInt(formData.brand_id);
                 if (!isNaN(brandId)) {
-                    submitData.append('brand_id', brandId.toString());
+                    submitData.brand_id = brandId;
                 }
             }
-            // if (formData.description.trim()) submitData.append('description', formData.description.trim());
-            if (formData.short_description.trim()) submitData.append('short_description', formData.short_description.trim());
-            if (formData.long_description.trim()) submitData.append('long_description', formData.long_description.trim());
+            if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
+            if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
 
-            // Handle image - append the File object directly
-            if (formData.image instanceof File) {
-                submitData.append("image", formData.image);
-            }
-
-            // Parse tags from comma-separated string
             if (formData.tags.trim()) {
-                const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-                tags.forEach(tag => submitData.append('tags[]', tag));
+                submitData.tags = formData.tags
+                    .split(',')
+                    .map(tag => tag.trim())
+                    .filter(tag => tag.length > 0);
             }
 
-            // Parse regions from comma-separated string
             if (formData.regions.trim()) {
-                const regions = formData.regions.split(',').map(region => region.trim()).filter(region => region.length > 0);
-                regions.forEach(region => submitData.append('regions[]', region));
+                submitData.regions = formData.regions
+                    .split(',')
+                    .map(region => region.trim())
+                    .filter(region => region.length > 0);
+            }
+
+            let payload: FormData | typeof submitData = submitData;
+            if (formData.image instanceof File) {
+                const formPayload = new FormData();
+                Object.entries(submitData).forEach(([key, value]) => {
+                    if (Array.isArray(value)) {
+                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
+                        return;
+                    }
+                    if (typeof value === "boolean") {
+                        formPayload.append(key, value ? "true" : "false");
+                        return;
+                    }
+                    if (value !== undefined && value !== null) {
+                        formPayload.append(key, String(value));
+                    }
+                });
+                formPayload.append("image", formData.image);
+                payload = formPayload;
             }
 
             try {
-                await updateProduct({ id: productId, data: submitData });
+                await updateProduct({ id: productId, data: payload });
                 toast.success("Product updated successfully");
             } catch (error) {
                 toast.error('Failed to update product');
@@ -165,7 +190,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             </div>
         );
     }
-
+    console.log(formData.is_out_of_stock);
 
     return (
         <div className="container mx-auto py-8 max-w-4xl">
@@ -187,10 +212,24 @@ function EditProductPage({ params }: EditProductPageProps) {
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Information */}
                 <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b px-6 py-4">
+                    <div className="border-b flex justify-between items-center px-6 py-4">
+                        <div>
                         <h2 className="text-lg font-semibold">Basic Information</h2>
                         <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
+                        </div>
+                        <div className="">
+                                <div className="flex items-center gap-2 rounded-md px-0 py-2 ">
+                                <Checkbox
+                                    id="is_out_of_stock"
+                                    checked={formData.is_out_of_stock}
+                                    className="cursor-pointer"
+                                    onCheckedChange={(checked) => updateFormData({ is_out_of_stock: checked === true })}
+                                />
+                                <Label htmlFor="is_out_of_stock" className="text-sm font-medium">Out of stock</Label>
+                                </div>
+                            </div>
                     </div>
+                    
                     <div className="p-6 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
@@ -219,13 +258,13 @@ function EditProductPage({ params }: EditProductPageProps) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                             <BrandSelector
                                 value={formData.brand_id}
                                 onChange={(value) => updateFormData({ brand_id: String(value) })}
                                 error={errors.brand}
                             />
-
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
                                 <Input
                                     id="selling_price"
@@ -240,7 +279,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">      
                             <div className="space-y-2">
                                 <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
                                 <Select
@@ -257,7 +296,6 @@ function EditProductPage({ params }: EditProductPageProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
-
                             <div className="space-y-2">
                                 <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
                                 <Input
@@ -272,23 +310,28 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 />
                                 {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
+
+                          
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
-                            <Select
-                                key={formData.status}
-                                value={formData.status}
-                                onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
-                            >
-                                <SelectTrigger className="h-10">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="in_active">Inactive</SelectItem>
-                                    <SelectItem value="archived">Archived</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
+                            <div className="space-y-2">
+                                <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
+                                <Select
+                                    key={formData.status}
+                                    value={formData.status}
+                                    onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
+                                >
+                                    <SelectTrigger className="h-10">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="in_active">Inactive</SelectItem>
+                                        <SelectItem value="archived">Archived</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                           
                         </div>
                     </div>
                 </div>

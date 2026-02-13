@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -46,6 +47,12 @@ export const ProductFormDialog = ({
   onClose,
   onSubmit,
 }: ProductFormDialogProps) => {
+  const toBoolean = (value: unknown) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "string") return value.toLowerCase() === "true" || value === "1";
+    return false;
+  };
   const { formData, setFormData, errors, validateForm, resetForm, updateFormData } = useProductForm(isEditMode);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
 
@@ -68,7 +75,6 @@ export const ProductFormDialog = ({
           brandId = String(foundBrand.id);
         }
       }
-
       setFormData({
         name: selectedProduct.name,
         brand_id: brandId,
@@ -83,6 +89,7 @@ export const ProductFormDialog = ({
         regions: selectedProduct.regions?.join(', ') || '',
         currency: selectedProduct.currency,
         face_value: selectedProduct.face_value?.toString(),
+        is_out_of_stock: toBoolean(selectedProduct?.is_out_of_stock),
       });
     } else {
       resetForm();
@@ -97,6 +104,7 @@ export const ProductFormDialog = ({
         sku: formData.sku.trim(),
         selling_price: parseFloat(formData.selling_price),
         status: formData.status,
+        is_out_of_stock: formData.is_out_of_stock,
       };
 
       // Add optional fields only if they have values
@@ -138,10 +146,27 @@ export const ProductFormDialog = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Product' : 'Create Product'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? 'Update product information' : 'Add a new product to your inventory'}
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <DialogTitle>{isEditMode ? 'Edit Product' : 'Create Product'}</DialogTitle>
+              <DialogDescription>
+                {isEditMode ? 'Update product information' : 'Add a new product to your inventory'}
+              </DialogDescription>
+            </div>
+            <div className="flex items-center gap-2 rounded-md px-0 py-2">
+              <Checkbox
+                id="is_out_of_stock"
+                checked={formData.is_out_of_stock}
+                className="cursor-pointer"
+                onCheckedChange={(checked) =>
+                  updateFormData({ is_out_of_stock: checked === true })
+                }
+              />
+              <Label htmlFor="is_out_of_stock" className="text-sm font-medium">
+                Out of stock
+              </Label>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -257,22 +282,24 @@ export const ProductFormDialog = ({
             {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="status">Status *</Label>
-            <Select
-              required
-              value={formData.status}
-              onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="in_active">Inactive</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                required
+                value={formData.status}
+                onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="in_active">Inactive</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
