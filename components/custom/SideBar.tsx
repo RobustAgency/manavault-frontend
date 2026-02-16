@@ -1,22 +1,9 @@
 import Link from "next/link";
-import { LayoutDashboard, Settings as SettingsIcon, LogOut, CreditCard, FileChartColumnIncreasing } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-
-const adminRoutes = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-];
-const userRoutes = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/plans", label: "Plans", icon: CreditCard },
-    { href: "/invoices", label: "Invoices", icon: FileChartColumnIncreasing },
-];
-
-const baseRoutes = [
-    { href: "/settings", label: "Settings", icon: SettingsIcon },
-    { href: "/logout", label: "Logout", icon: LogOut },
-];
+import { adminRoutes, userRoutes, baseRoutes } from "@/lib/navigationRoutes";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useAppSelector } from "@/lib/redux/hooks";
+import { selectUserRole } from "@/lib/redux/features";
 
 export function Sidebar({
     collapsed = false,
@@ -25,9 +12,36 @@ export function Sidebar({
     collapsed?: boolean;
     onNavigate: () => void;
 }) {
-    const { user } = useAuth();
-    const role = user?.user_metadata?.role ?? "user"
-    const navigationRoutes = role === "admin" ? adminRoutes : userRoutes;
+    const role = useAppSelector(selectUserRole) ?? "user";
+    const { modules } = usePermissions();
+
+    // Determine base routes based on role
+    const allowedModuleSlugs = new Set(modules.map((module) => module.slug));
+    const moduleRoutes = adminRoutes.filter(
+        (route) =>
+            route.moduleSlug &&
+            allowedModuleSlugs.has(route.moduleSlug)
+    );
+    const dashboardRoute = adminRoutes.find((route) => route.href === "/admin/dashboard");
+    const adminDynamicRoutes = [
+        ...(dashboardRoute ? [dashboardRoute] : []),
+        ...moduleRoutes,
+    ];
+
+    let navigationRoutes =
+        role === "super_admin"
+            ? adminRoutes
+            : role === "admin"
+                ? (adminDynamicRoutes.length > 0 ? adminDynamicRoutes : adminRoutes)
+                : [...userRoutes, ...moduleRoutes];
+
+    // Filter out Users route if not super_admin
+    if (role === "admin") {
+        navigationRoutes = navigationRoutes.filter(route =>
+            route.href !== "/admin/users"
+        );
+    }
+
     const pathname = usePathname();
     return (
         <div className="flex h-full flex-col overflow-hidden">
@@ -35,7 +49,7 @@ export function Sidebar({
                 aria-details="logo"
                 className="flex items-center justify-between md:hidden">
                 <Link href="/">
-                    <Image src="/logo.png" alt="logo" width={100} height={100} className='object-cover object-start w-30 h-14' />
+                    <div className='text-2xl font-bold'>Mana Vault</div>
                 </Link>
             </div>
 
@@ -54,7 +68,7 @@ export function Sidebar({
                                 <span className={`whitespace-nowrap`}>{item.label}</span>
                             )}
                             {isActive && (
-                                <div className='absolute top-1/2 -translate-y-1/2 rounded-full -left-1 w-1 h-[calc(100%-10px)] bg-gradient-to-r from-black via-neutral-800 to-gray-900'></div>
+                                <div className='absolute top-1/2 -translate-y-1/2 rounded-full -left-1 w-1 h-[calc(100%-10px)] bg-linear-to-r from-black via-neutral-800 to-gray-900'></div>
                             )}
                         </Link>
                     )

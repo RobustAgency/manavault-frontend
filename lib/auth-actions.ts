@@ -6,21 +6,42 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
-    const supabase = await createClient();
+    try {
+        const supabase = await createClient();
 
-    const data = {
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-    };
+        const data = {
+            email: formData.get("email") as string,
+            password: formData.get("password") as string,
+        };
 
-    const { data: { user }, error } = await supabase.auth.signInWithPassword(data);
+        const { data: { user }, error } = await supabase.auth.signInWithPassword(data);
 
-    if (error) {
-        return { success: false, message: error.message } as const;
+        if (error) {
+            return { success: false, message: error.message } as const;
+        }
+
+        if (!user) {
+            return { success: false, message: "Login failed. Please try again." } as const;
+        }
+
+        revalidatePath("/", "layout");
+        
+        // Only return serializable user data
+        return { 
+            success: true, 
+            data: {
+                id: user.id,
+                email: user.email,
+                user_metadata: user.user_metadata,
+            }
+        } as const;
+    } catch (error) {
+        console.error("Login error:", error);
+        return { 
+            success: false, 
+            message: error instanceof Error ? error.message : "An unexpected error occurred" 
+        } as const;
     }
-
-    revalidatePath("/", "layout");
-    return { success: true, data: user } as const;
 }
 
 export async function signup(formData: FormData) {
@@ -41,13 +62,34 @@ export async function signup(formData: FormData) {
         },
     };
 
-    const { error } = await supabase.auth.signUp(data);
+    const { data: signUpData, error } = await supabase.auth.signUp(data);
 
     if (error) {
         if (error.message.includes("User already registered")) {
             return { success: false, message: "A user with this email already exists. Please sign in instead." } as const;
         }
         return { success: false, message: error.message } as const;
+    }
+
+    // Create profile record if user was created (even if email confirmation is required)
+    if (signUpData.user) {
+        const { error: profileError } = await supabase
+            .from("profiles")
+            .upsert(
+                {
+                    id: signUpData.user.id,
+                    full_name: fullName,
+                    email: email,
+                },
+                { onConflict: "id" }
+            );
+
+        // Log profile creation error but don't fail signup if profile creation fails
+        // The profile can be created later during email confirmation or first login
+        if (profileError) {
+            console.error("Failed to create profile during signup:", profileError);
+            // Don't return error here - user is created, profile can be created later
+        }
     }
 
     return { success: true } as const;
@@ -135,13 +177,12 @@ export async function updatePassword(formData: FormData) {
         return { success: false, message: "Not authenticated" } as const;
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-    });
 
-    if (signInError) {
-        return { success: false, message: "Current password is incorrect" } as const;
+
+    const { data } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (data?.currentLevel !== "aal2") {
+        return { success: false, message: "MFA verification required" } as const;
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });

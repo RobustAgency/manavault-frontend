@@ -17,11 +17,56 @@ export async function GET(request: NextRequest) {
     if (token_hash && type) {
         const supabase = await createClient()
 
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
             type,
             token_hash,
         })
-        if (!error) {
+        
+        if (!error && data.user) {
+            // Ensure profile exists after email confirmation
+            const user = data.user;
+            const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
+            const email = user.email || '';
+
+            // Try to create/update profile if it doesn't exist
+            await supabase
+                .from("profiles")
+                .upsert(
+                    {
+                        id: user.id,
+                        full_name: fullName,
+                        email: email,
+                    },
+                    { onConflict: "id" }
+                );
+
+            // Handle password recovery separately - don't check MFA for password resets
+            if (type === 'recovery') {
+                // For password reset, redirect to update-password page (or use next param if provided)
+                redirectTo.pathname = next !== '/' ? next : '/update-password';
+                redirectTo.searchParams.delete('next')
+                return NextResponse.redirect(redirectTo)
+            }
+
+            // For other email verification types (signup, email change, etc.), check MFA status
+            const { data: factorsData } = await supabase.auth.mfa.listFactors();
+            const hasMFAEnrolled = factorsData?.totp && factorsData.totp.length > 0;
+
+            // Redirect to MFA setup if not enrolled, otherwise check verification status
+            if (!hasMFAEnrolled) {
+                redirectTo.pathname = '/setup-mfa';
+            } else {
+                // If MFA is already set up, check if verification is needed
+                const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+                const needsMFAVerification = aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2';
+                
+                if (needsMFAVerification) {
+                    redirectTo.pathname = '/verify-mfa';
+                } else {
+                    redirectTo.pathname = next !== '/' ? next : '/dashboard';
+                }
+            }
+
             redirectTo.searchParams.delete('next')
             return NextResponse.redirect(redirectTo)
         }

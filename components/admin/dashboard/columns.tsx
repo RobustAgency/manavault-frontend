@@ -28,14 +28,14 @@ export const createColumns = (onRefresh?: () => void): ColumnDef<TableUser>[] =>
         accessorKey: "email",
         header: "Email",
     },
-    {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const status = row.getValue("status") as TableUser["status"]
-            return getStatusBadge(status)
-        },
-    },
+    // {
+    //     accessorKey: "status",
+    //     header: "Status",
+    //     cell: ({ row }) => {
+    //         const status = row.getValue("status") as TableUser["status"]
+    //         return getStatusBadge(status)
+    //     },
+    // },
     {
         id: "actions",
         header: "Actions",

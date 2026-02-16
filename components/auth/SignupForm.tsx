@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { signup } from "@/lib/auth-actions";
-import SignInWithGoogleButton from "./SignInWithGoogleButton";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -37,7 +36,10 @@ function SubmitButton() {
 }
 
 export function SignUpForm() {
-    const formRef = useRef<HTMLFormElement | null>(null);
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
     const [state, formAction] = useActionState(
         async (_prevState: unknown, formData: FormData) => {
             const result = await signup(formData);
@@ -50,9 +52,13 @@ export function SignUpForm() {
         if (!state) return;
         if (state.success) {
             toast.success("A verification email has been sent.");
-            formRef.current?.reset();
+            // Clear inputs only on success
+            setFullName("");
+            setEmail("");
+            setPassword("");
         } else if (state.message) {
             toast.error(state.message);
+            // Inputs remain unchanged on error
         }
     }, [state]);
 
@@ -65,7 +71,7 @@ export function SignUpForm() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form ref={formRef} action={formAction}>
+                <form action={formAction}>
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="full-name">Full name</Label>
@@ -73,6 +79,8 @@ export function SignUpForm() {
                                 name="full-name"
                                 id="full-name"
                                 placeholder="Max Robinson"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
                                 required
                             />
                         </div>
@@ -83,18 +91,25 @@ export function SignUpForm() {
                                 id="email"
                                 type="email"
                                 placeholder="m@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password">Password</Label>
-                            <PasswordInput name="password" id="password" />
+                            <PasswordInput
+                                name="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
                         <SubmitButton />
                     </div>
                 </form>
                 <div className="mt-4">
-                    <SignInWithGoogleButton />
+                    {/* <SignInWithGoogleButton /> */}
                 </div>
                 <div className="mt-4 text-center text-sm">
                     Already have an account?{" "}

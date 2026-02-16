@@ -2,12 +2,32 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreVertical } from "lucide-react"
 import { TableUser } from "@/hooks/admin/useUsers"
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog"
-import { usersService } from "@/service/admin/users"
+import { deleteUser } from "@/lib/admin-actions"
 import { toast } from "react-toastify"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { useAssignUserRoleMutation, useGetRolesQuery } from "@/lib/redux/features"
+import { userInfoApi } from "@/lib/redux/features/userInfoApi"
+import { useAppDispatch } from "@/lib/redux/hooks"
+import { usePermissions } from "@/hooks/usePermissions"
+import { getModulePermission, hasPermission } from "@/lib/permissions"
+import { useDeleteUserMutation } from "@/lib/redux/features/usersApi"
 
 interface ActionCellProps {
     user: TableUser
@@ -15,11 +35,22 @@ interface ActionCellProps {
 }
 
 const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
+    const { permissionSet } = usePermissions()
+    const dispatch = useAppDispatch()
     const [showDialog, setShowDialog] = useState(false)
-    const [currentAction, setCurrentAction] = useState<"approve" | "reject" | null>(null)
+    const [showAssignDialog, setShowAssignDialog] = useState(false)
+    const [currentAction, setCurrentAction] = useState<"approve" | "delete" | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
 
-    const handleActionClick = (action: "approve" | "reject") => {
+    const { data: rolesData, isLoading: isRolesLoading } = useGetRolesQuery(
+        { per_page: 100 },
+        { skip: !showAssignDialog }
+    )
+    const [assignUserRole, { isLoading: isAssigning }] = useAssignUserRoleMutation()
+    const [deleteUser] = useDeleteUserMutation()
+
+    const handleActionClick = (action: "approve" | "delete") => {
         setCurrentAction(action)
         setShowDialog(true)
     }
@@ -31,17 +62,21 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
         }
     }
 
+    const handleAssignClose = () => {
+        if (!isAssigning) {
+            setShowAssignDialog(false)
+            setSelectedRoleId(null)
+        }
+    }
+
     const handleApprove = async () => {
         setIsLoading(true)
         try {
-            const response = await usersService.approveUser(user.id)
-            if (response.error) {
-                toast.error(response.message || "Failed to approve user")
-            } else {
-                toast.success(response.message || "User approved successfully")
-                handleClose()
-                onRefresh?.()
-            }
+            // Since users are auto-confirmed when created, approve action might not be needed
+            // But keeping it for now in case you want to implement approval logic later
+            toast.info("Users are automatically approved when created")
+            handleClose()
+            onRefresh?.()
         } catch {
             toast.error("Error approving user")
         } finally {
@@ -49,34 +84,45 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
         }
     }
 
-    const handleReject = async () => {
+    const handleDelete = async () => {
         setIsLoading(true)
         try {
-            const response = await usersService.rejectUser(user.id)
-            if (response.error) {
-                toast.error(response.message || "Failed to reject user")
-            } else {
-                toast.success(response.message || "User rejected successfully")
-                handleClose()
-                onRefresh?.()
-            }
+            await deleteUser(user.id.toString()).unwrap()
+            toast.success("User deleted successfully")
+            handleClose()
+            onRefresh?.()
         } catch {
-            toast.error("Error rejecting user")
+            toast.error("Error deleting user")
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const handleAssignSubmit = async () => {
+        if (!selectedRoleId) {
+            toast.error("Please select a role")
+            return
+        }
+        try {
+            await assignUserRole({ userId: user.id.toString(), roleId: selectedRoleId }).unwrap()
+            toast.success("Role assigned successfully")
+            handleAssignClose()
+            dispatch(userInfoApi.util.invalidateTags([{ type: "UserInfo", id: "LIST" }]))
+            onRefresh?.()
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to assign role")
         }
     }
 
     const handleConfirm = () => {
         if (currentAction === "approve") {
             handleApprove()
-        } else if (currentAction === "reject") {
-            handleReject()
+        } else if (currentAction === "delete") {
+            handleDelete()
         }
     }
 
     const isApproved = user.status === "approved"
-    const isRejected = user.status === "rejected"
 
     const getDialogConfig = () => {
         if (currentAction === "approve") {
@@ -86,11 +132,11 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                 confirmText: "Approve",
                 type: "success" as const
             }
-        } else if (currentAction === "reject") {
+        } else if (currentAction === "delete") {
             return {
-                title: "Reject User",
-                description: `Are you sure you want to reject ${user.full_name}?`,
-                confirmText: "Reject",
+                title: "Delete User",
+                description: `Are you sure you want to delete ${user.full_name}? This action cannot be undone.`,
+                confirmText: "Delete",
                 type: "danger" as const
             }
         }
@@ -103,33 +149,56 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
     }
 
     const dialogConfig = getDialogConfig()
+    const canAssignRole = hasPermission(getModulePermission("edit", "user"), permissionSet)
+    const canDelete = hasPermission(getModulePermission("delete", "user"), permissionSet)
+
+    if (!canAssignRole && !canDelete) {
+        return null
+    }
 
     return (
         <>
-            <DropdownMenu>
+            <div className="flex gap-2">
+                {canAssignRole && (
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowAssignDialog(true)}
+                    >
+                        Assign Role
+                    </Button>
+                )}
+                {canDelete && (
+                    <Button
+                        color="red"
+                        onClick={() => handleActionClick("delete")}
+                    >
+                        Delete
+                    </Button>
+                )}
+            </div>
+            {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                         <MoreVertical className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem
+                     <DropdownMenuItem
                         onClick={() => handleActionClick("approve")}
                         disabled={isApproved}
                         className={`${!isApproved && 'cursor-pointer'}`}
                     >
                         {isApproved ? "Approved" : "Approve"}
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                        onClick={() => handleActionClick("reject")}
-                        disabled={isRejected}
-                        className={`${!isRejected && 'cursor-pointer'}`}
+                        onClick={() => handleActionClick("delete")}
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                     >
-                        {isRejected ? "Rejected" : "Reject"}
+                        Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu>  */}
 
             {currentAction && (
                 <ConfirmationDialog
@@ -143,6 +212,55 @@ const ActionCell = ({ user, onRefresh }: ActionCellProps) => {
                     isLoading={isLoading}
                 />
             )}
+
+            <Dialog open={showAssignDialog} onOpenChange={(open) => !open && handleAssignClose()}>
+                <DialogContent className="sm:max-w-[420px]">
+                    <DialogHeader>
+                        <DialogTitle>Assign Role</DialogTitle>
+                        <DialogDescription>
+                            Select a role to assign to {user.full_name}.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {isRolesLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
+                            Loading roles...
+                        </div>
+                    ) : (
+                        <div className="grid gap-2">
+                            <Label htmlFor={`role-select-${user.id}`}>Role</Label>
+                            <Select
+                                value={selectedRoleId ? selectedRoleId.toString() : undefined}
+                                onValueChange={(value) => setSelectedRoleId(Number(value))}
+                            >
+                                <SelectTrigger id={`role-select-${user.id}`}>
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {(rolesData?.data ?? []).map((role) => (
+                                        <SelectItem key={role.id} value={role.id.toString()}>
+                                            {role.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {(rolesData?.data ?? []).length === 0 && (
+                                <p className="text-xs text-muted-foreground">No roles available.</p>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={handleAssignClose} disabled={isAssigning}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAssignSubmit} disabled={isAssigning || isRolesLoading}>
+                            {isAssigning ? "Assigning..." : "Assign Role"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

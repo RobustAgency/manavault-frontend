@@ -1,42 +1,60 @@
-"use client"
+"use client";
 
-import { useActionState, useEffect, useRef } from "react"
-import { toast } from "react-toastify"
-import { useFormStatus } from "react-dom"
+import { useActionState, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { useFormStatus } from "react-dom";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { PasswordInput } from "@/components/ui/password-input"
-import { updatePassword } from "@/lib/auth-actions"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
+import { updatePassword } from "@/lib/auth-actions";
+import { useRouter } from "next/navigation";
+
+type UpdatePasswordState =
+  | { success: true; message?: string; requiresMFA?: false }
+  | { success: false; message: string; requiresMFA?: false }
+  | { success: false; message: string; requiresMFA: true };
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" className="cursor-pointer min-w-[100px] w-max min-h-[40px] text-white" disabled={pending}>
       {pending ? "Updating..." : "Update password"}
     </Button>
-  )
+  );
 }
 
 export default function ChangePasswordForm() {
-  const formRef = useRef<HTMLFormElement | null>(null)
-  const [state, formAction] = useActionState(
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const router = useRouter();
+  const [state, formAction] = useActionState<UpdatePasswordState | null, FormData>(
     async (_prev: unknown, formData: FormData) => {
-      return await updatePassword(formData)
+      return await updatePassword(formData);
     },
-    null as null | { success: boolean; message?: string }
-  )
+    null as null | UpdatePasswordState
+  );
 
   useEffect(() => {
-    if (!state) return
+    if (!state) return;
     if (state.success) {
-      toast.success("Password updated")
-      formRef.current?.reset()
+      toast.success("Password updated");
+      formRef.current?.reset();
     } else if (state.message) {
-      toast.error(state.message)
+      toast.error(state.message);
     }
-  }, [state])
+    if (state.requiresMFA) {
+      sessionStorage.setItem("returnUrl", "/update-password");
+      router.push("/verify-mfa");
+      return;
+    }
+  }, [state]);
 
   return (
     <Card>
@@ -64,7 +82,5 @@ export default function ChangePasswordForm() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-
-

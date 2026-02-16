@@ -1,9 +1,7 @@
 "use client"
-import Link from "next/link"
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect, useState, useRef } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "react-toastify"
-import type { User } from "@supabase/supabase-js"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,7 +15,8 @@ import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { login } from "@/lib/auth-actions"
-import SignInWithGoogleButton from "@/components/auth/SignInWithGoogleButton"
+import { useCreateLoginLogMutation } from "@/lib/redux/features"
+import { createLoginLogData } from "@/lib/login-log-utils"
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -29,29 +28,80 @@ function SubmitButton() {
 }
 
 export function LoginForm() {
-    const formRef = useRef<HTMLFormElement | null>(null);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [createLoginLog] = useCreateLoginLogMutation();
+    const loggedLoginStateRef = useRef<string | null>(null);
+
     const [state, formAction] = useActionState(
-        async (_prev: null | { success: false; message: string } | { success: true; data: User | null }, formData: FormData) => {
-            const result = await login(formData);
-            return result;
+        async (_prev: null | { success: false; message: string } | { success: true; data: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null }, formData: FormData) => {
+            try {
+                const result = await login(formData);
+                return result;
+            } catch (error) {
+                console.error("Login form error:", error);
+                return {
+                    success: false,
+                    message: error instanceof Error ? error.message : "An unexpected error occurred"
+                } as const;
+            }
         },
-        null as null | { success: false; message: string } | { success: true; data: User | null }
+        null as null | { success: false; message: string } | { success: true; data: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null }
     );
 
     useEffect(() => {
         if (!state) return;
         if (state.success) {
+            // Create a unique key for this login state to prevent duplicates
+            const stateKey = state.data?.id || state.data?.email || 'unknown';
+
+            // Prevent duplicate login log creation for the same login
+            if (loggedLoginStateRef.current === stateKey) return;
+            loggedLoginStateRef.current = stateKey;
+
             toast.success("Logged in successfully");
-            formRef.current?.reset();
-            if (state.data?.user_metadata?.role === "admin") {
-                window.location.href = "/admin/dashboard";
+
+            // Create login log entry and wait for it to complete before redirecting
+            const userEmail = state.data?.email || email;
+            if (userEmail) {
+                // Use async IIFE to properly await the login log creation
+                (async () => {
+                    try {
+                        const logData = await createLoginLogData(userEmail, 'login');
+                        await createLoginLog(logData).unwrap();
+                    } catch (error) {
+                        // Silently fail - don't block login if logging fails
+                        console.error('Failed to log login activity:', error);
+                    } finally {
+                        // Clear inputs only on success
+                        setEmail("");
+                        setPassword("");
+
+                        const userRole = state.data?.user_metadata?.role;
+                        const redirectPath = (userRole === "admin" || userRole === "super_admin")
+                            ? "/admin/dashboard"
+                            : "/admin/dashboard";
+                        window.location.href = redirectPath;
+                    }
+                })();
             } else {
-                window.location.href = "/dashboard";
+                // If no email, redirect immediately
+                setEmail("");
+                setPassword("");
+
+                const userRole = state.data?.user_metadata?.role;
+                const redirectPath = (userRole === "admin" || userRole === "super_admin")
+                    ? "/admin/dashboard"
+                    : "/dashboard";
+                window.location.href = redirectPath;
             }
         } else if (state.message) {
             toast.error(state.message);
+            // Inputs remain unchanged on error
+            // Reset the ref on error so it can be called again on retry
+            loggedLoginStateRef.current = null;
         }
-    }, [state]);
+    }, [state, email, createLoginLog]);
 
     return (
         <Card className="min-w-sm mx-auto max-w-sm">
@@ -62,7 +112,7 @@ export function LoginForm() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form ref={formRef} action={formAction}>
+                <form action={formAction}>
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
@@ -71,28 +121,32 @@ export function LoginForm() {
                                 name="email"
                                 type="email"
                                 placeholder="m@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
                         <div className="grid gap-2">
                             <div className="flex items-center">
                                 <Label htmlFor="password">Password</Label>
-                                <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
-                                    Forgot your password?
-                                </Link>
                             </div>
-                            <PasswordInput id="password" name="password" required />
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            {/* forgot password link */}
+                            <div className="text-sm text-right mt-1">
+                                <a href="/forgot-password" className="text-primary underline hover:text-primary/80">
+                                    Forgot password?
+                                </a>
+                            </div>
                         </div>
                         <SubmitButton />
-                        <SignInWithGoogleButton />
                     </div>
                 </form>
-                <div className="mt-4 text-center text-sm">
-                    Don&apos;t have an account?{" "}
-                    <Link href="/signup" className="underline">
-                        Sign up
-                    </Link>
-                </div>
             </CardContent>
         </Card>
     );
