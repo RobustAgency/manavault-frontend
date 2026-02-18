@@ -1,6 +1,16 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started0-
+## Getting Started
+
+Create a `.env.local` file in the project root with your Supabase keys:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is only required for admin user creation tasks.
 
 First, run the development server:
 
