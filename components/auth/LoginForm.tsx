@@ -101,7 +101,7 @@ export function LoginForm() {
             // Reset the ref on error so it can be called again on retry
             loggedLoginStateRef.current = null;
         }
-    }, [state, email, createLoginLog]);
+    }, [state, createLoginLog]);
 
     return (
         <Card className="min-w-sm mx-auto max-w-sm">
