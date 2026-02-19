@@ -8,6 +8,12 @@ export type TableUser = {
     full_name: string
     email: string
     status: "approved" | "rejected" | "pending"
+    role: Role | null
+}
+
+export type Role = {
+    id: string | number
+    name: string
 }
 
 interface PaginationState {
@@ -37,11 +43,24 @@ export const useUsers = (): UseUsersReturn => {
         term: undefined
     })
 
+    const normalizeRole = (user: any): Role | null => {
+        const roleValue = user?.role ?? user?.role_name ?? user?.role?.name ?? user?.roles?.[0]
+        if (!roleValue) return null
+        if (typeof roleValue === "string") {
+            return { id: "", name: roleValue }
+        }
+        if (typeof roleValue === "object" && roleValue.name) {
+            return { id: roleValue.id ?? "", name: roleValue.name }
+        }
+        return null
+    }
+
     const transformUserToTableUser = (user: any): TableUser => ({
         id: user.id ?? user.supabase_id ?? "",
         full_name: user.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'N/A',
         email: user.email || 'N/A',
-        status: user.is_approved ? 'approved' : 'pending'
+        status: user.is_approved ? 'approved' : 'pending',
+        role: normalizeRole(user)
     })
 
     const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery({

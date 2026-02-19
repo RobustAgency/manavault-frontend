@@ -17,7 +17,7 @@ export interface DigitalProductFormState {
   brand: string;
   description: string;
   tags: string; // Comma-separated string for input
-  image: string;
+  image: string | File;
   cost_price: string;
   region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
@@ -160,7 +160,10 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
         brand: formData.brand.trim() || undefined,
         description: formData.description.trim() || undefined,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
-        image: formData.image.trim() || undefined,
+        image:
+          typeof formData.image === "string" && formData.image.trim()
+            ? formData.image.trim()
+            : undefined,
         cost_price: parseFloat(formData.cost_price),
         regions: regionsArray.length > 0 ? regionsArray : undefined,
         metadata: metadataObj,
@@ -175,7 +178,10 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       brand: formData.brand.trim() || undefined,
       description: formData.description.trim() || undefined,
       tags: tagsArray.length > 0 ? tagsArray : undefined,
-      image: formData.image.trim() || undefined,
+      image:
+        typeof formData.image === "string" && formData.image.trim()
+          ? formData.image.trim()
+          : undefined,
       cost_price: parseFloat(formData.cost_price),
       regions: regionsArray.length > 0 ? regionsArray : undefined,
       metadata: metadataObj,

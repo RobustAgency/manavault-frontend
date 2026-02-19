@@ -46,7 +46,10 @@ export const convertFormToSubmitData = (
     brand: form.brand.trim() || undefined,
     description: form.description.trim() || undefined,
     tags: tagsArray.length > 0 ? tagsArray : undefined,
-    image: form.image.trim() || undefined,
+    image:
+      typeof form.image === "string" && form.image.trim()
+        ? form.image.trim()
+        : undefined,
     cost_price: parseFloat(form.cost_price),
     region: form.region,
     metadata: metadataObj,

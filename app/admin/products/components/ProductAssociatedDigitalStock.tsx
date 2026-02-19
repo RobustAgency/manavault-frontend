@@ -18,6 +18,7 @@ import { useCreateDigitalProductOrderMutation } from '@/lib/redux/features/purch
 import { useRemoveDigitalProductMutation, useUpdateProductMutation } from '@/lib/redux/features';
 import { getStatusColor } from './productColumns';
 import { toast } from 'react-toastify';
+import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { DigitalProduct, Product, ProductStatus } from '@/types';
 
 
@@ -35,6 +36,7 @@ const ProductAssociatedDigitalStock = ({
         useRemoveDigitalProductMutation();
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
     const [sortTableData, setSortTableData] = useState<DigitalProduct[]>(product.digital_products || []);
+    const [deleteDialog, setDeleteDialog] = useState<{ id: number; name: string } | null>(null);
 
     useEffect(() => {
         setIsDraggingRow(product?.is_custom_priority ?? false);
@@ -85,6 +87,12 @@ const ProductAssociatedDigitalStock = ({
         } catch {
             toast.error('Failed to remove digital product');
         }
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteDialog) return;
+        await handleRemoveDigitalProduct(deleteDialog.id);
+        setDeleteDialog(null);
     };
 
     const setDigitalProductsForView = () => {
@@ -164,7 +172,7 @@ const ProductAssociatedDigitalStock = ({
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleRemoveDigitalProduct(row.original.id)}
+                    onClick={() => setDeleteDialog({ id: row.original.id, name: row.original.name })}
                     disabled={isRemovingDigitalProduct}
                     title="Delete"
                 >
@@ -206,6 +214,22 @@ const ProductAssociatedDigitalStock = ({
                     searchPlaceholder="Search digital products..."
                 />
 
+                <ConfirmationDialog
+                    isOpen={Boolean(deleteDialog)}
+                    onClose={() => setDeleteDialog(null)}
+                    onConfirm={handleConfirmDelete}
+                    title="Remove digital product"
+                    description={
+                        deleteDialog
+                            ? `Remove "${deleteDialog.name}" from this product? This action cannot be undone.`
+                            : 'Remove this digital product? This action cannot be undone.'
+                    }
+                    confirmText="Remove"
+                    cancelText="Cancel"
+                    type="danger"
+                    isLoading={isRemovingDigitalProduct}
+                    loadingText="Removing..."
+                />
             </CardContent>
         </Card>
     );

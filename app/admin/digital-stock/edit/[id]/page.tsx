@@ -61,10 +61,29 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
 
         try {
             const submitData = getFormDataForSubmit();
+            let payload: UpdateDigitalProductData | FormData = submitData as UpdateDigitalProductData;
+
+            if (formData.image instanceof File) {
+                const formPayload = new FormData();
+                Object.entries(submitData).forEach(([key, value]) => {
+                    if (value === undefined || value === null || value === '') return;
+                    if (Array.isArray(value)) {
+                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
+                        return;
+                    }
+                    if (typeof value === 'object') {
+                        formPayload.append(key, JSON.stringify(value));
+                        return;
+                    }
+                    formPayload.append(key, String(value));
+                });
+                formPayload.append('image', formData.image);
+                payload = formPayload;
+            }
 
             await updateDigitalProduct({
                 id: productId,
-                data: submitData as UpdateDigitalProductData,
+                data: payload as UpdateDigitalProductData,
             }).unwrap();
 
             toast.success('Digital product updated successfully');
