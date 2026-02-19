@@ -11,5 +11,10 @@
       "directory": ".open-next/assets",
       "binding": "ASSETS"
     },
-    "r2_buckets": []
+  "r2_buckets": [],
+  "env": {
+    "staging": {
+      "name": "manavault-frontend-staging"
+    }
+  }
   }
