@@ -371,6 +371,7 @@ export const ImportVouchersDialog = ({
         error: true,
         message: errorMessage,
       });
+      toast.error(errorMessage);
     }
   }, [
     importVouchers,
