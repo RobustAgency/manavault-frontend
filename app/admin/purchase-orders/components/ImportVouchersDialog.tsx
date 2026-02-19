@@ -305,9 +305,8 @@ export const ImportVouchersDialog = ({
         // Collect voucher codes as flat array with product IDs
         const voucherCodes: Array<{
           code: string;
-          digitalProductID: number;
+          digital_product_id: number;
         }> = [];
-        
         for (const product of internalProducts) {
           const vouchersText = manualVouchers[product.id] || '';
           try {
@@ -317,7 +316,7 @@ export const ImportVouchersDialog = ({
               codes.forEach((code) => {
                 voucherCodes.push({
                   code,
-                  digitalProductID: product.id,
+                  digital_product_id: product.id,
                 });
               });
             }
@@ -366,11 +365,12 @@ export const ImportVouchersDialog = ({
         toast.success(result.message || "Vouchers imported successfully");
 
     } catch (error) {
+      const errorMessage =
+        (error as any)?.data?.message || 'Failed to import vouchers. Please try again.';
       setImportResult({
         error: true,
-        message: 'Failed to import vouchers. Please try again.',
+        message: errorMessage,
       });
-      toast.error('Failed to import vouchers');
     }
   }, [
     importVouchers,
@@ -404,240 +404,237 @@ export const ImportVouchersDialog = ({
 
         <div className="flex-1 overflow-y-auto px-1 -mx-1">
           <div className="space-y-5 px-1">
-          <div className="space-y-2 rounded-lg border border-dashed border-muted p-4">
-            <p className="text-sm font-medium text-muted-foreground">
-              Purchase Order
-            </p>
-            <p className="text-base font-semibold">{purchaseOrderLabel}</p>
-            <div className="text-sm text-muted-foreground">
-              Quantity:{' '}
-              <span className="font-medium">{totalQuantity} units</span>
+            <div className="space-y-2 rounded-lg border border-dashed border-muted p-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Purchase Order
+              </p>
+              <p className="text-base font-semibold">{purchaseOrderLabel}</p>
+              <div className="text-sm text-muted-foreground">
+                Quantity:{' '}
+                <span className="font-medium">{totalQuantity} units</span>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="voucher-file">Vouchers File </Label>
-              <a
-                href="/sample-csv/sample_vouchers.csv"
-                download
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                Download sample CSV
-              </a>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="voucher-file">Vouchers File </Label>
+                <a
+                  href="/sample-csv/sample_vouchers.csv"
+                  download
+                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  Download sample CSV
+                </a>
+              </div>
+              <Input
+                ref={fileInputRef}
+                id="voucher-file"
+                type="file"
+                accept=".csv,.xlsx,.xls,.zip"
+                onChange={handleFileChange}
+                disabled={isImporting || isStoring}
+              />
+              <p className="text-xs text-muted-foreground">
+                Accepted formats: CSV, XLSX, XLS, ZIP (max 10MB)
+              </p>
             </div>
-            <Input
-              ref={fileInputRef}
-              id="voucher-file"
-              type="file"
-              accept=".csv,.xlsx,.xls,.zip"
-              onChange={handleFileChange}
-              disabled={isImporting || isStoring}
-            />
-            <p className="text-xs text-muted-foreground">
-              Accepted formats: CSV, XLSX, XLS, ZIP (max 10MB)
-            </p>
-          </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or
+                </span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or
-              </span>
-            </div>
-          </div>
 
-          {internalProducts.length > 0 && (
-            <div className="space-y-4">
-              <div className="space-y-1 sticky top-0 bg-background z-10 pb-2 border-b">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-base font-semibold">Enter Voucher Codes Manually</Label>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {internalProducts.length} product{internalProducts.length !== 1 ? 's' : ''} • All must have voucher codes
-                    </p>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">
-                      {internalProducts.filter((p) => (manualVouchers[p.id] || '').trim()).length}
-                    </span>
-                    {' / '}
-                    <span className="font-medium text-foreground">{internalProducts.length}</span>
-                    {' completed'}
+            {internalProducts.length > 0 && (
+              <div className="space-y-4">
+                <div className="space-y-1 sticky top-0 bg-background z-10 pb-2 border-b">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-base font-semibold">Enter Voucher Codes Manually</Label>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {internalProducts.length} product{internalProducts.length !== 1 ? 's' : ''} • All must have voucher codes
+                      </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {internalProducts.filter((p) => (manualVouchers[p.id] || '').trim()).length}
+                      </span>
+                      {' / '}
+                      <span className="font-medium text-foreground">{internalProducts.length}</span>
+                      {' completed'}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2.5">
-                {internalProducts.map((product, index) => {
-                  const productVouchers = manualVouchers[product.id] || '';
-                  const hasVouchers = productVouchers.trim().length > 0;
-                  let codeCount = 0;
-                  if (hasVouchers) {
-                    try {
-                      codeCount = parseVoucherCodes(productVouchers).length;
-                    } catch {
-                      codeCount = 0;
+
+                <div className="space-y-2.5">
+                  {internalProducts.map((product, index) => {
+                    const productVouchers = manualVouchers[product.id] || '';
+                    const hasVouchers = productVouchers.trim().length > 0;
+                    let codeCount = 0;
+                    if (hasVouchers) {
+                      try {
+                        codeCount = parseVoucherCodes(productVouchers).length;
+                      } catch {
+                        codeCount = 0;
+                      }
                     }
-                  }
-                  
-                  return (
-                    <div
-                      key={product.id}
-                      className={`relative rounded-lg border-2 transition-all ${
-                        hasVouchers
-                          ? 'border-green-300 bg-green-50/80 shadow-sm'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className="p-3 space-y-2.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                                {index + 1}
-                              </span>
-                              <Label 
-                                htmlFor={`manual-vouchers-${product.id}`} 
-                                className="text-sm font-semibold text-gray-900 truncate"
-                              >
-                                {product.name}
-                              </Label>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 ml-7">
-                              {product.sku && (
-                                <span className="inline-flex items-center gap-1">
-                                  <span className="font-medium">SKU:</span>
-                                  <span className="font-mono">{product.sku}</span>
+
+                    return (
+                      <div
+                        key={product.id}
+                        className={`relative rounded-lg border-2 transition-all ${hasVouchers
+                            ? 'border-green-300 bg-green-50/80 shadow-sm'
+                            : 'border-gray-200 bg-white'
+                          }`}
+                      >
+                        <div className="p-3 space-y-2.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="shrink-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                  {index + 1}
                                 </span>
-                              )}
-                              <span className="inline-flex items-center gap-1">
-                                <span className="font-medium">Qty:</span>
-                                <span className="text-gray-900">{product.quantity}</span>
-                              </span>
+                                <Label
+                                  htmlFor={`manual-vouchers-${product.id}`}
+                                  className="text-sm font-semibold text-gray-900 truncate"
+                                >
+                                  {product.name}
+                                </Label>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 ml-7">
+                                {product.sku && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="font-medium">SKU:</span>
+                                    <span className="font-mono">{product.sku}</span>
+                                  </span>
+                                )}
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="font-medium">Qty:</span>
+                                  <span className="text-gray-900">{product.quantity}</span>
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          {hasVouchers && (
-                            <div className="shrink-0 flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1">
-                              <svg
-                                className="h-3.5 w-3.5 text-green-600"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2.5}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                              <span className="text-xs font-semibold text-green-700">
-                                {codeCount}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-1.5">
-                          <Textarea
-                            id={`manual-vouchers-${product.id}`}
-                            placeholder={`Enter ${product.quantity} voucher code${product.quantity > 1 ? 's' : ''}, one per line...`}
-                            value={productVouchers}
-                            onChange={(e) => handleManualVouchersChange(product.id, e.target.value)}
-                            disabled={isImporting || isStoring}
-                            rows={internalProducts.length > 3 ? 3 : 4}
-                            className={`font-mono text-xs resize-none transition-colors ${
-                              hasVouchers
-                                ? 'border-green-200 focus:border-green-400 focus:ring-green-200'
-                                : 'border-gray-200'
-                            }`}
-                          />
-                          <div className="flex items-center justify-between text-xs">
-                            <p className="text-muted-foreground">
-                              One code per line
-                            </p>
                             {hasVouchers && (
-                              <p className={`font-medium ${
-                                codeCount >= product.quantity
-                                  ? 'text-green-600'
-                                  : 'text-amber-600'
-                              }`}>
-                                {codeCount} / {product.quantity}
-                              </p>
+                              <div className="shrink-0 flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1">
+                                <svg
+                                  className="h-3.5 w-3.5 text-green-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2.5}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                                <span className="text-xs font-semibold text-green-700">
+                                  {codeCount}
+                                </span>
+                              </div>
                             )}
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Textarea
+                              id={`manual-vouchers-${product.id}`}
+                              placeholder={`Enter ${product.quantity} voucher code${product.quantity > 1 ? 's' : ''}, one per line...`}
+                              value={productVouchers}
+                              onChange={(e) => handleManualVouchersChange(product.id, e.target.value)}
+                              disabled={isImporting || isStoring}
+                              rows={internalProducts.length > 3 ? 3 : 4}
+                              className={`font-mono text-xs resize-none transition-colors ${hasVouchers
+                                  ? 'border-green-200 focus:border-green-400 focus:ring-green-200'
+                                  : 'border-gray-200'
+                                }`}
+                            />
+                            <div className="flex items-center justify-between text-xs">
+                              <p className="text-muted-foreground">
+                                One code per line
+                              </p>
+                              {hasVouchers && (
+                                <p className={`font-medium ${codeCount >= product.quantity
+                                    ? 'text-green-600'
+                                    : 'text-amber-600'
+                                  }`}>
+                                  {codeCount} / {product.quantity}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              <div className="rounded-md bg-blue-50 border border-blue-200 px-4 py-3">
-                <p className="text-xs text-blue-800">
-                  <span className="font-semibold">Note:</span> File upload takes precedence if both file and manual codes are provided.
-                </p>
-              </div>
-            </div>
-          )}
+                    );
+                  })}
+                </div>
 
-          {internalProducts.length === 0 && (
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-              <p className="font-medium">No Internal Supplier Products</p>
-              <p className="mt-1">
-                This purchase order does not contain any products from internal suppliers. 
-                Manual voucher entry is only available for internal supplier products.
-              </p>
-            </div>
-          )}
+                <div className="rounded-md bg-blue-50 border border-blue-200 px-4 py-3">
+                  <p className="text-xs text-blue-800">
+                    <span className="font-semibold">Note:</span> File upload takes precedence if both file and manual codes are provided.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {selectedFile && (
-            <div className="flex items-center gap-4 rounded-lg border border-muted px-4 py-3">
-              <FileIcon className="h-10 w-10 text-blue-500" />
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {selectedFile.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(selectedFile.size)}
+            {internalProducts.length === 0 && (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+                <p className="font-medium">No Internal Supplier Products</p>
+                <p className="mt-1">
+                  This purchase order does not contain any products from internal suppliers.
+                  Manual voucher entry is only available for internal supplier products.
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSelectedFile}
-                disabled={isImporting || isStoring}
+            )}
+
+            {selectedFile && (
+              <div className="flex items-center gap-4 rounded-lg border border-muted px-4 py-3">
+                <FileIcon className="h-10 w-10 text-blue-500" />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelectedFile}
+                  disabled={isImporting || isStoring}
+                >
+                  <XCircleIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {validationError && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {validationError}
+              </div>
+            )}
+
+            {importResult && (
+              <div
+                className={`rounded-md border px-4 py-3 text-sm ${importResult.error === false
+                  ? 'border-green-200 bg-green-50 text-green-900'
+                  : 'border-red-200 bg-red-50 text-red-900'
+                  }`}
               >
-                <XCircleIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          {validationError && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {validationError}
-            </div>
-          )}
-
-          {importResult && (
-            <div
-              className={`rounded-md border px-4 py-3 text-sm ${importResult.error === false
-                ? 'border-green-200 bg-green-50 text-green-900'
-                : 'border-red-200 bg-red-50 text-red-900'
-                }`}
-            >
-              <p className="font-medium">
-                {importResult.message ||
-                  (importResult.error === false
-                    ? 'Vouchers imported successfully.'
-                    : 'Unable to import vouchers.')}
-              </p>
-            </div>
-          )}
+                <p className="font-medium">
+                  {importResult.message ||
+                    (importResult.error === false
+                      ? 'Vouchers imported successfully.'
+                      : 'Unable to import vouchers.')}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -652,9 +649,9 @@ export const ImportVouchersDialog = ({
           <Button
             onClick={handleImport}
             disabled={
-              (!selectedFile && 
-               (internalProducts.length === 0 || 
-                !internalProducts.every((p) => (manualVouchers[p.id] || '').trim()))) ||
+              (!selectedFile &&
+                (internalProducts.length === 0 ||
+                  !internalProducts.every((p) => (manualVouchers[p.id] || '').trim()))) ||
               isImporting ||
               isStoring
             }
