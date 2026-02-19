@@ -561,7 +561,7 @@ export interface ImportVouchersData {
 
 export interface VoucherCodeItem {
   code: string;
-  digitalProductID: number;
+  digital_product_id: number;
 }
 
 export interface StoreVouchersData {
