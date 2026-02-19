@@ -171,7 +171,7 @@ export const digitalProductsApi = createApi({
 
     createDigitalProducts: builder.mutation<
       DigitalProduct[],
-      BulkCreateDigitalProductsData
+      BulkCreateDigitalProductsData | FormData
     >({
       query: (data) => ({
         url: "/digital-products",
@@ -205,7 +205,7 @@ export const digitalProductsApi = createApi({
 
     updateDigitalProduct: builder.mutation<
       DigitalProduct,
-      { id: number; data: UpdateDigitalProductData }
+      { id: number; data: UpdateDigitalProductData | FormData }
     >({
       query: ({ id, data }) => ({
         url: `/digital-products/${id}`,

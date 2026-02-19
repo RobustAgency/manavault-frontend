@@ -116,7 +116,7 @@ export interface CreateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string;
+  image?: string | File;
   cost_price: number;
   region?: string;
   metadata?: Record<string, unknown>;
@@ -131,7 +131,7 @@ export interface UpdateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string;
+  image?: string | File;
   cost_price?: number;
   region?: string;
   metadata?: Record<string, unknown>;
