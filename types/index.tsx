@@ -280,7 +280,7 @@ export interface UpdateProductData {
   short_description?: string;
   long_description?: string;
   tags?: string[];
-  image?: string;
+  image?: string | null;
   selling_price?: number;
   status?: ProductStatus;
   regions?: string[];

@@ -46,7 +46,7 @@ function EditProductPage({ params }: EditProductPageProps) {
     );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
-    const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
+    const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (!product || !brandsData?.data) return;
@@ -86,18 +86,31 @@ function EditProductPage({ params }: EditProductPageProps) {
 
     const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
-
-    useEffect(() => {
-        if (isSuccess) {
-            router.push('/admin/products');
+    const handleImageChange = async (value: string | File | null) => {
+        const previousImage = formData.image;
+        updateFormData({ image: value });
+        if (value === null) {
+            try {
+                await updateProduct({ id: productId, data: { image: null } }).unwrap();
+            } catch (error) {
+                updateFormData({ image: previousImage ?? "" });
+            }
+            return;
         }
-    }, [isSuccess, router]);
 
-    useEffect(() => {
-        if (isError) {
-            toast.error('Failed to update product');
+        if (!(value instanceof File)) return;
+
+        try {
+            const payload = (() => {
+                const formPayload = new FormData();
+                formPayload.append("image", value);
+                return formPayload;
+            })();
+            await updateProduct({ id: productId, data: payload }).unwrap();
+        } catch (error) {
+            updateFormData({ image: previousImage ?? "" });
         }
-    }, [isError, error]);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -134,29 +147,10 @@ function EditProductPage({ params }: EditProductPageProps) {
                     .filter(region => region.length > 0);
             }
 
-            let payload: FormData | typeof submitData = submitData;
-            if (formData.image instanceof File) {
-                const formPayload = new FormData();
-                Object.entries(submitData).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
-                        return;
-                    }
-                    if (typeof value === "boolean") {
-                        formPayload.append(key, value ? "true" : "false");
-                        return;
-                    }
-                    if (value !== undefined && value !== null) {
-                        formPayload.append(key, String(value));
-                    }
-                });
-                formPayload.append("image", formData.image);
-                payload = formPayload;
-            }
-
             try {
-                await updateProduct({ id: productId, data: payload });
+                await updateProduct({ id: productId, data: submitData }).unwrap();
                 toast.success("Product updated successfully");
+                router.push('/admin/products');
             } catch (error) {
                 toast.error('Failed to update product');
             }
@@ -190,8 +184,6 @@ function EditProductPage({ params }: EditProductPageProps) {
             </div>
         );
     }
-    console.log(formData.is_out_of_stock);
-
     return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
@@ -393,7 +385,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                     <div className="p-6 space-y-5">
                         <ImagePicker
                             value={isImageExist}
-                            onChange={(value) => updateFormData({ image: value })}
+                            onChange={handleImageChange}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
                         />
