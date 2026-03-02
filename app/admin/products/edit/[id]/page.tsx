@@ -87,21 +87,25 @@ function EditProductPage({ params }: EditProductPageProps) {
     const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
     const handleImageChange = async (value: string | File | null) => {
-        const previousImage = formData.image ?? undefined;
-        updateFormData({ image: value ?? undefined });
+        const previousImage = formData.image;
+        updateFormData({ image: value });
+        if (value === null) {
+            try {
+                await updateProduct({ id: productId, data: { image: null } }).unwrap();
+            } catch (error) {
+                updateFormData({ image: previousImage ?? "" });
+            }
+            return;
+        }
 
-        if (!(value instanceof File) && value !== null) return;
+        if (!(value instanceof File)) return;
 
         try {
-            const payload: FormData | { image: null } =
-                value instanceof File
-                    ? (() => {
-                        const formPayload = new FormData();
-                        formPayload.append("image", value);
-                        return formPayload;
-                    })()
-                    : { image: null };
-
+            const payload = (() => {
+                const formPayload = new FormData();
+                formPayload.append("image", value);
+                return formPayload;
+            })();
             await updateProduct({ id: productId, data: payload }).unwrap();
         } catch (error) {
             updateFormData({ image: previousImage ?? "" });
