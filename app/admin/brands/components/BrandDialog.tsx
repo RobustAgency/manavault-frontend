@@ -172,7 +172,7 @@ export const BrandDialog = ({
               label="Brand Image"
               description="Upload a brand logo or image (optional)"
               value={image}
-              onChange={setImage}
+              onChange={(value) => setImage(value ?? '')}
               error={errors.image}
             />
           </div>
