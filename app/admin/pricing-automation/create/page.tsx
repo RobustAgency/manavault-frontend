@@ -20,10 +20,10 @@ const CreatePriceRule = () => {
   };
 
   return (
-      <PriceRuleForm
-        mode="create"
-        onSubmit={handleCreate}
-      />
+    <PriceRuleForm
+      mode="create"
+      onSubmit={handleCreate}
+    />
   );
 }
 
