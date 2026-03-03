@@ -1,4 +1,4 @@
-import { Product } from '@/types';
+import { PostViewProduct } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 
 
@@ -20,27 +20,28 @@ const normalizeCurrency = (currency?: string): string => {
     }
 };
 
-export const PreviewRulesColumns = (): ColumnDef<Product, unknown>[] => [
+export const PostViewColumns = (): ColumnDef<PostViewProduct, unknown>[] => [
     {
         accessorKey: 'product_name',
         header: 'Name',
         cell: ({ row }) => (
             <span className="font-medium text-primary">
-                {row.original.product_name}
+                {row.original.product.name}
             </span>
         ),
     },
     {
-        accessorKey: 'current_selling_price',
-        header: 'Current Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.current_selling_price), normalizeCurrency(row.original.currency ?? 'USD'))}`,
+        accessorKey: 'original_selling_price',
+        header: 'Original Selling Price',
+        cell: ({ row }) => `${formatCurrency(Number(row.original.original_selling_price), normalizeCurrency(row.original.product.currency ?? 'USD'))}`,
     },
     {
-        accessorKey: 'new_selling_price',
-        header: 'New Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.new_selling_price), normalizeCurrency(row.original.currency ?? 'USD'))}`,
+        accessorKey: 'final_selling_price',
+        header: 'Final Selling Price',
+        cell: ({ row }) => `${formatCurrency(Number(row.original.final_selling_price), normalizeCurrency(row.original.product.currency ?? 'USD'))}`,
 
     },
+  
 
 ];
 

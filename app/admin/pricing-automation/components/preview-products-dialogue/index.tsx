@@ -10,60 +10,82 @@ import {
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/custom/DataTable';
 import { PreviewRulesColumns } from '../preview-product-column';
-import { Product } from '@/types';
+import { PaginationMeta, PostViewProduct, Product } from '@/types';
+import { PostViewColumns } from '../post-product-column';
 
 interface PreviewProductsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  products: Product[];
+  isConfirmExecuteOpen: boolean;
+  products: Product[] | PostViewProduct[];
   isLoading?: boolean;
+  pagination?: PaginationMeta;
 }
 
 
 export const PreviewProductsDialog = ({
   open,
   onOpenChange,
+  isConfirmExecuteOpen,
   products,
+  pagination,
   isLoading = false,
 }: PreviewProductsDialogProps) => {
-    const productColumns = PreviewRulesColumns();
+  const productColumns = PreviewRulesColumns();
+  const postViewProductColumns = PostViewColumns();
+
+  const data = isConfirmExecuteOpen ? (products as unknown as PostViewProduct[]) : (products as unknown as Product[]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="
+      <DialogContent
+        className="
             fixed left-1/2 top-1/2 w-full sm:max-w-[800px]
             -translate-x-1/2 -translate-y-1/2
             rounded-xl bg-white p-6 shadow-xl
             focus:outline-none
           "
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">
-              Preview Affected Products
-            </DialogTitle>
-          </div>
-          {/* Content */}
-            <div className="max-h-[500px] overflow-auto rounded-lg ">
-             <DataTable
-                columns={productColumns}
-                data={products}
-                loading={isLoading}
-                 pagination={{
-                    page:  1,
-                    limit: 10,
-                    total:  0,
-                    totalPages:  1,
-                }}
-              />
-            </div>
-          {/* Footer */}
-          <div className="mt-2 flex justify-end">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <DialogTitle className="text-lg font-semibold">
+            Preview Affected Products
+          </DialogTitle>
+        </div>
+        {/* Content */}
+        <div className="max-h-[500px] overflow-auto rounded-lg ">
+          {isConfirmExecuteOpen ? (
+            <DataTable<PostViewProduct, unknown>
+              columns={postViewProductColumns}
+              data={data as PostViewProduct[]}
+              loading={isLoading}
+              pagination={{
+                page: pagination?.current_page ?? 1,
+                limit: pagination?.per_page ?? 10,
+                total: pagination?.total ?? 0,
+                totalPages: pagination?.last_page ?? 1,
+              }}
+            />
+          ) : (
+            <DataTable<Product, unknown>
+              columns={productColumns}
+              data={products as Product[]}
+              loading={isLoading}
+              pagination={{
+                page: pagination?.current_page ?? 1,
+                limit: pagination?.per_page ?? 10,
+                total: pagination?.total ?? 0,
+                totalPages: pagination?.last_page ?? 1,
+              }}
+            />
+          )}
+        </div>
+        {/* Footer */}
+        <div className="mt-2 flex justify-end">
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+        </div>
+      </DialogContent>
     </Dialog>
   )
 }

@@ -55,7 +55,7 @@ export interface DigitalProduct {
   brand?: string | null;
   description?: string | null;
   tags?: string[] | null;
-  image?: string | null;
+  image?: string | File | null;
   cost_price: string | number;
   status: DigitalProductStatus;
   region?: string | null;
@@ -131,7 +131,7 @@ export interface UpdateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string | File;
+  image_url?: string | File | null;
   cost_price?: number;
   region?: string;
   metadata?: Record<string, unknown>;
@@ -228,6 +228,24 @@ export interface Product {
   is_out_of_stock?: boolean;
 }
 
+// create a post view product interface
+export interface PostViewProduct {
+  id: number;
+  product_id: number;
+  price_rule_id: number;
+  original_selling_price: string;
+  base_value: string;
+  action_mode: string;
+  action_operator: string;
+  action_value: string;
+  calculated_price: string;
+  final_selling_price: string;
+  applied_at: string;
+  created_at: string;
+  product: Product;
+  updated_at: string;
+}
+
 
 
 export interface ThirdPartyProduct {
@@ -280,7 +298,7 @@ export interface UpdateProductData {
   short_description?: string;
   long_description?: string;
   tags?: string[];
-  image?: string;
+  image?: string | null;
   selling_price?: number;
   status?: ProductStatus;
   regions?: string[];
@@ -561,7 +579,7 @@ export interface ImportVouchersData {
 
 export interface VoucherCodeItem {
   code: string;
-  digitalProductID: number;
+  digital_product_id: number;
 }
 
 export interface StoreVouchersData {
