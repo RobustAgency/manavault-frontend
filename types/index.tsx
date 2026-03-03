@@ -60,6 +60,7 @@ export interface DigitalProduct {
   status: DigitalProductStatus;
   region?: string | null;
   metadata?: Record<string, unknown> | null;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
   supplier_name?: string | null;
