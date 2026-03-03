@@ -20,7 +20,7 @@ export interface ProductFormState {
   selling_price: string;
   status: ProductStatus;
   tags: string;
-  image?: string | File;
+  image?: string | File | null;
   regions: string;
   currency : string;
   face_value : string;

@@ -188,21 +188,72 @@ export const priceAutomationApi = createApi({
       },
     }),
 
-    getPreviewRuleAffectedProducts: builder.query<Product[], PriceRule>({
+    getPreviewRuleAffectedProducts: builder.query<
+      { data: Product[] },
+      PriceRule
+    >({
       query: (data) => ({
         url: "/price-rules/preview",
         method: "POST",
         data: data,
       }),
       transformResponse: (response: {
-        data: Product[];
+        data: Product[] | undefined;
         error?: boolean;
         message?: string;
       }) => {
         if (response.data) {
-          return response.data;
+          return { data: response.data } as { data: Product[] };
         }
-        return response as unknown as Product[];
+          return { data: [] } as { data: Product[] };
+      },
+     
+    }),
+    getPostViewRuleAffectedProducts: builder.query<
+      { data: Product[]; pagination: PaginationMeta },
+      PriceRule
+    >({
+      query: (data) => ({
+        url: `/price-rules/${data.id}/products`,
+        method: "GET",
+      }),
+      transformResponse: (response: {
+        data: {
+          data: Product[]; 
+          current_page: number;
+          per_page: number;
+          total: number;
+          last_page: number;
+          from: number;
+          to: number;
+        };
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return {
+            data: response.data.data,
+            pagination: {
+              current_page: response.data.current_page,
+              per_page: response.data.per_page,
+              total: response.data.total,
+              last_page: response.data.last_page,
+              from: response.data.from,
+              to: response.data.to,
+            },
+          };
+        }
+        return {
+          data: [],
+          pagination: {
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            last_page: 1,
+            from: 0,
+            to: 0,
+          },
+        };
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled;
@@ -212,7 +263,6 @@ export const priceAutomationApi = createApi({
               { type: "Product", id: "LIST" },
             ])
           );
-
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
@@ -233,6 +283,7 @@ export const {
   useUpdatePriceRuleMutation,
   useCreatePriceRuleMutation,
   useLazyGetPreviewRuleAffectedProductsQuery,
+  useLazyGetPostViewRuleAffectedProductsQuery,
 
 } = priceAutomationApi;
 

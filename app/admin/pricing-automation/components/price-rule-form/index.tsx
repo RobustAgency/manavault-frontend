@@ -1,5 +1,4 @@
 'use client';
-
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,10 +17,11 @@ import DynamicField from "../dynamic-field";
 import { useRouter } from "next/navigation";
 import { useGetBrandsQuery } from "@/lib/redux/features";
 import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
-import { useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
+import { useLazyGetPostViewRuleAffectedProductsQuery, useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
 import { toast } from "react-toastify";
-import { Condition, PriceRule } from "@/types";
+import { Condition, PaginationMeta, PriceRule } from "@/types";
+import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 
 interface PriceRuleFormProps {
   mode: "create" | "edit";
@@ -36,6 +36,8 @@ const PriceRuleForm = ({
 }: PriceRuleFormProps) => {
   const router = useRouter();
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [isPreviewRuleExecuteOpen, setIsPreviewRuleExecuteOpen] = useState(false);
+  const [isConfirmExecuteOpen, setIsConfirmExecuteOpen] = useState(false);
   const [conditions, setConditions] = useState<Condition[]>(
     initialData?.conditions?.length
       ? initialData.conditions
@@ -49,6 +51,7 @@ const PriceRuleForm = ({
   const { formData, errors, updateFormData, validateForm } = usePricingAutomationForm(mode === "edit", initialData);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
   const [triggerPreview, { data: previewData, isLoading: isPreviewing }] = useLazyGetPreviewRuleAffectedProductsQuery()
+  const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] = useLazyGetPostViewRuleAffectedProductsQuery()
 
   useEffect(() => {
     updateFormData({
@@ -61,11 +64,11 @@ const PriceRuleForm = ({
     if (!formData.conditions[0].value || !formData.action_value) {
       toast.error("Please fill the form to preview products.");
     }
-    await triggerPreview(formData).unwrap().then(() => {
+    const triggerView = isConfirmExecuteOpen ? triggerPostView : triggerPreview;
+    await triggerView(formData).unwrap().then(() => {
       setIsPreviewDialogOpen(true);
     });
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -77,9 +80,23 @@ const PriceRuleForm = ({
       toast.error("Selling price value must be greater than 0");
       return;
     }
-    onSubmit(formData);
+    await triggerPreview(formData).unwrap().then(() => {
+      setIsPreviewRuleExecuteOpen(true);
+    });
   };
 
+  const handleConfirmExecute = () => {
+    setIsPreviewRuleExecuteOpen(false);
+    setIsConfirmExecuteOpen(true);
+    onSubmit(formData);
+  };
+  const handleCancelExecute = () => {
+    setIsPreviewRuleExecuteOpen(false);
+    setIsConfirmExecuteOpen(false);
+  };
+
+
+  const confirmationTitle = `Are you sure you want to execute?`;
   return (
     <>
       <div className="container mx-auto py-8 max-w-4xl">
@@ -187,9 +204,8 @@ const PriceRuleForm = ({
                     <SelectItem value="absolute">Number</SelectItem>
                   </SelectContent>
                 </Select>
-                
               </div>
-                {/* Operator */}
+              {/* Operator */}
               <div className="flex flex-col">
                 <Select
                   value={formData.action_operator}
@@ -212,7 +228,7 @@ const PriceRuleForm = ({
 
           <div className="mt-6 flex sm:flex-row flex-col justify-end gap-4">
             <Button type="button" variant={"outline"} className="h-11 px-6 sm:px-6" onClick={() => handlePreview()}>
-              Preview <Eye className="h-4 w-4" />
+              {isConfirmExecuteOpen ? "Postview" : "Preview"} <Eye className="h-4 w-4" />
             </Button>
             <Button type="submit" className="h-11 px-6 sm:px-6">
               {mode === "create" ? "Add & Execute Rule " : "Save & Execute Rule"}
@@ -223,9 +239,21 @@ const PriceRuleForm = ({
 
       <PreviewProductsDialog
         open={isPreviewDialogOpen}
+        isConfirmExecuteOpen={isConfirmExecuteOpen}
         onOpenChange={setIsPreviewDialogOpen}
-        products={previewData || []}
-        isLoading={isPreviewing}
+        products={isConfirmExecuteOpen ? postViewData?.data ?? [] : previewData?.data ?? []}
+        pagination={isConfirmExecuteOpen ? postViewData?.pagination : previewData?.pagination as unknown as PaginationMeta}
+        isLoading={isConfirmExecuteOpen ? isPostViewing : isPreviewing}
+      />
+      <ConfirmationDialog
+        isOpen={isPreviewRuleExecuteOpen}
+        onClose={() => handleCancelExecute()}
+        title={confirmationTitle}
+        description={`This action will affect ${previewData?.data?.length ?? 0} product`}
+        confirmText="Execute"
+        type="warning"
+        isLoading={isPostViewing}
+        onConfirm={handleConfirmExecute}
       />
     </>
   );

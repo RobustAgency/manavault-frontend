@@ -1,5 +1,4 @@
 'use client';
-
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,7 @@ function EditProductPage({ params }: EditProductPageProps) {
     );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
-    const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
+    const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (!product || !brandsData?.data) return;
@@ -77,7 +76,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
                 face_value: product.face_value?.toString() ?? '',
-                is_out_of_stock: toBoolean(product.is_out_of_stock),
+                is_out_of_stock: Boolean(product.is_out_of_stock),
             }
         );
     }, [product, brandsData]);
@@ -86,29 +85,38 @@ function EditProductPage({ params }: EditProductPageProps) {
 
     const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
+    const handleImageChange = async (value: string | File | null) => {
+        const previousImage = formData.image;
+        updateFormData({ image: value });
 
-    useEffect(() => {
-        if (isSuccess) {
-            router.push('/admin/products');
-        }
-    }, [isSuccess, router]);
+        if (!(value instanceof File) && value !== null) return;
 
-    useEffect(() => {
-        if (isError) {
-            toast.error('Failed to update product');
+        try {
+            const payload: FormData | { image: null } =
+                value instanceof File
+                    ? (() => {
+                        const formPayload = new FormData();
+                        formPayload.append("image", value);
+                        return formPayload;
+                    })()
+                    : { image: null };
+
+            await updateProduct({ id: productId, data: payload }).unwrap();
+        } catch (error) {
+            updateFormData({ image: previousImage ?? "" });
         }
-    }, [isError, error]);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm(false, '')) {
             const submitData: Record<string, unknown> = {
                 name: formData.name.trim(),
-                selling_price: formData.selling_price,
+                selling_price: parseFloat(formData.selling_price),
                 status: formData.status,
                 currency: formData.currency,
-                face_value: formData.face_value,
-                is_out_of_stock: formData.is_out_of_stock,
+                face_value: parseFloat(formData.face_value),
+                is_out_of_stock: Boolean(formData.is_out_of_stock),
             };
 
             if (formData.brand_id.trim()) {
@@ -119,6 +127,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             }
             if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
             if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
+         
 
             if (formData.tags.trim()) {
                 submitData.tags = formData.tags
@@ -134,29 +143,11 @@ function EditProductPage({ params }: EditProductPageProps) {
                     .filter(region => region.length > 0);
             }
 
-            let payload: FormData | typeof submitData = submitData;
-            if (formData.image instanceof File) {
-                const formPayload = new FormData();
-                Object.entries(submitData).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
-                        return;
-                    }
-                    if (typeof value === "boolean") {
-                        formPayload.append(key, value ? "true" : "false");
-                        return;
-                    }
-                    if (value !== undefined && value !== null) {
-                        formPayload.append(key, String(value));
-                    }
-                });
-                formPayload.append("image", formData.image);
-                payload = formPayload;
-            }
-
             try {
-                await updateProduct({ id: productId, data: payload });
+                await updateProduct({ id: productId, data: submitData as any }).unwrap();
                 toast.success("Product updated successfully");
+                router.push('/admin/products');
+            
             } catch (error) {
                 toast.error('Failed to update product');
             }
@@ -190,8 +181,6 @@ function EditProductPage({ params }: EditProductPageProps) {
             </div>
         );
     }
-    console.log(formData.is_out_of_stock);
-
     return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
@@ -214,11 +203,11 @@ function EditProductPage({ params }: EditProductPageProps) {
                 <div className="bg-card border rounded-lg shadow-sm">
                     <div className="border-b flex justify-between items-center px-6 py-4">
                         <div>
-                        <h2 className="text-lg font-semibold">Basic Information</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
+                            <h2 className="text-lg font-semibold">Basic Information</h2>
+                            <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
                         </div>
                         <div className="">
-                                <div className="flex items-center gap-2 rounded-md px-0 py-2 ">
+                            <div className="flex items-center gap-2 rounded-md px-0 py-2 ">
                                 <Checkbox
                                     id="is_out_of_stock"
                                     checked={formData.is_out_of_stock}
@@ -226,10 +215,10 @@ function EditProductPage({ params }: EditProductPageProps) {
                                     onCheckedChange={(checked) => updateFormData({ is_out_of_stock: checked === true })}
                                 />
                                 <Label htmlFor="is_out_of_stock" className="text-sm font-medium">Out of stock</Label>
-                                </div>
                             </div>
+                        </div>
                     </div>
-                    
+
                     <div className="p-6 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
@@ -264,7 +253,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 onChange={(value) => updateFormData({ brand_id: String(value) })}
                                 error={errors.brand}
                             />
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
                                 <Input
                                     id="selling_price"
@@ -279,7 +268,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">      
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
                                 <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
                                 <Select
@@ -311,7 +300,6 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
 
-                          
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
                             <div className="space-y-2">
@@ -331,7 +319,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
-                           
+
                         </div>
                     </div>
                 </div>
@@ -393,7 +381,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                     <div className="p-6 space-y-5">
                         <ImagePicker
                             value={isImageExist}
-                            onChange={(value) => updateFormData({ image: value })}
+                            onChange={handleImageChange}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
                         />
