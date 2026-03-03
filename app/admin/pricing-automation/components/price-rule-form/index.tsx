@@ -20,7 +20,7 @@ import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
 import { useLazyGetPostViewRuleAffectedProductsQuery, useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
 import { toast } from "react-toastify";
-import { Condition, PaginationMeta, PriceRule } from "@/types";
+import { Condition, PriceRule } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 
 interface PriceRuleFormProps {
@@ -242,7 +242,7 @@ const PriceRuleForm = ({
         isConfirmExecuteOpen={isConfirmExecuteOpen}
         onOpenChange={setIsPreviewDialogOpen}
         products={isConfirmExecuteOpen ? postViewData?.data ?? [] : previewData?.data ?? []}
-        pagination={isConfirmExecuteOpen ? postViewData?.pagination : previewData?.pagination as unknown as PaginationMeta}
+        pagination={isConfirmExecuteOpen ? postViewData?.pagination : undefined}
         isLoading={isConfirmExecuteOpen ? isPostViewing : isPreviewing}
       />
       <ConfirmationDialog
