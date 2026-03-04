@@ -16,7 +16,7 @@ import { PostViewColumns } from '../post-product-column';
 interface PreviewProductsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  isConfirmExecuteOpen: boolean;
+  mode: "create" | "edit";
   products: Product[] | PostViewProduct[];
   isLoading?: boolean;
   pagination?: PaginationMeta;
@@ -26,7 +26,7 @@ interface PreviewProductsDialogProps {
 export const PreviewProductsDialog = ({
   open,
   onOpenChange,
-  isConfirmExecuteOpen,
+  mode,
   products,
   pagination,
   isLoading = false,
@@ -34,7 +34,7 @@ export const PreviewProductsDialog = ({
   const productColumns = PreviewRulesColumns();
   const postViewProductColumns = PostViewColumns();
 
-  const data = isConfirmExecuteOpen ? (products as unknown as PostViewProduct[]) : (products as unknown as Product[]);
+  const data = mode === "create" ? (products as unknown as Product[]) : (products as unknown as PostViewProduct[]);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -53,10 +53,10 @@ export const PreviewProductsDialog = ({
         </div>
         {/* Content */}
         <div className="max-h-[500px] overflow-auto rounded-lg ">
-          {isConfirmExecuteOpen ? (
+          {mode === "edit" ? (
             <DataTable<PostViewProduct, unknown>
               columns={postViewProductColumns}
-              data={data as PostViewProduct[]}
+              data={products as PostViewProduct[]}
               loading={isLoading}
               pagination={{
                 page: pagination?.current_page ?? 1,
