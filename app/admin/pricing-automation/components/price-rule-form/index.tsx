@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,21 @@ interface PriceRuleFormProps {
   onSubmit: (data: PriceRule) => void;
 }
 
+const normalizeRuleForComparison = (rule?: Partial<PriceRule>) => ({
+  name: rule?.name ?? "",
+  description: rule?.description ?? "",
+  status: rule?.status ?? "active",
+  match_type: rule?.match_type ?? "all",
+  action_value: rule?.action_value ?? null,
+  action_operator: rule?.action_operator ?? "+",
+  action_mode: rule?.action_mode ?? "percentage",
+  conditions: (rule?.conditions ?? []).map((condition) => ({
+    field: condition.field ?? "",
+    operator: condition.operator ?? "",
+    value: condition.value ?? "",
+  })),
+});
+
 const PriceRuleForm = ({
   mode = "create",
   initialData,
@@ -37,7 +52,6 @@ const PriceRuleForm = ({
   const router = useRouter();
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [isPreviewRuleExecuteOpen, setIsPreviewRuleExecuteOpen] = useState(false);
-  const [isConfirmExecuteOpen, setIsConfirmExecuteOpen] = useState(false);
   const [conditions, setConditions] = useState<Condition[]>(
     initialData?.conditions?.length
       ? initialData.conditions
@@ -53,6 +67,15 @@ const PriceRuleForm = ({
   const [triggerPreview, { data: previewData, isLoading: isPreviewing }] = useLazyGetPreviewRuleAffectedProductsQuery()
   const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] = useLazyGetPostViewRuleAffectedProductsQuery()
 
+  const hasFormChangesInEditMode = useMemo(() => {
+    if (mode !== "edit") return false;
+    const initialSnapshot = normalizeRuleForComparison(initialData);
+    const currentSnapshot = normalizeRuleForComparison(formData);
+    return JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot);
+  }, [mode, initialData, formData]);
+
+  const shouldUsePreviewMode = mode === "create" || hasFormChangesInEditMode;
+
   useEffect(() => {
     updateFormData({
       conditions,
@@ -64,7 +87,7 @@ const PriceRuleForm = ({
     if (!formData.conditions[0].value || !formData.action_value) {
       toast.error("Please fill the form to preview products.");
     }
-    const triggerView = isConfirmExecuteOpen ? triggerPostView : triggerPreview;
+    const triggerView = shouldUsePreviewMode ? triggerPreview : triggerPostView;
     await triggerView(formData).unwrap().then(() => {
       setIsPreviewDialogOpen(true);
     });
@@ -87,12 +110,10 @@ const PriceRuleForm = ({
 
   const handleConfirmExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
-    setIsConfirmExecuteOpen(true);
     onSubmit(formData);
   };
   const handleCancelExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
-    setIsConfirmExecuteOpen(false);
   };
 
 
@@ -228,7 +249,7 @@ const PriceRuleForm = ({
 
           <div className="mt-6 flex sm:flex-row flex-col justify-end gap-4">
             <Button type="button" variant={"outline"} className="h-11 px-6 sm:px-6" onClick={() => handlePreview()}>
-              {isConfirmExecuteOpen ? "Postview" : "Preview"} <Eye className="h-4 w-4" />
+              {shouldUsePreviewMode ? "Preview" : "Postview"} <Eye className="h-4 w-4" />
             </Button>
             <Button type="submit" className="h-11 px-6 sm:px-6">
               {mode === "create" ? "Add & Execute Rule " : "Save & Execute Rule"}
@@ -239,11 +260,11 @@ const PriceRuleForm = ({
 
       <PreviewProductsDialog
         open={isPreviewDialogOpen}
-        isConfirmExecuteOpen={isConfirmExecuteOpen}
+        mode={shouldUsePreviewMode ? "create" : "edit"}
         onOpenChange={setIsPreviewDialogOpen}
-        products={isConfirmExecuteOpen ? postViewData?.data ?? [] : previewData?.data ?? []}
-        pagination={isConfirmExecuteOpen ? postViewData?.pagination : undefined}
-        isLoading={isConfirmExecuteOpen ? isPostViewing : isPreviewing}
+        products={shouldUsePreviewMode ? previewData?.data ?? [] : postViewData?.data ?? []}
+        pagination={shouldUsePreviewMode ? undefined : postViewData?.pagination}
+        isLoading={shouldUsePreviewMode ? isPreviewing : isPostViewing}
       />
       <ConfirmationDialog
         isOpen={isPreviewRuleExecuteOpen}
