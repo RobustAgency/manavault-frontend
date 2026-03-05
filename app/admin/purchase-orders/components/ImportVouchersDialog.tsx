@@ -420,7 +420,7 @@ export const ImportVouchersDialog = ({
               <div className="flex items-center justify-between">
                 <Label htmlFor="voucher-file">Vouchers File </Label>
                 <a
-                  href="/sample-csv/sample_vouchers.csv"
+                  href="/sample-csv/sample_vounchers.csv"
                   download
                   className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
                 >
