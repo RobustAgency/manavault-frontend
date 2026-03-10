@@ -103,8 +103,13 @@ const ProductAssociatedDigitalStock = ({
 
     const handleSave = async () => {
         if (!product) return;
-        if (reduxSelectedProducts.length > 0) {
-            setForceErrorIds(new Set(reduxSelectedProducts.map((p) => p.id)));
+
+        const productsWithoutPrice = sortTableData.filter((p) => {
+            const effectivePrice = completedPricesMap.get(p.id) ?? p.selling_price;
+            const num = typeof effectivePrice === 'number' ? effectivePrice : parseFloat(String(effectivePrice ?? ''));
+            return effectivePrice == null || effectivePrice === '' || isNaN(num) || num <= 0;
+        });
+        if (productsWithoutPrice.length > 0) {
             toast.error('Please add the selling prices for all pending digital products before saving');
             return;
         }
@@ -118,6 +123,7 @@ const ProductAssociatedDigitalStock = ({
                 priority_order: index + 1,
             }));
             await createDigitalProductOrder({ id: product.id, data: data || [] }).unwrap();
+            dispatch(clearSelectedProducts());
             toast.success('Digital product order saved successfully');
         } catch {
             toast.error('Failed to save digital product order');
