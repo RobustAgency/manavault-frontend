@@ -45,7 +45,7 @@ function EditProductPage({ params }: EditProductPageProps) {
     );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
-    const [updateProduct, { isLoading }] = useUpdateProductMutation();
+    const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (!product || !brandsData?.data) return;
@@ -89,9 +89,9 @@ function EditProductPage({ params }: EditProductPageProps) {
     const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
     // Fire the API immediately when the image is picked or removed
-    const handleImageChange = async (value: string | File) => {
+    const handleImageChange = async (value: string | File | null) => {
         const previousImage = formData.image;
-        updateFormData({ image: value });
+        updateFormData({ image: value ?? '' });
 
         // Only call the API for File uploads or explicit removal (empty string)
         if (typeof value === 'string' && value !== '') return;
@@ -125,7 +125,7 @@ function EditProductPage({ params }: EditProductPageProps) {
         if (isError) {
             toast.error('Failed to update product');
         }
-    };
+    }, [isError, error]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -459,6 +459,7 @@ function EditProductPage({ params }: EditProductPageProps) {
         </div>
     );
 }
+
 
 export default withPermission<EditProductPageProps>(
     [
