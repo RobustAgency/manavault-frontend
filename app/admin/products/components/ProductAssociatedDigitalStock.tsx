@@ -23,13 +23,14 @@ import {
     selectSelectedProducts,
     selectSelectedProductIds,
     removeSelectedProduct,
+    updateSelectedProduct,
     clearSelectedProducts,
 } from '@/lib/redux/features';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { getStatusColor } from './productColumns';
 import { toast } from 'react-toastify';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
-import { PendingPriceCell, EditPriceCell } from '@/components/custom/InlinePriceCell';
+import { PendingPriceCell } from '@/components/custom/InlinePriceCell';
 import { DigitalProduct, Product, ProductStatus } from '@/types';
 
 
@@ -61,6 +62,10 @@ const ProductAssociatedDigitalStock = ({
 
     const [editingId, setEditingId] = useState<number | null>(null);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [productSellingPrice, setProductSellingPrice] = useState<number | null>(product.selling_price ?? null);
+    const [forceErrorIds, setForceErrorIds] = useState<Set<number>>(new Set());
+    // Track prices we just added so UI updates immediately (avoids race with refetch)
+    const [completedPricesMap, setCompletedPricesMap] = useState<Map<number, number>>(new Map());
 
     useEffect(() => {
         setIsDraggingRow(product?.is_custom_priority ?? false);
@@ -70,10 +75,17 @@ const ProductAssociatedDigitalStock = ({
         if (!selectedProductIds.length) return;
         setPendingIds((prev) => {
             const next = new Set(prev);
-            selectedProductIds.forEach((id) => next.add(id));
+            selectedProductIds.forEach((id) => {
+                const product = reduxSelectedProducts.find((p) => p.id === id);
+                const hasPrice =
+                    completedPricesMap.has(id) ||
+                    (product?.selling_price != null && product.selling_price !== '');
+                if (!hasPrice) next.add(id);
+                else next.delete(id);
+            });
             return next;
         });
-    }, [selectedProductIds]);
+    }, [selectedProductIds, reduxSelectedProducts, completedPricesMap]);
 
     const handleToggleCustomFulfillmentMode = async (checked: boolean) => {
         if (!product) return;
@@ -91,6 +103,15 @@ const ProductAssociatedDigitalStock = ({
 
     const handleSave = async () => {
         if (!product) return;
+        if (reduxSelectedProducts.length > 0) {
+            setForceErrorIds(new Set(reduxSelectedProducts.map((p) => p.id)));
+            toast.error('Please add the selling prices for all pending digital products before saving');
+            return;
+        }
+        if (productSellingPrice === null || (productSellingPrice !== null && productSellingPrice < 0)) {
+            toast.error('Please enter a valid price (0 or greater)');
+            return;
+        }
         try {
             const data = sortTableData?.map((item, index) => ({
                 digital_product_id: item.id,
@@ -124,7 +145,19 @@ const ProductAssociatedDigitalStock = ({
         const apiProducts = product.digital_products || [];
         const apiIds = new Set(apiProducts.map((p) => p.id));
         const pendingFromRedux = reduxSelectedProducts.filter((rp) => !apiIds.has(rp.id));
-        const merged = [...apiProducts, ...pendingFromRedux];
+        // Prefer Redux selling_price when API product lacks it (e.g. optimistic update or stale refetch)
+        const apiWithReduxPrices = apiProducts.map((p) => {
+            const inRedux = reduxSelectedProducts.find((r) => r.id === p.id);
+            if (
+                inRedux?.selling_price != null &&
+                inRedux.selling_price !== '' &&
+                (p.selling_price == null || p.selling_price === '')
+            ) {
+                return { ...p, selling_price: inRedux.selling_price };
+            }
+            return p;
+        });
+        const merged = [...apiWithReduxPrices, ...pendingFromRedux];
 
         if (!isDraggingRow) {
             setSortTableData(merged);
@@ -140,6 +173,22 @@ const ProductAssociatedDigitalStock = ({
         setDigitalProductsForView();
     }, [product.digital_products, isDraggingRow, reduxSelectedProducts]);
 
+    // Clear completedPricesMap when product data has the price (refetch caught up)
+    useEffect(() => {
+        setCompletedPricesMap((prev) => {
+            let changed = false;
+            const next = new Map(prev);
+            for (const id of next.keys()) {
+                const apiProduct = (product.digital_products || []).find((p) => p.id === id);
+                if (apiProduct?.selling_price != null && apiProduct.selling_price !== '') {
+                    next.delete(id);
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [product.digital_products]);
+
     const handleCancelPending = (id: number) => {
         setPendingIds((prev) => {
             const next = new Set(prev);
@@ -151,16 +200,15 @@ const ProductAssociatedDigitalStock = ({
 
     const handleAddPendingPrice = async (dp: DigitalProduct, rawValue: string) => {
         const price = parseFloat(rawValue);
-        if (isNaN(price) || price < 0) {
+        if (!rawValue.trim() || isNaN(price) || price <= 0) {
             toast.error('Please enter a valid price (0 or greater)');
             return;
         }
-
         setSavingIds((prev) => new Set(prev).add(dp.id));
         try {
             await updateDigitalProduct({
                 id: dp.id,
-                data: { selling_price: price } as any,
+                data: { selling_price: price },
             }).unwrap();
 
             await assignDigitalProducts({
@@ -168,14 +216,24 @@ const ProductAssociatedDigitalStock = ({
                 digitalProductIds: [dp.id],
             }).unwrap();
 
-            toast.success('Selling price added and product assigned successfully');
-
+            setSortTableData((prev) =>
+                prev.map((item) =>
+                    item.id === dp.id ? { ...item, selling_price: price } : item
+                )
+            );
             setPendingIds((prev) => {
                 const next = new Set(prev);
                 next.delete(dp.id);
                 return next;
             });
-            dispatch(removeSelectedProduct(dp.id));
+            setForceErrorIds((prev) => {
+                const next = new Set(prev);
+                next.delete(dp.id);
+                return next;
+            });
+            setCompletedPricesMap((prev) => new Map(prev).set(dp.id, price));
+            dispatch(updateSelectedProduct({ id: dp.id, selling_price: price }));
+            toast.success('Selling price added successfully');
         } catch {
             toast.error('Failed to add selling price');
         } finally {
@@ -197,27 +255,25 @@ const ProductAssociatedDigitalStock = ({
 
     const handleSaveEdit = async (dp: DigitalProduct, rawValue: string) => {
         const price = parseFloat(rawValue);
-        if (isNaN(price) || price < 0) {
+        if (!rawValue.trim() || isNaN(price) || price <= 0) {
             toast.error('Please enter a valid price (0 or greater)');
             return;
         }
 
         setIsSavingEdit(true);
         try {
-            // 1. Update selling price on the digital product
             await updateDigitalProduct({
                 id: dp.id,
-                data: { selling_price: price } as any,
+                data: { selling_price: price },
             }).unwrap();
 
-            // 2. Assign this digital product to the product
-            await assignDigitalProducts({
-                productId: product.id,
-                digitalProductIds: [dp.id],
-            }).unwrap();
-
-            toast.success('Selling price updated successfully');
+            setSortTableData((prev) =>
+                prev.map((item) =>
+                    item.id === dp.id ? { ...item, selling_price: price } : item
+                )
+            );
             setEditingId(null);
+            toast.success('Selling price updated successfully');
         } catch {
             toast.error('Failed to update selling price');
         } finally {
@@ -275,16 +331,21 @@ const ProductAssociatedDigitalStock = ({
                 const dp = row.original;
                 const isPending = pendingIds.has(dp.id);
                 const isEditing = editingId === dp.id;
+                const completedPrice = completedPricesMap.get(dp.id);
+                const effectivePrice = completedPrice ?? dp.selling_price;
                 const hasPrice =
-                    dp.selling_price !== null &&
-                    dp.selling_price !== undefined &&
-                    dp.selling_price !== '';
+                    effectivePrice !== null &&
+                    effectivePrice !== undefined &&
+                    effectivePrice !== '' &&
+                    (typeof effectivePrice !== 'number' || effectivePrice > 0);
                 const isSaving = savingIds.has(dp.id);
 
                 if (isPending) {
                     return (
                         <PendingPriceCell
+                            initialValue={dp.selling_price ? String(dp.selling_price) : ''}
                             isSaving={isSaving}
+                            forceShowError={forceErrorIds.has(dp.id)}
                             onAdd={(val) => handleAddPendingPrice(dp, val)}
                             onCancel={() => handleCancelPending(dp.id)}
                         />
@@ -293,10 +354,11 @@ const ProductAssociatedDigitalStock = ({
 
                 if (isEditing) {
                     return (
-                        <EditPriceCell
+                        <PendingPriceCell
                             initialValue={dp.selling_price ? String(dp.selling_price) : ''}
                             isSaving={isSavingEdit}
-                            onSave={(val) => handleSaveEdit(dp, val)}
+                            buttonLabel="Save"
+                            onAdd={(val) => handleSaveEdit(dp, val)}
                             onCancel={handleCancelEdit}
                         />
                     );
@@ -318,7 +380,7 @@ const ProductAssociatedDigitalStock = ({
                 return (
                     <div className="flex items-center gap-1">
                         <span className="text-sm">
-                            {formatCurrency(Number(dp.selling_price), dp.currency)}
+                            {formatCurrency(Number(effectivePrice), dp.currency)}
                         </span>
                         <Button
                             variant="ghost"
@@ -369,7 +431,7 @@ const ProductAssociatedDigitalStock = ({
             ),
         },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], [pendingIds, editingId, savingIds, isSavingEdit, isRemovingDigitalProduct]);
+    ], [pendingIds, editingId, savingIds, isSavingEdit, isRemovingDigitalProduct, forceErrorIds, completedPricesMap]);
 
     const pendingCount = pendingIds.size;
     const hasAnyProducts =
@@ -408,12 +470,14 @@ const ProductAssociatedDigitalStock = ({
                     setSortTableData={setSortTableData}
                     searchKey="name"
                     isDraggingRow={isDraggingRow}
-                    sortable={isDraggingRow}
+                    sortable={isDraggingRow || hasAnyProducts }
                     setIsDraggingRow={setIsDraggingRow}
                     handleSave={handleSave}
                     onToggleSortMode={handleToggleCustomFulfillmentMode}
                     toggleDisabled={isUpdatingProduct || isRemovingDigitalProduct}
                     searchPlaceholder="Search digital products..."
+                    
+
                 />
 
                 <ConfirmationDialog

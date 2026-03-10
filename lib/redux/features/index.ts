@@ -16,6 +16,7 @@ export {
   setSelectedProducts,
   clearSelectedProducts,
   removeSelectedProduct,
+  updateSelectedProduct,
   selectSelectedProducts,
   selectSelectedProductIds,
 } from "./selectedDigitalProductsSlice";
