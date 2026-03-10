@@ -105,10 +105,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
         try {
             dispatch(setSelectedProducts(selectedProducts.map((p) => ({ ...p, selling_price: null }))));
-            toast.success("Digital products assigned successfully");
             setIsAssignDialogOpen(false);
         } catch (error) {
-            toast.error('Failed to assign digital products');
+            console.error(error);
         }
     };
 
