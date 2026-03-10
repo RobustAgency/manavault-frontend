@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     useGetProductQuery,
@@ -25,7 +25,7 @@ import { toast } from 'react-toastify';
 import { DigitalProduct, DigitalProductCurrency } from '@/types';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getModulePermission, hasPermission } from '@/lib/permissions';
-import { selectUserRole, setSelectedProducts } from '@/lib/redux/features';
+import { selectUserRole, setSelectedProducts, clearSelectedProducts } from '@/lib/redux/features';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -52,6 +52,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
     const [assignDigitalProducts, { isLoading: isAssigning }] = useAssignDigitalProductsMutation();
+
+    // Reset Redux selected products on page change (navigation or product id change) and on unmount
+    useEffect(() => {
+        dispatch(clearSelectedProducts());
+        return () => {
+            dispatch(clearSelectedProducts());
+        };
+    }, [id, dispatch]);
 
     // Dialog states
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -96,7 +104,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (!product) return;
 
         try {
-            dispatch(setSelectedProducts(selectedProducts));
+            dispatch(setSelectedProducts(selectedProducts.map((p) => ({ ...p, selling_price: null }))));
             toast.success("Digital products assigned successfully");
             setIsAssignDialogOpen(false);
         } catch (error) {

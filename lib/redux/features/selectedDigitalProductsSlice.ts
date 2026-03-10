@@ -23,11 +23,25 @@ const selectedDigitalProductsSlice = createSlice({
     removeSelectedProduct(state, action: PayloadAction<number>) {
       state.products = state.products.filter((p) => p.id !== action.payload);
     },
+    updateSelectedProduct(
+      state,
+      action: PayloadAction<{ id: number; selling_price: number }>
+    ) {
+      const { id, selling_price } = action.payload;
+      const product = state.products.find((p) => p.id === id);
+      if (product) {
+        product.selling_price = selling_price;
+      }
+    },
   },
 });
 
-export const { setSelectedProducts, clearSelectedProducts, removeSelectedProduct } =
-  selectedDigitalProductsSlice.actions;
+export const {
+  setSelectedProducts,
+  clearSelectedProducts,
+  removeSelectedProduct,
+  updateSelectedProduct,
+} = selectedDigitalProductsSlice.actions;
 
 export const selectSelectedProducts = (state: RootState) =>
   state.selectedDigitalProducts.products;
