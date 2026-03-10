@@ -81,8 +81,8 @@ export function DataTable<TData, TValue>({
         data: sortTableData ?? data,
         columns,
         enableSorting: !sortable,
-        getRowId: (row) =>
-            getRowId ? getRowId(row) : String((row as any).id),
+        getRowId: (row, index) =>
+            getRowId ? getRowId(row) : String((row as any).id ?? index),
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: serverSide ? undefined : getPaginationRowModel(),
         onSortingChange: setSorting,

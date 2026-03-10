@@ -94,7 +94,7 @@ const ConfirmationDialog = ({
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex text-lg font-semibold items-center gap-2">
                         {getIcon()}
                         {title}
                     </DialogTitle>

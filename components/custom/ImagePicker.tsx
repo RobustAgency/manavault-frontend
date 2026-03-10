@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 
 interface ImagePickerProps {
     value: string | File;
-    onChange: (value: string | File) => void;
+    onChange: (value: string | File | null) => void;
     label?: string;
     description?: string;
     error?: string;
@@ -95,7 +95,7 @@ export const ImagePicker = ({
             URL.revokeObjectURL(previewUrl);
             setPreviewUrl('');
         }
-        onChange('');
+        onChange(null);
         setValidationError(null);
     };
 

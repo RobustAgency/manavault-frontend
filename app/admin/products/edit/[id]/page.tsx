@@ -1,5 +1,4 @@
 'use client';
-
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,7 @@ function EditProductPage({ params }: EditProductPageProps) {
     );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
-    const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
+    const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (!product || !brandsData?.data) return;
@@ -76,7 +75,9 @@ function EditProductPage({ params }: EditProductPageProps) {
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
                 face_value: product.face_value?.toString() ?? '',
+
                 selling_price: (product as any).selling_price?.toString() ?? '',
+
                 is_out_of_stock: Boolean(product.is_out_of_stock),
             }
         );
@@ -124,17 +125,19 @@ function EditProductPage({ params }: EditProductPageProps) {
         if (isError) {
             toast.error('Failed to update product');
         }
-    }, [isError, error]);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm(false, '')) {
             const submitData: Record<string, unknown> = {
                 name: formData.name.trim(),
+                selling_price: parseFloat(formData.selling_price),
+
                 status: formData.status,
                 currency: formData.currency,
-                face_value: formData.face_value,
-                is_out_of_stock: formData.is_out_of_stock,
+                face_value: parseFloat(formData.face_value),
+                is_out_of_stock: Boolean(formData.is_out_of_stock),
             };
 
             if (formData.brand_id.trim()) {
@@ -145,6 +148,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             }
             if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
             if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
+         
 
             if (formData.tags.trim()) {
                 submitData.tags = formData.tags
@@ -160,29 +164,11 @@ function EditProductPage({ params }: EditProductPageProps) {
                     .filter(region => region.length > 0);
             }
 
-            let payload: FormData | typeof submitData = submitData;
-            if (formData.image instanceof File) {
-                const formPayload = new FormData();
-                Object.entries(submitData).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
-                        return;
-                    }
-                    if (typeof value === "boolean") {
-                        formPayload.append(key, value ? "true" : "false");
-                        return;
-                    }
-                    if (value !== undefined && value !== null) {
-                        formPayload.append(key, String(value));
-                    }
-                });
-                formPayload.append("image", formData.image);
-                payload = formPayload;
-            }
-
             try {
-                await updateProduct({ id: productId, data: payload });
+                await updateProduct({ id: productId, data: submitData as any }).unwrap();
                 toast.success("Product updated successfully");
+                router.push('/admin/products');
+            
             } catch (error) {
                 toast.error('Failed to update product');
             }
@@ -289,7 +275,10 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 error={errors.brand}
                             />
                             <div className="space-y-2">
+
                                 <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
+
+
                                 <Input
                                     id="face_value"
                                     type="number"
@@ -321,6 +310,23 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 </Select>
                             </div>
                             <div className="space-y-2">
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
+                                <Input
+                                    id="face_value"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
+                                    placeholder="0.00"
+                                    className="h-10"
+                                />
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
+                            </div>
+
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
+                            <div className="space-y-2">
                                 <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                                 <Select
                                     key={formData.status}
@@ -340,6 +346,7 @@ function EditProductPage({ params }: EditProductPageProps) {
 
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
+
 
                         </div>
                     </div>

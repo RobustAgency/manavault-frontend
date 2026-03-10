@@ -55,12 +55,13 @@ export interface DigitalProduct {
   brand?: string | null;
   description?: string | null;
   tags?: string[] | null;
-  image?: string | null;
+  image?: string | File | null;
   cost_price: string | number;
   selling_price?: string | number | null;
   status: DigitalProductStatus;
   region?: string | null;
   metadata?: Record<string, unknown> | null;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
   supplier_name?: string | null;
@@ -133,7 +134,7 @@ export interface UpdateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string | File;
+  image_url?: string | File | null;
   cost_price?: number;
   selling_price?: number;
   region?: string;
@@ -229,6 +230,24 @@ export interface Product {
   currency: string;
   face_value: number;
   is_out_of_stock?: boolean;
+}
+
+// create a post view product interface
+export interface PostViewProduct {
+  id: number;
+  product_id: number;
+  price_rule_id: number;
+  original_selling_price: string;
+  base_value: string;
+  action_mode: string;
+  action_operator: string;
+  action_value: string;
+  calculated_price: string;
+  final_selling_price: string;
+  applied_at: string;
+  created_at: string;
+  product: Product;
+  updated_at: string;
 }
 
 
