@@ -721,14 +721,11 @@ export interface UpdateRoleData {
 }
 
 export interface PendingPriceCellProps {
+  initialValue?: string;
   isSaving?: boolean;
   placeholder?: string;
+  buttonLabel?: string;
   onAdd: (value: string) => void;
   onCancel: () => void;
 }
-export interface EditPriceCellProps {
-  initialValue: string;
-  isSaving?: boolean;
-  onSave: (value: string) => void;
-  onCancel: () => void;
-}
+
