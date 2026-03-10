@@ -268,7 +268,6 @@ function CreateProductPage() {
                                     <SelectContent>
                                         <SelectItem value="active">Active</SelectItem>
                                         <SelectItem value="in_active">Inactive</SelectItem>
-                                        <SelectItem value="archived">Archived</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
