@@ -1,5 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { EyeIcon } from 'lucide-react';
+import { PurchaseOrderItemDetail } from '@/lib/redux/features';
 
 interface Supplier {
   id: number;
@@ -8,9 +11,16 @@ interface Supplier {
   status?: string;
   contact_email?: string | null;
   contact_phone?: string | null;
+  items?: PurchaseOrderItemDetail[];
 }
 
-export const createSupplierColumns = (): ColumnDef<Supplier>[] => [
+interface SupplierColumnsOptions {
+  onViewProducts?: (supplier: Supplier) => void;
+}
+
+export const createSupplierColumns = ({
+  onViewProducts,
+}: SupplierColumnsOptions = {}): ColumnDef<Supplier>[] => [
   {
     accessorKey: 'name',
     header: 'Supplier Name',
@@ -79,6 +89,28 @@ export const createSupplierColumns = (): ColumnDef<Supplier>[] => [
         '-'
       );
     },
+  },
+  // only
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => {
+      const supplier = row.original;
+      const hasItems = (supplier.items?.length || 0) > 0;
+
+      return (
+        hasItems && onViewProducts ? (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onViewProducts?.(supplier)}
+          disabled={!hasItems || !onViewProducts}
+        >
+          <EyeIcon className="h-4 w-4 mr-1" />
+          View Products
+        </Button>
+      ) : null
+    )},
   },
 ];
 

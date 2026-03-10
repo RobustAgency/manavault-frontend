@@ -9,12 +9,14 @@ export const createOrderItemsColumns = (): ColumnDef<PurchaseOrderItemDetail>[] 
     accessorKey: 'digital_product.name',
     header: 'Product Name',
     cell: ({ row }) => {
+
       const item = row.original;
+      console.log(item)
       return (
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">
-              {item.digital_product?.name || `Product ${item.digital_product_id}`}
+              {item.digital_product_name}
             </span>
             {item.digital_product?.status && (
               <Badge variant="outlined" className="text-xs">
@@ -32,10 +34,10 @@ export const createOrderItemsColumns = (): ColumnDef<PurchaseOrderItemDetail>[] 
     },
   },
   {
-    accessorKey: 'digital_product.sku',
+    accessorKey: 'digital_product_sku',
     header: 'SKU',
     cell: ({ row }) => {
-      const sku = row.original.digital_product?.sku;
+      const sku = row.original.digital_product_sku;
       return (
         <code className="text-xs bg-gray-100 px-2 py-1 rounded">
           {sku || '-'}
@@ -44,28 +46,11 @@ export const createOrderItemsColumns = (): ColumnDef<PurchaseOrderItemDetail>[] 
     },
   },
   {
-    accessorKey: 'digital_product.brand',
+    accessorKey: 'digital_product_brand',
     header: 'Brand',
-    cell: ({ row }) => row.original.digital_product?.brand || '-',
+    cell: ({ row }) => row.original.digital_product_brand || '-',
   },
-  {
-    id: 'supplier',
-    header: 'Supplier',
-    cell: ({ row }) => {
-      const supplier = (row.original.digital_product as any)?.supplier;
-      if (!supplier) return '-';
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-sm">{supplier.name}</span>
-          {supplier.type && (
-            <Badge variant="outlined" className="text-xs capitalize">
-              {supplier.type}
-            </Badge>
-          )}
-        </div>
-      );
-    },
-  },
+
   {
     accessorKey: 'quantity',
     header: () => <div className="text-center">Quantity</div>,
