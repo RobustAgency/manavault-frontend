@@ -124,7 +124,7 @@ export default function ThirdPartyProductsPage() {
             </SelectTrigger>
             <SelectContent>
               {externalSuppliers.map((supplier) => (
-                <SelectItem key={supplier.id} value={supplier.slug}>
+                <SelectItem key={supplier.id} value={supplier.slug ?? ''}>
                   {supplier.name}
                 </SelectItem>
               ))}

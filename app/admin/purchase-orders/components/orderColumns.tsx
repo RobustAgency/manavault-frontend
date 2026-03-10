@@ -31,7 +31,7 @@ const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'inf
 };
 
 interface OrderColumnsProps {
-  onView?: (orderId: number) => void; // Optional, for backward compatibility
+  onView?: (orderId: number) => void; 
 }
 
 export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<PurchaseOrder>[] => [
@@ -50,18 +50,21 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
      cell: ({ row }) => {
   const suppliers = row.original.suppliers || []
   const defaultSuppliers = 2;
+  const supplierNames = suppliers
+    .map((s) => s?.supplier?.name || (s as unknown as { name?: string })?.name || '')
+    .filter(Boolean);
 
   return (
     <div className="flex gap-2 flex-wrap">
       {suppliers.slice(0,defaultSuppliers).map((s) => (
         <span key={s.id} className="px-2 py-1 text-xs bg-muted rounded">
-          {s.name}
+          {s.supplier?.name || (s as unknown as { name?: string })?.name || '-'}
         </span>
       ))}
 
       {suppliers.length > defaultSuppliers && <>
       <span className="px-2 py-1 text-xs bg-muted rounded">
-        <SupplierToolTip suppliersCount={suppliers.slice(defaultSuppliers).length} suppliers={suppliers.map((s) => s.name)} defaultSuppliers={defaultSuppliers} />
+        <SupplierToolTip suppliersCount={suppliers.slice(defaultSuppliers).length} suppliers={supplierNames} defaultSuppliers={defaultSuppliers} />
         </span>
         </>
      }

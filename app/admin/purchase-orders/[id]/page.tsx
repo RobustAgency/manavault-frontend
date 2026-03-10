@@ -9,7 +9,6 @@ import { useGetPurchaseOrderQuery } from '@/lib/redux/features';
 import {
   PurchaseOrderVouchersCard,
   OrderSummaryCard,
-  OrderItemsTable,
   SupplierInformationTable,
   PurchaseOrderHeader,
 } from '../components';
@@ -29,7 +28,10 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
   });
 
   const isExternalSupplier =
-    order?.suppliers?.every((supplier: any) => supplier?.type?.toLowerCase?.() === 'external') ?? false;
+    order?.suppliers?.every((supplierEntry) => {
+      const supplierType = supplierEntry?.supplier?.type;
+      return supplierType?.toLowerCase?.() === 'external';
+    }) ?? false;
 
   if (isLoading) {
     return (
@@ -67,6 +69,7 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="container mx-auto py-8">
       <PurchaseOrderHeader
+        purchaseOrderId={order.id}
         order={order}
         isExternalSupplier={isExternalSupplier}
         onRefetch={() => refetchOrder()}
@@ -74,7 +77,6 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
 
       <div className="grid gap-6">
         <OrderSummaryCard order={order} />
-        <OrderItemsTable items={order.items} />
         <SupplierInformationTable order={order} />
         <PurchaseOrderVouchersCard
           purchaseOrderId={order.id}

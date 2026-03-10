@@ -123,13 +123,11 @@ export const PurchaseOrderVouchersCard = ({
     }
 
     const timer = setTimeout(() => {
-      setRetryCount((count) => {
-        if (count >= EXTERNAL_SUPPLIER_MAX_RETRIES) {
-          return count;
-        }
-        refetch();
-        return count + 1;
-      });
+      if (retryCount >= EXTERNAL_SUPPLIER_MAX_RETRIES) {
+        return;
+      }
+      refetch();
+      setRetryCount((count) => count + 1);
     }, EXTERNAL_SUPPLIER_RETRY_INTERVAL_MS);
 
     return () => clearTimeout(timer);

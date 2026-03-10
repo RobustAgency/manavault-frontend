@@ -5,9 +5,9 @@ export interface ProductFormErrors {
   third_party_product?: string;
   name?: string;
   sku?: string;
-  selling_price?: string;
   brand?: string;
-  face_value? : string;
+  face_value?: string;
+  selling_price?: string;
 }
 
 export interface ProductFormState {
@@ -17,13 +17,13 @@ export interface ProductFormState {
   short_description: string;
   long_description: string;
   sku: string;
-  selling_price: string;
   status: ProductStatus;
   tags: string;
   image?: string | File | null;
   regions: string;
-  currency : string;
-  face_value : string;
+  currency: string;
+  face_value: string;
+  selling_price: string;
   is_out_of_stock: boolean;
 }
 
@@ -35,13 +35,13 @@ export const useProductForm = (isEditMode: boolean) => {
     short_description: "",
     long_description: "",
     sku: "",
-    selling_price: "",
     status: "active",
     tags: "",
     image: "",
     regions: "",
-    currency : "usd",
-    face_value : "",
+    currency: "usd",
+    face_value: "",
+    selling_price: "",
     is_out_of_stock: false,
   });
 
@@ -72,18 +72,7 @@ export const useProductForm = (isEditMode: boolean) => {
       }
     }
 
-    if (!formData.selling_price.trim()) {
-      newErrors.selling_price = "Selling price is required";
-    } else {
-      const sellingPriceValue = parseFloat(formData.selling_price);
-      if (Number.isNaN(sellingPriceValue)) {
-        newErrors.selling_price = "Selling price must be a valid number";
-      } else if (sellingPriceValue < 0) {
-        newErrors.selling_price = "Selling price must be 0 or greater";
-      }
-    }
-    
-     if (!formData.face_value.trim()) {
+    if (!formData.face_value.trim()) {
       newErrors.face_value = "Face value is required";
     } else {
       const sellingPriceValue = parseFloat(formData.face_value);
@@ -105,13 +94,13 @@ export const useProductForm = (isEditMode: boolean) => {
       short_description: "",
       long_description: "",
       sku: "",
-      selling_price: "",
       status: "active",
       tags: "",
       image: "",
       regions: "",
-      currency : "usd",
-      face_value : "",
+      currency: "usd",
+      face_value: "",
+      selling_price: "",
       is_out_of_stock: false,
     });
     setErrors({});

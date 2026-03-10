@@ -32,7 +32,6 @@ import { getModulePermission, hasPermission } from '@/lib/permissions';
 export default function DigitalProductsPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [currencyFilter, setCurrencyFilter] = useState<DigitalProductStatus | 'all'>('all');
   const [stockFilter, setStockFilter] = useState<DigitalProductStock | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
@@ -250,4 +249,3 @@ export default function DigitalProductsPage() {
     </div>
   );
 }
-

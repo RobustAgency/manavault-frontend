@@ -1,24 +1,29 @@
 'use client';
 
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PurchaseOrder } from '@/lib/redux/features';
 import { ImportVouchersDialog } from './ImportVouchersDialog';
+import { useUpdatePurchaseOrderMutation } from '@/lib/redux/features/purchaseOrdersApi';
+import { toast } from 'react-toastify';
 
 interface PurchaseOrderHeaderProps {
+  purchaseOrderId: number;
   order: PurchaseOrder;
   isExternalSupplier: boolean;
   onRefetch: () => void;
 }
 
 export const PurchaseOrderHeader = ({
+  purchaseOrderId,
   order,
   isExternalSupplier,
   onRefetch,
 }: PurchaseOrderHeaderProps) => {
   const router = useRouter();
+  const [updatePurchaseOrder, { isLoading: isUpdatingPurchaseOrder }] = useUpdatePurchaseOrderMutation();
 
   const getStatusBadgeVariant = (status?: string) => {
     if (!status) return 'outlined';
@@ -26,6 +31,19 @@ export const PurchaseOrderHeader = ({
     if (lowerStatus === 'completed' || lowerStatus === 'active') return 'filled';
     if (lowerStatus === 'inactive' || lowerStatus === 'in_active') return 'outlined';
     return 'outlined';
+  };
+
+  const handleSyncPurchaseOrder = () => {
+    updatePurchaseOrder(purchaseOrderId).unwrap().then((res) => {
+      if (res.error) {
+        toast.error(res.message || 'Failed to sync purchase order');
+      } else {
+        toast.success(res.message || 'Purchase order synced successfully');
+        onRefetch();
+      }
+    }).catch((err) => {
+      toast.error(err.message || 'Failed to sync purchase order');
+    });
   };
 
   return (
@@ -51,11 +69,17 @@ export const PurchaseOrderHeader = ({
             </code>
           </p>
         </div>
+        <div className="flex lg:flex-row flex-col gap-4 max-w-sm">
         {!isExternalSupplier && (
           <ImportVouchersDialog order={order} onSuccess={onRefetch} />
         )}
-      </div>
+        
+        <Button variant="secondary" className="text-white"  onClick={() => handleSyncPurchaseOrder()}>
+          {isUpdatingPurchaseOrder ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />  : 'Sync Purchase Order'}
+        </Button>
+      </div>   
+
+    </div>
     </div>
   );
 };
-

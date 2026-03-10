@@ -159,7 +159,22 @@ export const ProductFormFields = ({
         />
         {formErrors.cost_price && <p className="text-sm text-red-500">{formErrors.cost_price}</p>}
       </div>
-       <div className="grid gap-2">
+
+      <div className="grid gap-2">
+        <Label htmlFor={`selling_price-${formItemId}`}>Selling Price *</Label>
+        <Input
+          id={`selling_price-${formItemId}`}
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.selling_price}
+          onChange={(e) => onUpdate({ selling_price: e.target.value })}
+          placeholder="50.00"
+        />
+        {formErrors.selling_price && <p className="text-sm text-red-500">{formErrors.selling_price}</p>}
+      </div>
+
+      <div className="grid gap-2">
         <Label htmlFor={`currency-${formItemId}`}>Currency *</Label>
           <Select
                key={form.currency}
