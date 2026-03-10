@@ -106,20 +106,67 @@ export const purchaseOrdersApi = createApi({
           // Calculate quantity and unit price from items if available
           let quantity = 0;
           let unitPrice = 0;
+          const suppliers = Array.isArray(order.suppliers) ? order.suppliers : [];
+          const supplierItems = suppliers.flatMap((supplierEntry: any) => {
+            const supplierMeta = supplierEntry?.supplier;
+            if (!Array.isArray(supplierEntry?.items)) {
+              return [];
+            }
 
-          if (
-            order.items &&
-            Array.isArray(order.items) &&
-            order.items.length > 0
-          ) {
-            // Calculate total quantity from items
-            quantity = order.items.reduce((sum: number, item: any) => {
+            return supplierEntry.items.map((item: any) => {
+              const digitalProduct =
+                item?.digital_product ??
+                {
+                  id: item.digital_product_id,
+                  name:
+                    item.digital_product_name ||
+                    `Product ${item.digital_product_id}`,
+                  sku: item.digital_product_sku || "",
+                  brand: item.digital_product_brand || null,
+                  supplier: supplierMeta
+                    ? {
+                      id: supplierMeta.id,
+                      name: supplierMeta.name,
+                      type: supplierMeta.type,
+                      contact_email: supplierMeta.contact_email,
+                      contact_phone: supplierMeta.contact_phone,
+                      status: supplierMeta.status,
+                    }
+                    : undefined,
+                };
+
+              return {
+                ...item,
+                currency: item.currency ?? order.currency,
+                digital_product: digitalProduct,
+              };
+            });
+          });
+          const fallbackItems = Array.isArray(order.items)
+            ? order.items.map((item: any) => ({
+              ...item,
+              currency: item.currency ?? order.currency,
+            }))
+            : [];
+          const orderItems =
+            supplierItems.length > 0
+              ? supplierItems
+              : fallbackItems;
+
+          if (orderItems.length > 0) {
+            // Calculate total quantity from all available items
+            quantity = orderItems.reduce((sum: number, item: any) => {
               return sum + (item.quantity || 0);
             }, 0);
 
             // Calculate average unit price from items
-            const totalCost = order.items.reduce((sum: number, item: any) => {
-              return sum + parseFloat(String(item.subtotal || "0"));
+            const totalCost = orderItems.reduce((sum: number, item: any) => {
+              const subtotal = parseFloat(String(item.subtotal || "0"));
+              if (!Number.isNaN(subtotal) && subtotal > 0) {
+                return sum + subtotal;
+              }
+              const unitCost = parseFloat(String(item.unit_cost || "0"));
+              return sum + unitCost * (item.quantity || 0);
             }, 0);
             unitPrice = quantity > 0 ? totalCost / quantity : 0;
           } else {
@@ -137,6 +184,8 @@ export const purchaseOrdersApi = createApi({
             total_amount: totalPrice,
             purchase_price: unitPrice,
             quantity: quantity,
+            items: orderItems,
+            suppliers,
           } as PurchaseOrder;
         }
         return response as unknown as PurchaseOrder;
@@ -228,6 +277,33 @@ export const purchaseOrdersApi = createApi({
         }
       },
     }),
+
+   UpdatePurchaseOrder: builder.mutation<
+    { message: string, error: boolean }, number
+  >({
+    query: (id: number) => ({
+      url: `/purchase-orders/${id}/vouchers`,
+      method: "POST",
+      data: {
+        message: "Purchase order updated successfully",
+        error: false,
+      },
+    }),
+    invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
+    async onQueryStarted(_, { queryFulfilled }) {
+      try {
+        await queryFulfilled;
+      } catch (error) {
+        const mutationError = error as MutationError;
+        if (!mutationError?.error?.data?.errors) {
+          const errorMessage =
+            mutationError?.error?.data?.message ||
+            "Failed to update purchase order";
+          console.error(errorMessage);
+        }
+      }
+    },
+  }),
   }),
 });
 
@@ -236,5 +312,6 @@ export const {
   useCreateCSVUploadMutation,
   useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
-  useCreateDigitalProductOrderMutation
+  useCreateDigitalProductOrderMutation,
+  useUpdatePurchaseOrderMutation
 } = purchaseOrdersApi;

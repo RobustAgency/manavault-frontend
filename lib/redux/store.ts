@@ -15,6 +15,7 @@ import { modulesApi } from "./features/modulesApi";
 import { usersApi } from "./features/usersApi";
 import { userInfoApi } from "./features/userInfoApi";
 import userInfoReducer from "./features/userInfoSlice";
+import selectedDigitalProductsReducer from "./features/selectedDigitalProductsSlice";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 export const makeStore = () => {
@@ -35,7 +36,7 @@ export const makeStore = () => {
       [usersApi.reducerPath]: usersApi.reducer,
       [userInfoApi.reducerPath]: userInfoApi.reducer,
       userInfo: userInfoReducer,
-
+      selectedDigitalProducts: selectedDigitalProductsReducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(

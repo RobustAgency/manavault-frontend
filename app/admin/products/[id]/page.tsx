@@ -22,16 +22,17 @@ import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 import { toast } from 'react-toastify';
-import { DigitalProductCurrency } from '@/types';
+import { DigitalProduct, DigitalProductCurrency } from '@/types';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getModulePermission, hasPermission } from '@/lib/permissions';
-import { selectUserRole } from '@/lib/redux/features';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { selectUserRole, setSelectedProducts } from '@/lib/redux/features';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
     const productId = parseInt(id, 10);
+    const dispatch = useAppDispatch();
     const { permissionSet } = usePermissions();
     const role = useAppSelector(selectUserRole) ?? "user";
 
@@ -88,14 +89,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
-    const handleAssignDigitalProducts = async (digitalProductIds: number[]) => {
+    const handleAssignDigitalProducts = async (
+        digitalProductIds: number[],
+        selectedProducts: DigitalProduct[]
+    ) => {
         if (!product) return;
 
         try {
-            await assignDigitalProducts({
-                productId: product.id,
-                digitalProductIds,
-            }).unwrap();
+            dispatch(setSelectedProducts(selectedProducts));
             toast.success("Digital products assigned successfully");
             setIsAssignDialogOpen(false);
         } catch (error) {

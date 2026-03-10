@@ -20,7 +20,7 @@ import {
     type ProductStatus,
 } from '@/lib/redux/features';
 import { useProductForm } from '../../components/useProductForm';
-import { use, useEffect } from 'react';
+import { use, useEffect, useState } from 'react';
 import { ImagePicker } from '@/components/custom/ImagePicker';
 import { BrandSelector } from '../../components/BrandSelector';
 import { toast } from 'react-toastify';
@@ -69,41 +69,61 @@ function EditProductPage({ params }: EditProductPageProps) {
                 short_description: product.short_description || '',
                 long_description: product.long_description || '',
                 sku: product.sku,
-                selling_price: product.selling_price?.toString() ?? '',
                 image: product.image || '',
                 status: product.status,
                 tags: product.tags?.join(', ') || '',
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
                 face_value: product.face_value?.toString() ?? '',
+
+                selling_price: (product as any).selling_price?.toString() ?? '',
+
                 is_out_of_stock: Boolean(product.is_out_of_stock),
             }
         );
     }, [product, brandsData]);
 
     const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
 
     const isImageExist = formData?.image instanceof File ? formData.image : formData?.image ? IMAGEPREFIX + "/" + formData.image : "";
 
-    const handleImageChange = async (value: string | File | null) => {
+    // Fire the API immediately when the image is picked or removed
+    const handleImageChange = async (value: string | File) => {
         const previousImage = formData.image;
         updateFormData({ image: value });
 
-        if (!(value instanceof File) && value !== null) return;
+        // Only call the API for File uploads or explicit removal (empty string)
+        if (typeof value === 'string' && value !== '') return;
 
+        const payload: FormData | { image: null } =
+            value instanceof File
+                ? (() => {
+                    const fd = new FormData();
+                    fd.append('image', value);
+                    return fd;
+                })()
+                : { image: null };
+
+        setIsUploadingImage(true);
         try {
-            const payload: FormData | { image: null } =
-                value instanceof File
-                    ? (() => {
-                        const formPayload = new FormData();
-                        formPayload.append("image", value);
-                        return formPayload;
-                    })()
-                    : { image: null };
-
             await updateProduct({ id: productId, data: payload }).unwrap();
-        } catch (error) {
-            updateFormData({ image: previousImage ?? "" });
+        } catch {
+            updateFormData({ image: previousImage ?? '' });
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isSuccess) {
+            router.push('/admin/products');
+        }
+    }, [isSuccess, router]);
+
+    useEffect(() => {
+        if (isError) {
+            toast.error('Failed to update product');
         }
     };
 
@@ -113,6 +133,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             const submitData: Record<string, unknown> = {
                 name: formData.name.trim(),
                 selling_price: parseFloat(formData.selling_price),
+
                 status: formData.status,
                 currency: formData.currency,
                 face_value: parseFloat(formData.face_value),
@@ -181,6 +202,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             </div>
         );
     }
+
     return (
         <div className="container mx-auto py-8 max-w-4xl">
             <div className="mb-8">
@@ -247,25 +269,27 @@ function EditProductPage({ params }: EditProductPageProps) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                             <BrandSelector
                                 value={formData.brand_id}
                                 onChange={(value) => updateFormData({ brand_id: String(value) })}
                                 error={errors.brand}
                             />
                             <div className="space-y-2">
-                                <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
+
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
+
+
                                 <Input
-                                    id="selling_price"
+                                    id="face_value"
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    value={formData.selling_price}
-                                    onChange={(e) => updateFormData({ selling_price: e.target.value })}
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
                                     placeholder="0.00"
                                     className="h-10"
                                 />
-                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -319,6 +343,10 @@ function EditProductPage({ params }: EditProductPageProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
+
 
                         </div>
                     </div>
@@ -384,6 +412,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                             onChange={handleImageChange}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
+                            disabled={isUploadingImage}
                         />
 
                         <div className="space-y-2">

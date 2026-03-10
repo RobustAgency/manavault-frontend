@@ -35,7 +35,6 @@ function CreateProductPage() {
     // Refs for required fields
     const nameRef = useRef<HTMLInputElement>(null);
     const skuRef = useRef<HTMLInputElement>(null);
-    const sellingPriceRef = useRef<HTMLInputElement>(null);
     const statusRef = useRef<HTMLButtonElement>(null);
     const faceValueRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +51,6 @@ function CreateProductPage() {
         const fieldOrder = [
             { key: 'name', ref: nameRef },
             { key: 'sku', ref: skuRef },
-            { key: 'selling_price', ref: sellingPriceRef },
             { key: 'status', ref: statusRef },
         ];
 
@@ -88,7 +86,6 @@ function CreateProductPage() {
         const submitData: CreateProductData = {
             name: formData.name.trim(),
             sku: formData.sku.trim(),
-            selling_price: parseFloat(formData.selling_price),
             face_value: parseFloat(formData.face_value),
             currency: formData.currency,
             status: formData.status,
@@ -232,21 +229,20 @@ function CreateProductPage() {
                                 onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
                                 error={errors.brand}
                             />
-
-                            <div className="space-y-2">
-                                <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
+                             <div className="space-y-2">
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
                                 <Input
-                                    ref={sellingPriceRef}
-                                    id="selling_price"
+                                    ref={faceValueRef}
+                                    id="face_value"
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    value={formData.selling_price}
-                                    onChange={(e) => updateFormData({ selling_price: e.target.value })}
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
                                     placeholder="0.00"
                                     className="h-10"
                                 />
-                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
 
@@ -266,25 +262,6 @@ function CreateProductPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
-                                <Input
-                                    ref={faceValueRef}
-                                    id="face_value"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.face_value}
-                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
-                                    placeholder="0.00"
-                                    className="h-10"
-                                />
-                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
                                 <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                                 <Select
@@ -301,7 +278,14 @@ function CreateProductPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+                            
                         </div>
+                        </div>
+                       
+
+                    
 
 
                     </div>
