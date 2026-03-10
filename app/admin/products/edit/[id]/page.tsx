@@ -75,9 +75,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                 regions: product.regions?.join(', ') || '',
                 currency: product.currency || "",
                 face_value: product.face_value?.toString() ?? '',
-
                 selling_price: (product as any).selling_price?.toString() ?? '',
-
                 is_out_of_stock: Boolean(product.is_out_of_stock),
             }
         );
@@ -114,18 +112,6 @@ function EditProductPage({ params }: EditProductPageProps) {
             setIsUploadingImage(false);
         }
     };
-
-    useEffect(() => {
-        if (isSuccess) {
-            router.push('/admin/products');
-        }
-    }, [isSuccess, router]);
-
-    useEffect(() => {
-        if (isError) {
-            toast.error('Failed to update product');
-        }
-    }, [isError, error]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
