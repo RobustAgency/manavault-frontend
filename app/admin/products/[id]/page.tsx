@@ -25,7 +25,7 @@ import { toast } from 'react-toastify';
 import { DigitalProduct, DigitalProductCurrency } from '@/types';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getModulePermission, hasPermission } from '@/lib/permissions';
-import { selectUserRole, setSelectedProducts, clearSelectedProducts } from '@/lib/redux/features';
+import { selectUserRole, selectSelectedProducts, setSelectedProducts, clearSelectedProducts } from '@/lib/redux/features';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,6 +35,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const dispatch = useAppDispatch();
     const { permissionSet } = usePermissions();
     const role = useAppSelector(selectUserRole) ?? "user";
+    const existingPendingProducts = useAppSelector(selectSelectedProducts);
 
     const {
         data: product,
@@ -104,7 +105,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (!product) return;
 
         try {
-            dispatch(setSelectedProducts(selectedProducts.map((p) => ({ ...p, selling_price: null }))));
+            // Merge with existing pending so previous additions are retained
+            const existingById = new Map(existingPendingProducts.map((p) => [p.id, p]));
+            selectedProducts.forEach((p) =>
+                existingById.set(p.id, { ...p, selling_price: null })
+            );
+            const merged = Array.from(existingById.values());
+            dispatch(setSelectedProducts(merged));
             setIsAssignDialogOpen(false);
         } catch (error) {
             console.error(error);

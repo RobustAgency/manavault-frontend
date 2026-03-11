@@ -134,7 +134,7 @@ function EditProductPage({ params }: EditProductPageProps) {
             }
             if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
             if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
-         
+
 
             if (formData.tags.trim()) {
                 submitData.tags = formData.tags
@@ -154,7 +154,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                 await updateProduct({ id: productId, data: submitData as any }).unwrap();
                 toast.success("Product updated successfully");
                 router.push('/admin/products');
-            
+
             } catch (error) {
                 toast.error('Failed to update product');
             }
@@ -314,7 +314,7 @@ function EditProductPage({ params }: EditProductPageProps) {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
-                      
+
 
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
