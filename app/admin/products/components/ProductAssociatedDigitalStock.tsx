@@ -110,6 +110,7 @@ const ProductAssociatedDigitalStock = ({
             return effectivePrice == null || effectivePrice === '' || isNaN(num) || num <= 0;
         });
         if (productsWithoutPrice.length > 0) {
+            setForceErrorIds(new Set(productsWithoutPrice.map((p) => p.id)));
             toast.error('Please add the selling prices for all pending digital products before saving');
             return;
         }
@@ -210,6 +211,11 @@ const ProductAssociatedDigitalStock = ({
             toast.error('Please enter a valid price (0 or greater)');
             return;
         }
+        setForceErrorIds((prev) => {
+            const next = new Set(prev);
+            next.delete(dp.id);
+            return next;
+        });
         setSavingIds((prev) => new Set(prev).add(dp.id));
         try {
             await updateDigitalProduct({
@@ -352,6 +358,13 @@ const ProductAssociatedDigitalStock = ({
                             initialValue={dp.selling_price ? String(dp.selling_price) : ''}
                             isSaving={isSaving}
                             forceShowError={forceErrorIds.has(dp.id)}
+                            onClearError={() =>
+                                setForceErrorIds((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(dp.id);
+                                    return next;
+                                })
+                            }
                             onAdd={(val) => handleAddPendingPrice(dp, val)}
                             onCancel={() => handleCancelPending(dp.id)}
                         />
