@@ -105,9 +105,9 @@ const ProductAssociatedDigitalStock = ({
 
     const handleMainSave = async () => {
         if (!product || !sortTableData?.length) return;
-        
-           // Validate product currently being edited (user may have cleared the input)
-           if (editingId !== null) {
+
+        // Validate product currently being edited (user may have cleared the input)
+        if (editingId !== null) {
             const parsed = parseFloat(editingPriceValue);
             if (!editingPriceValue.trim() || isNaN(parsed) || parsed <= 0) {
                 setForceErrorIds(new Set([editingId]));
@@ -198,7 +198,11 @@ const ProductAssociatedDigitalStock = ({
             }
             return p;
         });
-        const merged = [...apiWithReduxPrices, ...pendingFromRedux];
+        // When Rearrange Order List is enabled, show only saved products (no Redux pending) - 
+        // pending items have no pivot/priority and would clutter the reorder view
+        const merged = isDraggingRow
+            ? apiWithReduxPrices
+            : [...apiWithReduxPrices, ...pendingFromRedux];
 
         if (!isDraggingRow) {
             setSortTableData(merged);
@@ -257,10 +261,6 @@ const ProductAssociatedDigitalStock = ({
                 data: { selling_price: price },
             }).unwrap();
 
-            await assignDigitalProducts({
-                productId: product.id,
-                digitalProductIds: [dp.id],
-            }).unwrap();
 
             setSortTableData((prev) =>
                 prev.map((item) =>
@@ -500,7 +500,7 @@ const ProductAssociatedDigitalStock = ({
                 </Button>
             ),
         },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [pendingIds, editingId, savingIds, isSavingEdit, isRemovingDigitalProduct, forceErrorIds, completedPricesMap]);
 
     const pendingCount = pendingIds.size;

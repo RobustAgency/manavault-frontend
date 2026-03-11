@@ -105,10 +105,9 @@ export const AssignDigitalProductsDialog = ({
         }
     }, [isOpen]);
 
-    // Reset selection when supplier changes
+    // Reset only search/pagination when supplier changes; retain selections so products from
+    // multiple suppliers can be added in one session
     useEffect(() => {
-        setSelectedIds(new Set());
-        setSelectedProductsMap(new Map());
         setSearchQuery('');
         setDebouncedSearch('');
         setCurrentPage(1);
