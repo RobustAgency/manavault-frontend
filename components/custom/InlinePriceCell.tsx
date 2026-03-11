@@ -13,6 +13,8 @@ export interface PendingPriceCellProps {
     buttonLabel?: string;
     /** When true, triggers validation and shows error state if value is invalid (e.g. on Save clicked) */
     forceShowError?: boolean;
+    /** Called when Add/Save button is clicked to clear parent error state */
+    onClearError?: () => void;
     onAdd: (value: string) => void;
     onCancel: () => void;
 }
@@ -23,6 +25,7 @@ export const PendingPriceCell = ({
     placeholder = '0.00',
     buttonLabel = 'Add',
     forceShowError = false,
+    onClearError,
     onAdd,
     onCancel,
 }: PendingPriceCellProps) => {
@@ -49,6 +52,7 @@ export const PendingPriceCell = ({
     };
 
     const handleConfirm = () => {
+        onClearError?.();
         if (validate()) onAdd(value);
     };
 
@@ -62,11 +66,10 @@ export const PendingPriceCell = ({
                         setValue(e.target.value);
                         if (hasError) setHasError(false);
                     }}
-                    className={`h-7 w-24 text-sm ${
-                        hasError
+                    className={`h-7 w-24 text-sm ${hasError
                             ? 'border-red-500 focus-visible:ring-red-500 bg-red-50 dark:bg-red-950/20'
                             : ''
-                    }`}
+                        }`}
                     min="0.01"
                     step="0.01"
                     autoFocus

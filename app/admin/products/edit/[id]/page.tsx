@@ -296,23 +296,6 @@ function EditProductPage({ params }: EditProductPageProps) {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="face_value" className="text-sm font-medium">Face Value *</Label>
-                                <Input
-                                    id="face_value"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.face_value}
-                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
-                                    placeholder="0.00"
-                                    className="h-10"
-                                />
-                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
-                            </div>
-
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
-                            <div className="space-y-2">
                                 <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                                 <Select
                                     key={formData.status}
@@ -329,6 +312,9 @@ function EditProductPage({ params }: EditProductPageProps) {
                                     </SelectContent>
                                 </Select>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
+                      
 
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-md">
