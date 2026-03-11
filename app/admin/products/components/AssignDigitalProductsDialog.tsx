@@ -177,7 +177,7 @@ export const AssignDigitalProductsDialog = ({
         if (selectedIds.size === 0) {
             return;
         }
-         onSubmit(Array.from(selectedIds), Array.from(selectedProductsMap.values()));
+        onSubmit(Array.from(selectedIds), Array.from(selectedProductsMap.values()));
         onClose();
     };
 
@@ -281,8 +281,8 @@ export const AssignDigitalProductsDialog = ({
                                                 <div className="relative flex items-center justify-center mt-0.5">
                                                     <input
                                                         type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={() => handleToggle(product)}
+                                                        checked={isSelected}
+                                                        onChange={() => handleToggle(product)}
                                                         className={cn(
                                                             "h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer",
                                                             isSelected && "bg-primary"

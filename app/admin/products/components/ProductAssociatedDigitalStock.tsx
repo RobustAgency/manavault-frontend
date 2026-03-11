@@ -51,7 +51,8 @@ const ProductAssociatedDigitalStock = ({
     const [removeDigitalProduct, { isLoading: isRemovingDigitalProduct }] =
         useRemoveDigitalProductMutation();
     const [updateDigitalProduct] = useUpdateDigitalProductMutation();
-    const [assignDigitalProducts] = useAssignDigitalProductsMutation();
+    const [assignDigitalProducts, { isLoading: isAssigningDigitalProducts }] =
+        useAssignDigitalProductsMutation();
 
     const [isDraggingRow, setIsDraggingRow] = React.useState(false);
     const [sortTableData, setSortTableData] = useState<DigitalProduct[]>(product.digital_products || []);
@@ -61,6 +62,7 @@ const ProductAssociatedDigitalStock = ({
     const [savingIds, setSavingIds] = useState<Set<number>>(new Set());
 
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [editingPriceValue, setEditingPriceValue] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [productSellingPrice, setProductSellingPrice] = useState<number | null>(product.selling_price ?? null);
     const [forceErrorIds, setForceErrorIds] = useState<Set<number>>(new Set());
@@ -101,10 +103,24 @@ const ProductAssociatedDigitalStock = ({
         }
     };
 
-    const handleSave = async () => {
-        if (!product) return;
-
+    const handleMainSave = async () => {
+        if (!product || !sortTableData?.length) return;
+        
+           // Validate product currently being edited (user may have cleared the input)
+           if (editingId !== null) {
+            const parsed = parseFloat(editingPriceValue);
+            if (!editingPriceValue.trim() || isNaN(parsed) || parsed <= 0) {
+                setForceErrorIds(new Set([editingId]));
+                toast.error('Please add the selling prices for all pending digital products before saving');
+                return;
+            }
+        }
         const productsWithoutPrice = sortTableData.filter((p) => {
+            // Use editing value if this product is being edited
+            if (p.id === editingId) {
+                const parsed = parseFloat(editingPriceValue);
+                return !editingPriceValue.trim() || isNaN(parsed) || parsed <= 0;
+            }
             const effectivePrice = completedPricesMap.get(p.id) ?? p.selling_price;
             const num = typeof effectivePrice === 'number' ? effectivePrice : parseFloat(String(effectivePrice ?? ''));
             return effectivePrice == null || effectivePrice === '' || isNaN(num) || num <= 0;
@@ -115,16 +131,34 @@ const ProductAssociatedDigitalStock = ({
             return;
         }
         if (productSellingPrice === null || (productSellingPrice !== null && productSellingPrice < 0)) {
+            setForceErrorIds(new Set(productsWithoutPrice.map((p) => p.id)));
             toast.error('Please enter a valid price (0 or greater)');
             return;
         }
+        try {
+            const digitalProductIds = sortTableData.map((dp) => dp.id);
+            await assignDigitalProducts({
+                productId: product.id,
+                digitalProductIds,
+            }).unwrap();
+            setForceErrorIds(new Set());
+            dispatch(clearSelectedProducts());
+
+            toast.success('Digital products assigned successfully');
+        } catch {
+            toast.error('Failed to assign digital products');
+        }
+    };
+
+    const handleSave = async () => {
+        if (!product) return;
+
         try {
             const data = sortTableData?.map((item, index) => ({
                 digital_product_id: item.id,
                 priority_order: index + 1,
             }));
             await createDigitalProductOrder({ id: product.id, data: data || [] }).unwrap();
-            dispatch(clearSelectedProducts());
             toast.success('Digital product order saved successfully');
         } catch {
             toast.error('Failed to save digital product order');
@@ -259,10 +293,12 @@ const ProductAssociatedDigitalStock = ({
 
     const handleStartEdit = (dp: DigitalProduct) => {
         setEditingId(dp.id);
+        setEditingPriceValue(dp.selling_price ? String(dp.selling_price) : '');
     };
 
     const handleCancelEdit = () => {
         setEditingId(null);
+        setEditingPriceValue('');
     };
 
     const handleSaveEdit = async (dp: DigitalProduct, rawValue: string) => {
@@ -285,6 +321,12 @@ const ProductAssociatedDigitalStock = ({
                 )
             );
             setEditingId(null);
+            setEditingPriceValue('');
+            setForceErrorIds((prev) => {
+                const next = new Set(prev);
+                next.delete(dp.id);
+                return next;
+            });
             toast.success('Selling price updated successfully');
         } catch {
             toast.error('Failed to update selling price');
@@ -377,6 +419,15 @@ const ProductAssociatedDigitalStock = ({
                             initialValue={dp.selling_price ? String(dp.selling_price) : ''}
                             isSaving={isSavingEdit}
                             buttonLabel="Save"
+                            forceShowError={forceErrorIds.has(dp.id)}
+                            onClearError={() =>
+                                setForceErrorIds((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(dp.id);
+                                    return next;
+                                })
+                            }
+                            onValueChange={setEditingPriceValue}
                             onAdd={(val) => handleSaveEdit(dp, val)}
                             onCancel={handleCancelEdit}
                         />
@@ -489,14 +540,15 @@ const ProductAssociatedDigitalStock = ({
                     setSortTableData={setSortTableData}
                     searchKey="name"
                     isDraggingRow={isDraggingRow}
-                    sortable={isDraggingRow || hasAnyProducts }
+                    sortable={isDraggingRow}
                     setIsDraggingRow={setIsDraggingRow}
                     handleSave={handleSave}
+                    onMainSave={handleMainSave}
+                    mainSaveLoading={isAssigningDigitalProducts}
+                    mainSaveLabel="Save"
                     onToggleSortMode={handleToggleCustomFulfillmentMode}
                     toggleDisabled={isUpdatingProduct || isRemovingDigitalProduct}
                     searchPlaceholder="Search digital products..."
-                    
-
                 />
 
                 <ConfirmationDialog
