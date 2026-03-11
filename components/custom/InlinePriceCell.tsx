@@ -11,10 +11,12 @@ export interface PendingPriceCellProps {
     placeholder?: string;
     /** Label shown on the confirm button. Defaults to "Add". Pass "Save" for edit mode. */
     buttonLabel?: string;
-    /** When true, triggers validation and shows error state if value is invalid (e.g. on Save clicked) */
+    /** When true, triggers validation and shows error state if value is invalid (e.g. on main Save clicked) */
     forceShowError?: boolean;
     /** Called when Add/Save button is clicked to clear parent error state */
     onClearError?: () => void;
+    /** Called when input value changes - used by parent to validate on main Save (e.g. edit mode) */
+    onValueChange?: (value: string) => void;
     onAdd: (value: string) => void;
     onCancel: () => void;
 }
@@ -26,6 +28,7 @@ export const PendingPriceCell = ({
     buttonLabel = 'Add',
     forceShowError = false,
     onClearError,
+    onValueChange,
     onAdd,
     onCancel,
 }: PendingPriceCellProps) => {
@@ -35,9 +38,8 @@ export const PendingPriceCell = ({
     useEffect(() => {
         if (forceShowError) {
             const parsed = parseFloat(value);
-            if (!value.trim() || isNaN(parsed) || parsed <= 0) {
-                setHasError(true);
-            }
+            const isInvalid = !value.trim() || isNaN(parsed) || parsed <= 0; // 0 is invalid
+            setHasError(isInvalid);
         }
     }, [forceShowError, value]);
 
@@ -52,8 +54,9 @@ export const PendingPriceCell = ({
     };
 
     const handleConfirm = () => {
+        if (!validate()) return;
         onClearError?.();
-        if (validate()) onAdd(value);
+        onAdd(value);
     };
 
     return (
@@ -63,12 +66,14 @@ export const PendingPriceCell = ({
                     type="number"
                     value={value}
                     onChange={(e) => {
-                        setValue(e.target.value);
+                        const v = e.target.value;
+                        setValue(v);
+                        onValueChange?.(v);
                         if (hasError) setHasError(false);
                     }}
                     className={`h-7 w-24 text-sm ${hasError
-                            ? 'border-red-500 focus-visible:ring-red-500 bg-red-50 dark:bg-red-950/20'
-                            : ''
+                        ? 'border-red-500 focus-visible:ring-red-500 bg-red-50 dark:bg-red-950/20'
+                        : ''
                         }`}
                     min="0.01"
                     step="0.01"
