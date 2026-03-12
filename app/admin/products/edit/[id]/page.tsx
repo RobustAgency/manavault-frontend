@@ -45,7 +45,7 @@ function EditProductPage({ params }: EditProductPageProps) {
     );
     const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData } = useProductForm(true);
-    const [updateProduct, { isLoading, isSuccess, isError, error }] = useUpdateProductMutation();
+    const [updateProduct, { isLoading }] = useUpdateProductMutation();
 
     useEffect(() => {
         if (!product || !brandsData?.data) return;
