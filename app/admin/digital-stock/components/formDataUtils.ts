@@ -11,6 +11,7 @@ export interface DigitalProductDataType {
   tags?: string[];
   image?: string;
   cost_price: number;
+  selling_price?: number;
   region?: string;
   metadata?: Record<string, unknown>;
   currency?: string;
@@ -46,8 +47,12 @@ export const convertFormToSubmitData = (
     brand: form.brand.trim() || undefined,
     description: form.description.trim() || undefined,
     tags: tagsArray.length > 0 ? tagsArray : undefined,
-    image: form.image.trim() || undefined,
+    image:
+      typeof form.image === "string" && form.image.trim()
+        ? form.image.trim()
+        : undefined,
     cost_price: parseFloat(form.cost_price),
+    selling_price: form.selling_price.trim() ? parseFloat(form.selling_price) : undefined,
     region: form.region,
     metadata: metadataObj,
     currency: form.currency,

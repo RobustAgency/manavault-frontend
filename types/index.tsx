@@ -55,11 +55,13 @@ export interface DigitalProduct {
   brand?: string | null;
   description?: string | null;
   tags?: string[] | null;
-  image?: string | null;
+  image?: string | File | null;
   cost_price: string | number;
+  selling_price?: string | number | null;
   status: DigitalProductStatus;
   region?: string | null;
   metadata?: Record<string, unknown> | null;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
   supplier_name?: string | null;
@@ -116,8 +118,9 @@ export interface CreateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string;
+  image?: string | File;
   cost_price: number;
+  selling_price?: number;
   region?: string;
   metadata?: Record<string, unknown>;
 }
@@ -131,8 +134,9 @@ export interface UpdateDigitalProductData {
   brand?: string;
   description?: string;
   tags?: string[];
-  image?: string;
+  image_url?: string | File | null;
   cost_price?: number;
+  selling_price?: number;
   region?: string;
   metadata?: Record<string, unknown>;
 }
@@ -228,6 +232,24 @@ export interface Product {
   is_out_of_stock?: boolean;
 }
 
+// create a post view product interface
+export interface PostViewProduct {
+  id: number;
+  product_id: number;
+  price_rule_id: number;
+  original_selling_price: string;
+  base_value: string;
+  action_mode: string;
+  action_operator: string;
+  action_value: string;
+  calculated_price: string;
+  final_selling_price: string;
+  applied_at: string;
+  created_at: string;
+  product: Product;
+  updated_at: string;
+}
+
 
 
 export interface ThirdPartyProduct {
@@ -264,7 +286,6 @@ export interface CreateProductData {
   long_description?: string;
   tags?: string[];
   image?: string;
-  selling_price: number;
   status: ProductStatus;
   regions?: string[];
   currency?: string;
@@ -353,12 +374,15 @@ export interface PurchaseOrderItemDetail {
   id: number;
   purchase_order_id: number;
   digital_product_id: number;
+  digital_product_name?: string;
+  digital_product_sku?: string;
+  digital_product_brand?: string | null;
   quantity: number;
   unit_cost: string;
   subtotal: string;
   created_at: string;
   updated_at: string;
-  currency: string;
+  currency?: string;
   digital_product?: {
     id: number;
     name: string;
@@ -380,11 +404,30 @@ export interface PurchaseOrderItemDetail {
   };
 }
 
+export interface PurchaseOrderSupplier {
+  id: number;
+  supplier_id: number;
+  transaction_id?: number | null;
+  status?: string;
+  supplier?: {
+    id: number;
+    name: string;
+    slug?: string;
+    type?: string;
+    contact_email?: string | null;
+    contact_phone?: string | null;
+    status?: string;
+    created_at?: string;
+    updated_at?: string;
+  };
+  items?: PurchaseOrderItemDetail[];
+}
+
 export interface PurchaseOrder {
   id: number;
   order_number: string;
   product_id?: number; // Optional for backward compatibility
-  supplier_id: number;
+  supplier_id?: number;
   purchase_price?: number; // Calculated field
   quantity?: number; // Calculated from items
   total_amount?: number; // Calculated field
@@ -417,17 +460,7 @@ export interface PurchaseOrder {
     created_at?: string;
     updated_at?: string;
   };
-  suppliers?: {
-    id: number;
-    name: string;
-    slug?: string;
-    type?: string;
-    contact_email?: string | null;
-    contact_phone?: string | null;
-    status?: string;
-    created_at?: string;
-    updated_at?: string;
-  }[];
+  suppliers?: PurchaseOrderSupplier[];
   vouchers?: {
     id: number;
     code: string;
@@ -477,7 +510,7 @@ export type SupplierStatus = "active" | "inactive";
 export interface Supplier {
   id: number;
   name: string;
-  slug: string;
+  slug?: string;
   type: SupplierType;
   contact_email?: string | null;
   contact_phone?: string | null;
@@ -561,7 +594,7 @@ export interface ImportVouchersData {
 
 export interface VoucherCodeItem {
   code: string;
-  digitalProductID: number;
+  digital_product_id: number;
 }
 
 export interface StoreVouchersData {
@@ -686,3 +719,13 @@ export interface UpdateRoleData {
   description?: string;
   permission_ids?: number[];
 }
+
+export interface PendingPriceCellProps {
+  initialValue?: string;
+  isSaving?: boolean;
+  placeholder?: string;
+  buttonLabel?: string;
+  onAdd: (value: string) => void;
+  onCancel: () => void;
+}
+

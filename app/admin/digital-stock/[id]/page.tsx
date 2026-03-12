@@ -145,12 +145,12 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                     <p className="text-sm whitespace-pre-wrap">{product.description}</p>
                                 </div>
                             )}
-                            {product.image && (
+                            {product?.image_url && (
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-2">Product Image</p>
                                     <div className="relative w-full max-w-md">
                                         <img
-                                            src={product.image}
+                                            src={product?.image_url}
                                             alt={product.name}
                                             className="rounded-lg border object-cover w-full h-auto"
                                             onError={(e) => {
@@ -167,6 +167,12 @@ export default function DigitalProductDetailPage({ params }: { params: Promise<{
                                     <p className="text-sm text-muted-foreground mb-1">Cost Price</p>
                                     <p className="text-2xl font-bold text-primary">{formatCurrency(Number(product.cost_price), product.currency)}</p>
                                 </div>
+                                {product.selling_price && (
+                                    <div>
+                                    <p className="text-sm text-muted-foreground mb-1">Selling Price</p>
+                                        <p className="text-2xl font-bold text-primary">{formatCurrency(Number(product.selling_price), product.currency)}</p>
+                                    </div>
+                                )}
                                 
                             </div>
                         </div>

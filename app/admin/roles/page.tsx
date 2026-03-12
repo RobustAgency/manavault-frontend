@@ -14,7 +14,6 @@ import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { toast } from 'react-toastify';
 import { ColumnDef } from '@tanstack/react-table';
 import { EyeIcon, TrashIcon, Plus, PencilIcon } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function RolesPage() {
   const router = useRouter();

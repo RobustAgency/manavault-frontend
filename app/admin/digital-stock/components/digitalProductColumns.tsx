@@ -89,47 +89,18 @@ export const createDigitalProductColumns = ({
     {
       accessorKey: 'regions',
       header: 'Region',
-      // cell: ({ row }) => {
-      //   const regions = row.original.regions;
-      //   if (!regions || regions.length === 0) return '-';
-      //   return (
-      //     <div className="flex flex-wrap gap-1">
-      //       {regions.slice(0, 3).map((region, idx) => (
-      //         <Badge key={idx} variant="outlined" className="text-xs">
-      //           {region}
-      //         </Badge>
-      //       ))}
-      //       {regions.length > 3 && (
-      //         <Badge variant="outlined" className="text-xs">
-      //           +{regions.length - 3}
-      //         </Badge>
-      //       )}
-      //     </div>
-      //   );
-      // },
       cell: ({ row }) => {
         const region = row.original.region;
         if (!region || region.length === 0) return '-';
         return (
           <div className="flex flex-wrap gap-1">
-            
-              <Badge variant="outlined" className="text-xs">
-                +{region}
-              </Badge>
-        
+            <Badge variant="outlined" className="text-xs">
+              +{region}
+            </Badge>
           </div>
         );
       },
     },
-    // {
-    //   accessorKey: 'status',
-    //   header: 'Status',
-    //   cell: ({ row }) => (
-    //     <Badge variant="filled" color={getStatusColor(row.original.status)}>
-    //       {row.original.status}
-    //     </Badge>
-    //   ),
-    // },
     {
       id: 'actions',
       header: 'Actions',
@@ -174,4 +145,3 @@ export const createDigitalProductColumns = ({
       },
     },
   ];
-

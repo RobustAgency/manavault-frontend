@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createRulesColumns } from "../rules-column";
 import { ColumnDef } from "@tanstack/react-table";
-import {  useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
+import { useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PriceRule, RuleStatus, ProductStatus } from "@/types";
 import { toast } from "react-toastify";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -21,14 +21,14 @@ const RulesTable = () => {
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PriceRule | null>(null);
   const { permissionSet } = usePermissions();
   const canCreate = hasPermission(getModulePermission('create', 'price_rule'), permissionSet);
   const canEdit = hasPermission(getModulePermission('edit', 'price_rule'), permissionSet);
   const canDelete = hasPermission(getModulePermission('delete', 'price_rule'), permissionSet);
 
-  const [deleteProduct, { isLoading: isDeleting }] =  useDeletePriceRuleMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeletePriceRuleMutation();
 
   const openEditPage = (rules: PriceRule) => {
     router.push(`/admin/pricing-automation/edit/${rules.id}`);
@@ -68,7 +68,7 @@ const RulesTable = () => {
     per_page: perPage,
     name: debouncedNameSearch || undefined,
     status: statusFilter === 'all' ? undefined : (statusFilter as RuleStatus)
-});
+  });
 
   const handleDelete = async () => {
     if (!selectedProduct) return;
@@ -132,8 +132,8 @@ const RulesTable = () => {
           page: priceRuleListData?.pagination?.current_page || 1,
           limit: perPage,
           total: priceRuleListData?.pagination?.total || 0,
-          totalPages: priceRuleListData?.pagination?.last_page || 1, 
-        }} 
+          totalPages: priceRuleListData?.pagination?.last_page || 1,
+        }}
         serverSide
         onPageChange={setPage}
       />

@@ -6,7 +6,7 @@ import { Upload, X, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ImagePickerProps {
-    value: string | File | null;
+    value: string | File;
     onChange: (value: string | File | null) => void;
     label?: string;
     description?: string;

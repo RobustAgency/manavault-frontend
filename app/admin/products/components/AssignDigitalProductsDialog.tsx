@@ -23,7 +23,7 @@ import { useGetDigitalProductsListQuery, Supplier } from '@/lib/redux/features';
 import { CheckIcon, SearchIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { DigitalProductCurrency } from '@/types';
+import { DigitalProduct, DigitalProductCurrency } from '@/types';
 
 interface AssignDigitalProductsDialogProps {
     isOpen: boolean;
@@ -32,7 +32,7 @@ interface AssignDigitalProductsDialogProps {
     suppliers: Supplier[];
     isSubmitting: boolean;
     onClose: () => void;
-    onSubmit: (digitalProductIds: number[]) => void;
+    onSubmit: (digitalProductIds: number[], selectedProducts: DigitalProduct[]) => void;
 }
 
 export const AssignDigitalProductsDialog = ({
@@ -46,6 +46,8 @@ export const AssignDigitalProductsDialog = ({
 }: AssignDigitalProductsDialogProps) => {
     const [supplierId, setSupplierId] = useState<number>(0);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    // Track full product objects so we can pass them to the parent on submit
+    const [selectedProductsMap, setSelectedProductsMap] = useState<Map<number, DigitalProduct>>(new Map());
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -96,15 +98,16 @@ export const AssignDigitalProductsDialog = ({
         if (!isOpen) {
             setSupplierId(0);
             setSelectedIds(new Set());
+            setSelectedProductsMap(new Map());
             setSearchQuery('');
             setDebouncedSearch('');
             setCurrentPage(1);
         }
     }, [isOpen]);
 
-    // Reset selection when supplier changes
+    // Reset only search/pagination when supplier changes; retain selections so products from
+    // multiple suppliers can be added in one session
     useEffect(() => {
-        setSelectedIds(new Set());
         setSearchQuery('');
         setDebouncedSearch('');
         setCurrentPage(1);
@@ -116,7 +119,8 @@ export const AssignDigitalProductsDialog = ({
         }
     };
 
-    const handleToggle = (id: number) => {
+    const handleToggle = (product: DigitalProduct) => {
+        const id = product.id;
         setSelectedIds((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(id)) {
@@ -125,6 +129,15 @@ export const AssignDigitalProductsDialog = ({
                 newSet.add(id);
             }
             return newSet;
+        });
+        setSelectedProductsMap((prev) => {
+            const newMap = new Map(prev);
+            if (newMap.has(id)) {
+                newMap.delete(id);
+            } else {
+                newMap.set(id, product);
+            }
+            return newMap;
         });
     };
 
@@ -139,12 +152,22 @@ export const AssignDigitalProductsDialog = ({
                 currentPageIds.forEach((id) => newSet.delete(id));
                 return newSet;
             });
+            setSelectedProductsMap((prev) => {
+                const newMap = new Map(prev);
+                currentPageIds.forEach((id) => newMap.delete(id));
+                return newMap;
+            });
         } else {
             // Select all on current page
             setSelectedIds((prev) => {
                 const newSet = new Set(prev);
                 currentPageIds.forEach((id) => newSet.add(id));
                 return newSet;
+            });
+            setSelectedProductsMap((prev) => {
+                const newMap = new Map(prev);
+                products.forEach((p) => newMap.set(p.id, p));
+                return newMap;
             });
         }
     };
@@ -153,7 +176,8 @@ export const AssignDigitalProductsDialog = ({
         if (selectedIds.size === 0) {
             return;
         }
-        onSubmit(Array.from(selectedIds));
+        onSubmit(Array.from(selectedIds), Array.from(selectedProductsMap.values()));
+        onClose();
     };
 
     return (
@@ -257,7 +281,7 @@ export const AssignDigitalProductsDialog = ({
                                                     <input
                                                         type="checkbox"
                                                         checked={isSelected}
-                                                        onChange={() => handleToggle(product.id)}
+                                                        onChange={() => handleToggle(product)}
                                                         className={cn(
                                                             "h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer",
                                                             isSelected && "bg-primary"

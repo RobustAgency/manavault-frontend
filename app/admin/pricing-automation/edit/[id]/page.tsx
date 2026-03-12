@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import { PriceRule } from "@/types";
 
 const EditPriceRulePage = () => {
-  const router = useRouter();
   const params = useParams();
   const id = Number(params.id);
 
@@ -25,7 +24,6 @@ const EditPriceRulePage = () => {
         data: updateData
       }).unwrap();
       toast.success("Price rule updated successfully");
-      router.back();
     } catch {
       toast.error("Failed to update price rule");
     }

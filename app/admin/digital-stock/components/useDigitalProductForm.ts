@@ -5,6 +5,7 @@ export interface DigitalProductFormErrors {
   name?: string;
   sku?: string;
   cost_price?: string;
+  selling_price?: string;
   tags?: string;
   regions?: string;
   metadata?: string;
@@ -17,8 +18,9 @@ export interface DigitalProductFormState {
   brand: string;
   description: string;
   tags: string; // Comma-separated string for input
-  image: string;
+  image: string | File | null;
   cost_price: string;
+  selling_price: string;
   region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
   currency: string;
@@ -34,6 +36,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     tags: '',
     image: '',
     cost_price: '',
+    selling_price: '',
     region: '',
     metadata: '',
     currency: 'usd',
@@ -70,6 +73,17 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
         newErrors.cost_price = 'Cost price must be a valid number';
       } else if (costPriceValue < 0) {
         newErrors.cost_price = 'Cost price must be 0 or greater';
+      }
+    }
+
+    if (!formData.selling_price.trim()) {
+      newErrors.selling_price = 'Selling price is required';
+    } else {
+      const sellingPriceValue = parseFloat(formData.selling_price);
+      if (Number.isNaN(sellingPriceValue)) {
+        newErrors.selling_price = 'Selling price must be a valid number';
+      } else if (sellingPriceValue < 0) {
+        newErrors.selling_price = 'Selling price must be 0 or greater';
       }
     }
 
@@ -119,6 +133,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       tags: '',
       image: '',
       cost_price: '',
+      selling_price: '',
       region: '',
       metadata: '',
       currency: 'usd',
@@ -155,13 +170,24 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     // For create mode, include all fields including SKU
     // For edit mode, exclude SKU (it cannot be updated) and supplier_id
     if (isEditMode) {
+      const imageUrlValue =
+        formData.image === null
+          ? null
+          : typeof formData.image === "string"
+            ? formData.image.trim()
+            : undefined;
+
       return {
         name: formData.name.trim(),
         brand: formData.brand.trim() || undefined,
         description: formData.description.trim() || undefined,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
-        image: formData.image.trim() || undefined,
+        image:
+          imageUrlValue === null
+            ? null
+            : imageUrlValue || undefined,
         cost_price: parseFloat(formData.cost_price),
+        selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
         regions: regionsArray.length > 0 ? regionsArray : undefined,
         metadata: metadataObj,
         currency: formData.currency || undefined,
@@ -175,8 +201,12 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       brand: formData.brand.trim() || undefined,
       description: formData.description.trim() || undefined,
       tags: tagsArray.length > 0 ? tagsArray : undefined,
-      image: formData.image.trim() || undefined,
+      image:
+        typeof formData.image === "string" && formData.image.trim()
+          ? formData.image.trim()
+          : undefined,
       cost_price: parseFloat(formData.cost_price),
+      selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
       regions: regionsArray.length > 0 ? regionsArray : undefined,
       metadata: metadataObj,
       currency: formData.currency || undefined,

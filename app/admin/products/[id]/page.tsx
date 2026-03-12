@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     useGetProductQuery,
@@ -22,18 +22,20 @@ import { ProductFormDialog } from '../components/ProductFormDialog';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import ProductAssociatedDigitalStock from '../components/ProductAssociatedDigitalStock';
 import { toast } from 'react-toastify';
-import { DigitalProductCurrency } from '@/types';
+import { DigitalProduct, DigitalProductCurrency } from '@/types';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getModulePermission, hasPermission } from '@/lib/permissions';
-import { selectUserRole } from '@/lib/redux/features';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { selectUserRole, selectSelectedProducts, setSelectedProducts, clearSelectedProducts } from '@/lib/redux/features';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
     const productId = parseInt(id, 10);
+    const dispatch = useAppDispatch();
     const { permissionSet } = usePermissions();
     const role = useAppSelector(selectUserRole) ?? "user";
+    const existingPendingProducts = useAppSelector(selectSelectedProducts);
 
     const {
         data: product,
@@ -51,6 +53,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
     const [assignDigitalProducts, { isLoading: isAssigning }] = useAssignDigitalProductsMutation();
+
+    // Reset Redux selected products on page change (navigation or product id change) and on unmount
+    useEffect(() => {
+        dispatch(clearSelectedProducts());
+        return () => {
+            dispatch(clearSelectedProducts());
+        };
+    }, [id, dispatch]);
 
     // Dialog states
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -88,18 +98,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
-    const handleAssignDigitalProducts = async (digitalProductIds: number[]) => {
+    const handleAssignDigitalProducts = async (
+        digitalProductIds: number[],
+        selectedProducts: DigitalProduct[]
+    ) => {
         if (!product) return;
 
         try {
-            await assignDigitalProducts({
-                productId: product.id,
-                digitalProductIds,
-            }).unwrap();
-            toast.success("Digital products assigned successfully");
+            // Merge with existing pending so previous additions are retained
+            const existingById = new Map(existingPendingProducts.map((p) => [p.id, p]));
+            selectedProducts.forEach((p) =>
+                existingById.set(p.id, { ...p, selling_price: null })
+            );
+            const merged = Array.from(existingById.values());
+            dispatch(setSelectedProducts(merged));
             setIsAssignDialogOpen(false);
         } catch (error) {
-            toast.error('Failed to assign digital products');
+            console.error(error);
         }
     };
 

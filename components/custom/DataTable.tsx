@@ -46,6 +46,9 @@ interface DataTableProps<TData, TValue> {
     isDraggingRow?: boolean;
     setIsDraggingRow?: React.Dispatch<React.SetStateAction<boolean>>;
     handleSave?: () => void;
+    onMainSave?: () => void | Promise<void>;
+    mainSaveLoading?: boolean;
+    mainSaveLabel?: string;
     onToggleSortMode?: (checked: boolean) => void;
     toggleDisabled?: boolean;
 }
@@ -68,6 +71,9 @@ export function DataTable<TData, TValue>({
     isDraggingRow,
     setIsDraggingRow,
     handleSave,
+    onMainSave,
+    mainSaveLoading = false,
+    mainSaveLabel = "Main Save",
     onToggleSortMode,
     toggleDisabled = false,
 }: DataTableProps<TData, TValue>) {
@@ -81,8 +87,8 @@ export function DataTable<TData, TValue>({
         data: sortTableData ?? data,
         columns,
         enableSorting: !sortable,
-        getRowId: (row) =>
-            getRowId ? getRowId(row) : String((row as any).id),
+        getRowId: (row, index) =>
+            getRowId ? getRowId(row) : String((row as any).id ?? index),
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: serverSide ? undefined : getPaginationRowModel(),
         onSortingChange: setSorting,
@@ -303,18 +309,34 @@ export function DataTable<TData, TValue>({
                     onDragEnd={handleDragEnd}
                 >
                     {tableMarkup}
-                    <div className="flex justify-end items-center pt-2">
-                        <button
-                            onClick={() => handleSave?.()}
-                            className="px-6 py-2 bg-primary cursor-pointer text-white rounded-md disabled:opacity-50"
-                        >
-                            Save
-                        </button>
+                    <div className="flex justify-end items-center gap-2 pt-2">
+                        {handleSave && (
+                            <button
+                                onClick={() => handleSave?.()}
+                                className="px-6 py-2 bg-primary cursor-pointer text-white rounded-md disabled:opacity-50"
+                            >
+                                Save
+                            </button>
+                        )}
                     </div>
                 </DndContext>
             ) : (
-                tableMarkup
+                <>
+                {tableMarkup}
+                <div className="flex justify-end items-center gap-2 pt-2">
+                        {onMainSave && (
+                            <button
+                                onClick={() => onMainSave()}
+                                disabled={mainSaveLoading}
+                                className="px-6 py-2 bg-primary cursor-pointer text-white rounded-md disabled:opacity-50"
+                            >
+                                {mainSaveLoading ? "Saving..." : mainSaveLabel}
+                            </button>
+                        )}
+                    </div>
+                    </>
             )}
+
             {pagination && (
                 <Pagniation pagination={pagination} currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} loading={loading} />
             )}

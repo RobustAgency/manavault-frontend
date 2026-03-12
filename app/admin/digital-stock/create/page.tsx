@@ -93,8 +93,37 @@ export default function CreateDigitalProductPage() {
             const products = productForms.map((form) =>
                 convertFormToSubmitData(form.formData, selectedSupplierId)
             );
+            const hasImageFile = productForms.some((form) => form.formData.image instanceof File);
 
-            await createDigitalProducts({ products }).unwrap();
+            let payload: { products: typeof products } | FormData = { products };
+
+            if (hasImageFile) {
+                const formData = new FormData();
+                products.forEach((product, index) => {
+                    Object.entries(product).forEach(([key, value]) => {
+                        if (value === undefined || value === null || value === '') return;
+                        if (Array.isArray(value)) {
+                            value.forEach((item) =>
+                                formData.append(`products[${index}][${key}][]`, String(item))
+                            );
+                            return;
+                        }
+                        if (typeof value === 'object') {
+                            formData.append(`products[${index}][${key}]`, JSON.stringify(value));
+                            return;
+                        }
+                        formData.append(`products[${index}][${key}]`, String(value));
+                    });
+
+                    const image = productForms[index].formData.image;
+                    if (image instanceof File) {
+                        formData.append(`products[${index}][image]`, image);
+                    }
+                });
+                payload = formData;
+            }
+
+            await createDigitalProducts(payload).unwrap();
             const count = Array.isArray(products) ? products.length : 1;
             toast.success(`Digital product ${count > 1 ? 's' : ''} created successfully`);
         } catch (error) {

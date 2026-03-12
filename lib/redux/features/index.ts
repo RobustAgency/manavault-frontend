@@ -12,6 +12,14 @@ export { modulesApi } from "./modulesApi";
 export { usersApi } from "./usersApi";
 export { userInfoApi } from "./userInfoApi";
 export { clearUserRole, selectUserRole } from "./userInfoSlice";
+export {
+  setSelectedProducts,
+  clearSelectedProducts,
+  removeSelectedProduct,
+  updateSelectedProduct,
+  selectSelectedProducts,
+  selectSelectedProductIds,
+} from "./selectedDigitalProductsSlice";
 
 // Export all types
 export type {

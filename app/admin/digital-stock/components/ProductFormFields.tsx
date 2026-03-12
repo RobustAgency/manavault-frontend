@@ -10,10 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ImagePicker } from '@/components/custom/ImagePicker';
 import {
   Supplier,
 } from '@/lib/redux/features';
 import { type DigitalProductFormState } from './useDigitalProductForm';
+
+const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
 interface ProductFormFieldsProps {
   form: DigitalProductFormState;
@@ -34,6 +37,15 @@ export const ProductFormFields = ({
   onUpdate,
   onSupplierChange,
 }: ProductFormFieldsProps) => {
+  const imageValue =
+    form.image instanceof File
+      ? form.image
+      : form.image
+        ? form.image.startsWith('http://') || form.image.startsWith('https://')
+          ? form.image
+          : `${IMAGEPREFIX}/${form.image}`
+        : '';
+
   return (
     <div className="grid gap-4">
       {/* Supplier field only shown in edit mode */}
@@ -125,15 +137,13 @@ export const ProductFormFields = ({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor={`image-${formItemId}`}>Image URL</Label>
-        <Input
-          id={`image-${formItemId}`}
-          type="url"
-          value={form.image}
-          onChange={(e) => onUpdate({ image: e.target.value })}
-          placeholder="https://example.com/image.jpg"
+        <ImagePicker
+          value={imageValue}
+          onChange={(value) => onUpdate({ image: value })}
+          label="Product Image"
+          description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
+          error={typeof formErrors.image === 'string' ? formErrors.image : undefined}
         />
-        <p className="text-xs text-muted-foreground">Optional: Product image URL</p>
       </div>
 
       <div className="grid gap-2">
@@ -149,7 +159,22 @@ export const ProductFormFields = ({
         />
         {formErrors.cost_price && <p className="text-sm text-red-500">{formErrors.cost_price}</p>}
       </div>
-       <div className="grid gap-2">
+
+      <div className="grid gap-2">
+        <Label htmlFor={`selling_price-${formItemId}`}>Selling Price *</Label>
+        <Input
+          id={`selling_price-${formItemId}`}
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.selling_price}
+          onChange={(e) => onUpdate({ selling_price: e.target.value })}
+          placeholder="50.00"
+        />
+        {formErrors.selling_price && <p className="text-sm text-red-500">{formErrors.selling_price}</p>}
+      </div>
+
+      <div className="grid gap-2">
         <Label htmlFor={`currency-${formItemId}`}>Currency *</Label>
           <Select
                key={form.currency}

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import {
     useCreateProductMutation,
+    useUpdateProductMutation,
     type ProductStatus,
     type CreateProductData,
 } from '@/lib/redux/features';
@@ -31,11 +32,11 @@ function CreateProductPage() {
     const router = useRouter();
     const { formData, errors, validateForm, updateFormData } = useProductForm(false);
     const [createProduct, { isLoading, isSuccess, isError, error }] = useCreateProductMutation();
+    const [updateProduct, { isLoading: isUploadingImage }] = useUpdateProductMutation();
 
     // Refs for required fields
     const nameRef = useRef<HTMLInputElement>(null);
     const skuRef = useRef<HTMLInputElement>(null);
-    const sellingPriceRef = useRef<HTMLInputElement>(null);
     const statusRef = useRef<HTMLButtonElement>(null);
     const faceValueRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +53,6 @@ function CreateProductPage() {
         const fieldOrder = [
             { key: 'name', ref: nameRef },
             { key: 'sku', ref: skuRef },
-            { key: 'selling_price', ref: sellingPriceRef },
             { key: 'status', ref: statusRef },
         ];
 
@@ -88,7 +88,6 @@ function CreateProductPage() {
         const submitData: CreateProductData = {
             name: formData.name.trim(),
             sku: formData.sku.trim(),
-            selling_price: parseFloat(formData.selling_price),
             face_value: parseFloat(formData.face_value),
             currency: formData.currency,
             status: formData.status,
@@ -104,10 +103,6 @@ function CreateProductPage() {
         if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
         if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
 
-        if (typeof formData.image === 'string' && formData.image.trim()) {
-            submitData.image = formData.image.trim();
-        }
-
         if (formData.tags.trim()) {
             submitData.tags = formData.tags
                 .split(',')
@@ -122,34 +117,30 @@ function CreateProductPage() {
                 .filter(region => region.length > 0);
         }
 
-        let payload: FormData | typeof submitData = submitData;
-        if (formData.image instanceof File) {
-            const formPayload = new FormData();
-            Object.entries(submitData).forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
-                    return;
-                }
-                if (typeof value === "boolean") {
-                    formPayload.append(key, value ? "true" : "false");
-                    return;
-                }
-                if (value !== undefined && value !== null) {
-                    formPayload.append(key, String(value));
-                }
-            });
-            formPayload.append('image', formData.image);
-            payload = formPayload;
-        }
-
         try {
-            const result = await createProduct(payload).unwrap();
-            if (result?.id) {
-                toast.success("Product created successfully");
-                router.push(`/admin/products/${result.id}`);
-            } else {
+            // Step 1: Create the product (no image in payload)
+            const result = await createProduct(submitData).unwrap();
+
+            if (!result?.id) {
                 router.push('/admin/products');
+                return;
             }
+
+            // Step 2: If an image was selected, immediately upload it
+            if (formData.image instanceof File) {
+                try {
+                    const imagePayload = new FormData();
+                    imagePayload.append('image', formData.image);
+                    await updateProduct({ id: result.id, data: imagePayload }).unwrap();
+                } catch {
+                    toast.success('Product created successfully');
+                    toast.error('Image upload failed — you can update it from the edit page');
+                }
+            } else {
+                toast.success('Product created successfully');
+            }
+
+            router.push(`/admin/products/${result.id}`);
         } catch (err) {
             console.error('Failed to create product:', err);
             toast.error('Failed to create product');
@@ -232,21 +223,20 @@ function CreateProductPage() {
                                 onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
                                 error={errors.brand}
                             />
-
-                            <div className="space-y-2">
-                                <Label htmlFor="selling_price" className="text-sm font-medium">Selling Price *</Label>
+                             <div className="space-y-2">
+                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
                                 <Input
-                                    ref={sellingPriceRef}
-                                    id="selling_price"
+                                    ref={faceValueRef}
+                                    id="face_value"
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    value={formData.selling_price}
-                                    onChange={(e) => updateFormData({ selling_price: e.target.value })}
+                                    value={formData.face_value}
+                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
                                     placeholder="0.00"
                                     className="h-10"
                                 />
-                                {errors.selling_price && <p className="text-sm text-red-500">{errors.selling_price}</p>}
+                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
                             </div>
                         </div>
 
@@ -266,25 +256,6 @@ function CreateProductPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
-                                <Input
-                                    ref={faceValueRef}
-                                    id="face_value"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.face_value}
-                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
-                                    placeholder="0.00"
-                                    className="h-10"
-                                />
-                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="space-y-2">
                                 <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
                                 <Select
@@ -297,11 +268,17 @@ function CreateProductPage() {
                                     <SelectContent>
                                         <SelectItem value="active">Active</SelectItem>
                                         <SelectItem value="in_active">Inactive</SelectItem>
-                                        <SelectItem value="archived">Archived</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+                            
                         </div>
+                        </div>
+                       
+
+                    
 
 
                     </div>
@@ -365,9 +342,10 @@ function CreateProductPage() {
                     <div className="p-6 space-y-5">
                         <ImagePicker
                             value={formData.image ?? ''}
-                            onChange={(value) => updateFormData({ image: value })}
+                            onChange={(value) => updateFormData({ image: value ?? '' })}
                             label="Product Image"
                             description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
+                            disabled={isUploadingImage}
                         />
 
                         <div className="space-y-2">
@@ -402,12 +380,12 @@ function CreateProductPage() {
                         type="button"
                         variant="ghost"
                         onClick={() => router.back()}
-                        disabled={isLoading}
+                        disabled={isLoading || isUploadingImage}
                     >
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isLoading} size="lg" className="min-w-[150px]">
-                        {isLoading ? 'Creating...' : 'Create Product'}
+                    <Button type="submit" disabled={isLoading || isUploadingImage} size="lg" className="min-w-[150px]">
+                        {isUploadingImage ? 'Uploading image...' : isLoading ? 'Creating...' : 'Create Product'}
                     </Button>
                 </div>
             </form>

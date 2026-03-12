@@ -32,8 +32,9 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 brand: product.brand || '',
                 description: product.description || '',
                 tags: product.tags?.join(', ') || '',
-                image: product.image || '',
+                image: product.image_url || '',
                 cost_price: product.cost_price?.toString() ?? '',
+                selling_price: product.selling_price?.toString() ?? '',
                 region: product.region || '',
                 metadata: product.metadata ? JSON.stringify(product.metadata, null, 2) : '',
                 currency: product.currency || '',
@@ -61,10 +62,29 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
 
         try {
             const submitData = getFormDataForSubmit();
+            let payload: UpdateDigitalProductData | FormData = submitData as UpdateDigitalProductData;
+
+            if (formData.image instanceof File) {
+                const formPayload = new FormData();
+                Object.entries(submitData).forEach(([key, value]) => {
+                    if (value === undefined || value === null || value === '') return;
+                    if (Array.isArray(value)) {
+                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
+                        return;
+                    }
+                    if (typeof value === 'object') {
+                        formPayload.append(key, JSON.stringify(value));
+                        return;
+                    }
+                    formPayload.append(key, String(value));
+                });
+                formPayload.append('image', formData.image);
+                payload = formPayload;
+            }
 
             await updateDigitalProduct({
                 id: productId,
-                data: submitData as UpdateDigitalProductData,
+                data: payload as UpdateDigitalProductData,
             }).unwrap();
 
             toast.success('Digital product updated successfully');
