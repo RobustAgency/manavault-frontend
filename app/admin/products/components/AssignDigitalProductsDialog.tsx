@@ -140,7 +140,6 @@ export const AssignDigitalProductsDialog = ({
             return newMap;
         });
     };
-
     const handleSelectAll = () => {
         const currentPageIds = products.map((p) => p.id);
         const allCurrentPageSelected = currentPageIds.every((id) => selectedIds.has(id));

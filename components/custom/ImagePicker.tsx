@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Upload, X, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,15 @@ export const ImagePicker = ({
     const [validationError, setValidationError] = useState<string | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
 
+    useEffect(() => {
+        if (value instanceof File) {
+            const objectUrl = URL.createObjectURL(value);
+            setPreviewUrl(objectUrl);
+            return () => URL.revokeObjectURL(objectUrl);
+        }
+        setPreviewUrl('');
+    }, [value]);
+
     const openFileDialog = useCallback(() => {
         if (!disabled) {
             fileInputRef.current?.click();
@@ -52,11 +61,6 @@ export const ImagePicker = ({
         }
 
         setValidationError(null);
-
-        // Create preview URL
-        const objectUrl = URL.createObjectURL(file);
-        setPreviewUrl(objectUrl);
-        // Pass the file object to parent
         onChange(file);
     };
 
@@ -76,12 +80,6 @@ export const ImagePicker = ({
         }
 
         setValidationError(null);
-
-        // Create preview URL
-        const objectUrl = URL.createObjectURL(file);
-        setPreviewUrl(objectUrl);
-
-        // Pass the file object to parent
         onChange(file);
     };
 
@@ -91,10 +89,6 @@ export const ImagePicker = ({
     };
 
     const handleRemove = () => {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            setPreviewUrl('');
-        }
         onChange(null);
         setValidationError(null);
     };
@@ -130,13 +124,19 @@ export const ImagePicker = ({
                 {value ? (
                     <div className="relative group">
                         <div className="relative h-48 w-full rounded-lg overflow-hidden bg-muted">
-                            <Image
-                                src={displayImage}
-                                alt="Product preview"
-                                fill
-                                className="object-contain"
-                                unoptimized
-                            />
+                            {displayImage ? (
+                                <Image
+                                    src={displayImage}
+                                    alt="Product preview"
+                                    fill
+                                    className="object-contain"
+                                    unoptimized
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                </div>
+                            )}
                         </div>
                         <div className="absolute inset-0 rounded-sm bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <Button
