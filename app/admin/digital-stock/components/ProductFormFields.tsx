@@ -26,6 +26,8 @@ interface ProductFormFieldsProps {
   suppliers?: Supplier[];
   onUpdate: (updates: Partial<DigitalProductFormState>) => void;
   onSupplierChange?: (supplierId: number) => void;
+  onImageChange?: (value: string | File | null) => void;
+  isImageUploading?: boolean;
 }
 
 export const ProductFormFields = ({
@@ -36,6 +38,8 @@ export const ProductFormFields = ({
   suppliers = [],
   onUpdate,
   onSupplierChange,
+  onImageChange,
+  isImageUploading = false,
 }: ProductFormFieldsProps) => {
   const imageValue =
     form.image instanceof File
@@ -139,10 +143,11 @@ export const ProductFormFields = ({
       <div className="grid gap-2">
         <ImagePicker
           value={imageValue}
-          onChange={(value) => onUpdate({ image: value })}
+          onChange={(value) => (onImageChange ? onImageChange(value) : onUpdate({ image: value ?? '' }))}
           label="Product Image"
           description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
           error={typeof formErrors.image === 'string' ? formErrors.image : undefined}
+          disabled={isImageUploading}
         />
       </div>
 

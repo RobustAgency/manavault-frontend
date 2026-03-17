@@ -66,7 +66,6 @@ const ProductAssociatedDigitalStock = ({
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [productSellingPrice, setProductSellingPrice] = useState<number | null>(product.selling_price ?? null);
     const [forceErrorIds, setForceErrorIds] = useState<Set<number>>(new Set());
-    // Track prices we just added so UI updates immediately (avoids race with refetch)
     const [completedPricesMap, setCompletedPricesMap] = useState<Map<number, number>>(new Map());
 
     useEffect(() => {
@@ -166,7 +165,7 @@ const ProductAssociatedDigitalStock = ({
     };
 
     const handleRemoveDigitalProduct = async (digitalProductId: number) => {
-        if (!product) return;
+        if (digitalProductId){
         try {
             await removeDigitalProduct({ productId: product.id, digitalProductId }).unwrap();
             setSortTableData((prev) => prev.filter((item) => item.id !== digitalProductId));
@@ -174,6 +173,9 @@ const ProductAssociatedDigitalStock = ({
         } catch {
             toast.error('Failed to remove digital product');
         }
+    }
+    handleCancelPending(digitalProductId);
+
     };
 
     const handleConfirmDelete = async () => {
