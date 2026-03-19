@@ -58,6 +58,7 @@ export interface DigitalProduct {
   image?: string | File | null;
   cost_price: string | number;
   selling_price?: string | number | null;
+  face_value?: string | number | null;
   status: DigitalProductStatus;
   region?: string | null;
   metadata?: Record<string, unknown> | null;

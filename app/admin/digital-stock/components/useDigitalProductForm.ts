@@ -6,6 +6,7 @@ export interface DigitalProductFormErrors {
   sku?: string;
   cost_price?: string;
   selling_price?: string;
+  face_value?: string;
   tags?: string;
   regions?: string;
   metadata?: string;
@@ -21,6 +22,7 @@ export interface DigitalProductFormState {
   image: string | File | null;
   cost_price: string;
   selling_price: string;
+  face_value: string;
   region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
   currency: string;
@@ -37,6 +39,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     image: '',
     cost_price: '',
     selling_price: '',
+    face_value: '',
     region: '',
     metadata: '',
     currency: 'usd',
@@ -87,6 +90,16 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       }
     }
 
+    if (!formData.face_value.trim()) {
+      newErrors.face_value = 'Face value is required';
+    } else {
+      const faceValueValue = parseFloat(formData.face_value);
+      if (Number.isNaN(faceValueValue)) {
+        newErrors.face_value = 'Face value must be a valid number';
+      } else if (faceValueValue < 0) {
+        newErrors.face_value = 'Face value must be 0 or greater';
+      }
+    }
     // Validate tags format (optional)
     if (formData.tags.trim()) {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
@@ -134,6 +147,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       image: '',
       cost_price: '',
       selling_price: '',
+      face_value: '',
       region: '',
       metadata: '',
       currency: 'usd',
@@ -188,6 +202,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
             : imageUrlValue || undefined,
         cost_price: parseFloat(formData.cost_price),
         selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
+        face_value: formData.face_value.trim() ? parseFloat(formData.face_value) : undefined,
         regions: regionsArray.length > 0 ? regionsArray : undefined,
         metadata: metadataObj,
         currency: formData.currency || undefined,
@@ -207,6 +222,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
           : undefined,
       cost_price: parseFloat(formData.cost_price),
       selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
+      face_value: formData.face_value.trim() ? parseFloat(formData.face_value) : undefined,
       regions: regionsArray.length > 0 ? regionsArray : undefined,
       metadata: metadataObj,
       currency: formData.currency || undefined,

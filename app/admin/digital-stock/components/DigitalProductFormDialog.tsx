@@ -101,6 +101,7 @@ export const DigitalProductFormDialog = ({
         tags: selectedProduct.tags?.join(', ') || '',
         selling_price: selectedProduct.selling_price?.toString() ?? '',
         image: selectedProduct.image || '',
+        face_value: selectedProduct.face_value?.toString() ?? '',
         cost_price: selectedProduct.cost_price?.toString() ?? '',
         region: selectedProduct.region || '',
         metadata: selectedProduct.metadata ? JSON.stringify(selectedProduct.metadata, null, 2) : '',
