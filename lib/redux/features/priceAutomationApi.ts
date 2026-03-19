@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { productsApi } from "@/lib/redux/features/productsApi";
-import { MutationError, PaginationMeta, PriceRule, PriceRuleQuery, Product } from "@/types";
+import { MutationError, PaginationMeta, PostViewProduct, PriceRule, PriceRuleQuery, Product } from "@/types";
 import { axiosBaseQuery } from "../base";
 
 export const priceAutomationApi = createApi({
@@ -210,16 +210,16 @@ export const priceAutomationApi = createApi({
      
     }),
     getPostViewRuleAffectedProducts: builder.query<
-      { data: Product[]; pagination: PaginationMeta },
+      { data: PostViewProduct[]; pagination: PaginationMeta },
       PriceRule
     >({
       query: (data) => ({
-        url: `/price-rules/${data.id}/products`,
+        url: `/price-rules/${data.id}/digital-products`,
         method: "GET",
       }),
       transformResponse: (response: {
         data: {
-          data: Product[]; 
+          data: PostViewProduct[];
           current_page: number;
           per_page: number;
           total: number;

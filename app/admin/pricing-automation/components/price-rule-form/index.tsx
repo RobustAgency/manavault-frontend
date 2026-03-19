@@ -16,6 +16,7 @@ import { usePricingAutomationForm } from "../pricing-form-hook";
 import DynamicField from "../dynamic-field";
 import { useRouter } from "next/navigation";
 import { useGetBrandsQuery } from "@/lib/redux/features";
+import { useGetSuppliersQuery } from "@/lib/redux/features/suppliersApi";
 import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
 import { useLazyGetPostViewRuleAffectedProductsQuery, useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
@@ -64,6 +65,7 @@ const PriceRuleForm = ({
 
   const { formData, errors, updateFormData, validateForm } = usePricingAutomationForm(mode === "edit", initialData);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
   const [triggerPreview, { data: previewData, isLoading: isPreviewing }] = useLazyGetPreviewRuleAffectedProductsQuery()
   const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] = useLazyGetPostViewRuleAffectedProductsQuery()
 
@@ -178,7 +180,15 @@ const PriceRuleForm = ({
             </div>
           </div>
           {/* Dynamic Conditions */}
-          <DynamicField conditionError={errors?.conditions} matchCondition={matchCondition} setMatchCondition={setMatchCondition} conditions={conditions} setConditions={setConditions} selectorOptions={brandsData?.data ?? []} />
+          <DynamicField
+            conditionError={errors?.conditions}
+            matchCondition={matchCondition}
+            setMatchCondition={setMatchCondition}
+            conditions={conditions}
+            setConditions={setConditions}
+            brandOptions={brandsData?.data ?? []}
+            supplierOptions={suppliersData?.data ?? []}
+          />
 
           {/* Price Fields */}
           <div className="flex flex-col gap-0  border-t py-1">
