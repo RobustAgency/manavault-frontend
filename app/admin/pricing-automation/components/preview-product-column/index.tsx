@@ -26,7 +26,7 @@ export const PreviewRulesColumns = (): ColumnDef<Product, unknown>[] => [
         header: 'Name',
         cell: ({ row }) => (
             <span className="font-medium text-primary">
-                {row.original.product_name}
+                {row.original.digital_product_name}
             </span>
         ),
     },
