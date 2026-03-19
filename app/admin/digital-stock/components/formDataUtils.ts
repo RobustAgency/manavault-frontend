@@ -12,6 +12,7 @@ export interface DigitalProductDataType {
   image?: string;
   cost_price: number;
   selling_price?: number;
+  face_value?: number;
   region?: string;
   metadata?: Record<string, unknown>;
   currency?: string;
@@ -53,6 +54,7 @@ export const convertFormToSubmitData = (
         : undefined,
     cost_price: parseFloat(form.cost_price),
     selling_price: form.selling_price.trim() ? parseFloat(form.selling_price) : undefined,
+    face_value: form.face_value.trim() ? parseFloat(form.face_value) : undefined,
     region: form.region,
     metadata: metadataObj,
     currency: form.currency,
