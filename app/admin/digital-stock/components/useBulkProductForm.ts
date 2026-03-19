@@ -24,6 +24,7 @@ export const useBulkProductForm = () => {
       tags: "",
       image: "",
       cost_price: '0',
+      face_value: '0',
       region: "",
       metadata: "",
       currency: 'usd',
