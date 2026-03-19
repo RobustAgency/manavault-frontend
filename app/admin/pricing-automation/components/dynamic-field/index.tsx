@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { SetStateAction, Dispatch, useEffect } from "react";
-import { Condition } from "@/types";
+import { Condition, Supplier } from "@/types";
 
 export interface Brand {
   id: number;
@@ -19,6 +19,12 @@ export interface Brand {
   created_at: string;
   updated_at: string;
 }
+
+export const CURRENCY_OPTIONS = [
+  { value: "usd", label: "USD ($)" },
+  { value: "eur", label: "EUR (€)" },
+] as const;
+
 type Operator =
   | "="
   | "!="
@@ -30,16 +36,22 @@ type Operator =
 
 type FieldKey =
   | "selling_price"
+  | "cost_price"
   | "name"
   | "brand_name"
+  | "supplier_id"
+  | "currency"
   | "regions"
   | string;
 
 export const FIELD_OPERATOR_MAP: Record<FieldKey, Operator[]> = {
   selling_price: ["=", "!=", ">", ">=", "<", "<="],
+  cost_price: ["=", "!=", ">", ">=", "<", "<="],
   name: ["=", "!=", "contains"],
   brand_name: ["=", "!="],
-  regions: ["contains"],
+  supplier_id: ["=", "!="],
+  currency: ["=", "!="],
+  regions: ["=", "!="],
 };
 
 export const OPERATOR_LABELS: Record<Operator, string> = {
@@ -52,10 +64,19 @@ export const OPERATOR_LABELS: Record<Operator, string> = {
   contains: "Contains",
 };
 
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
 interface DynamicFieldTypes {
   conditions: Condition[];
-  selectorOptions: Brand[];
-  setConditions: React.Dispatch<React.SetStateAction<Condition[]>>
+  /** @deprecated Use brandOptions instead */
+  selectorOptions?: Brand[];
+  brandOptions?: Brand[];
+  supplierOptions?: Supplier[];
+  currencyOptions?: readonly { value: string; label: string }[];
+  setConditions: React.Dispatch<React.SetStateAction<Condition[]>>;
   matchCondition: string;
   setMatchCondition: Dispatch<SetStateAction<string>>;
   conditionError: string;
@@ -64,11 +85,15 @@ interface DynamicFieldTypes {
 const DynamicField: React.FC<DynamicFieldTypes> = ({
   conditions,
   selectorOptions,
+  brandOptions,
+  supplierOptions = [],
+  currencyOptions = CURRENCY_OPTIONS,
   setConditions,
   matchCondition,
   setMatchCondition,
-  conditionError
+  conditionError,
 }) => {
+  const brands = brandOptions ?? selectorOptions ?? [];
   // Helper function to get default operator for a field
   const getDefaultOperator = (field: FieldKey): Operator => {
     const operators = FIELD_OPERATOR_MAP[field];
@@ -133,10 +158,20 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
     );
   };
 
-  const getValueOptions = (field: string) => {
+  const getValueOptions = (field: string): DropdownOption[] | null => {
     switch (field) {
       case "brand_name":
-        return selectorOptions;
+        return brands.map((b) => ({ value: b.name, label: b.name }));
+      case "supplier_id":
+        return supplierOptions.map((s) => ({
+          value: String(s.id),
+          label: s.name,
+        }));
+      case "currency":
+        return currencyOptions.map((c) => ({
+          value: c.value,
+          label: c.label,
+        }));
       default:
         return null;
     }
@@ -144,9 +179,12 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
 
   const fieldOptions = [
     { value: "name", label: "Product Name" },
+    { value: "selling_price", label: "Selling Price" },
+    { value: "cost_price", label: "Cost Price" },
+    { value: "supplier_id", label: "Supplier" },
+    { value: "currency", label: "Currency" },
     { value: "regions", label: "Region" },
     { value: "brand_name", label: "Brand" },
-    { value: "selling_price", label: "Selling Price" },
   ];
 
   const getOperatorOptions = (field: FieldKey) => {
@@ -247,8 +285,8 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {getValueOptions(condition.field)?.map((option) => (
-                      <SelectItem key={option.name} value={option.name}>
-                        {option.name}
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -267,6 +305,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
             </div>
 
             {conditions.length > 1 && (
+              <div className="flex items-center w-fit h-full justify-center"> 
               <Button
                 type="button"
                 variant="ghost"
@@ -276,6 +315,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
+              </div>
             )}
           </div>
         </div>
