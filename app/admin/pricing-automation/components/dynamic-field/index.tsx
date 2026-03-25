@@ -39,7 +39,7 @@ type FieldKey =
   | "cost_price"
   | "name"
   | "brand"
-  | "supplier_id"
+  | "supplier_name"
   | "currency"
   | "region"
   | string;
@@ -49,7 +49,8 @@ export const FIELD_OPERATOR_MAP: Record<FieldKey, Operator[]> = {
   cost_price: ["=", "!=", ">", ">=", "<", "<="],
   name: ["=", "!=", "contains"],
   brand: ["=", "!="],
-  supplier_id: ["=", "!="],
+  // Prefer name comparisons over ids when creating/executing price rules.
+  supplier_name: ["=", "!="],
   currency: ["=", "!="],
   region: ["=", "!="],
 };
@@ -162,7 +163,8 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
     switch (field) {
       // case "brand_name":
       //   return brands.map((b) => ({ value: b.name, label: b.name }));
-      case "supplier_id":
+      case "supplier_name":
+        // Store supplier id as the Select value (unique), but display supplier name.
         return supplierOptions.map((s) => ({
           value: String(s.id),
           label: s.name,
@@ -181,7 +183,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
     { value: "name", label: "Product Name" },
     { value: "selling_price", label: "Selling Price" },
     { value: "cost_price", label: "Cost Price" },
-    { value: "supplier_id", label: "Supplier" },
+    { value: "supplier_name", label: "Supplier" },
     { value: "currency", label: "Currency" },
     { value: "region", label: "Region" },
     { value: "brand", label: "Brand" },
@@ -284,8 +286,11 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
                     <SelectValue placeholder="Select value" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getValueOptions(condition.field)?.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                    {getValueOptions(condition.field)?.map((option, idx) => (
+                      <SelectItem
+                        key={`${condition.field}-${option.value}-${idx}`}
+                        value={option.value}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}

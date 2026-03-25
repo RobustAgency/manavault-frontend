@@ -1,4 +1,4 @@
-import { Product } from '@/types';
+import { PreviewAffectedProduct } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 
 
@@ -9,18 +9,7 @@ export const formatCurrency = (amount: number, currency?: string) => {
     }).format(amount);
 };
 
-const normalizeCurrency = (currency?: string): string => {
-    switch (currency?.toLowerCase()) {
-        case 'usd':
-            return 'USD';
-        case 'eur':
-            return 'EUR';
-        default:
-            return 'USD';
-    }
-};
-
-export const PreviewRulesColumns = (): ColumnDef<Product, unknown>[] => [
+export const PreviewRulesColumns = (): ColumnDef<PreviewAffectedProduct, unknown>[] => [
     {
         accessorKey: 'product_name',
         header: 'Name',
@@ -33,12 +22,12 @@ export const PreviewRulesColumns = (): ColumnDef<Product, unknown>[] => [
     {
         accessorKey: 'current_selling_price',
         header: 'Current Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.current_selling_price), normalizeCurrency(row.original.currency ?? 'USD'))}`,
+        cell: ({ row }) => `${formatCurrency(Number(row.original.current_selling_price), 'USD')}`,
     },
     {
         accessorKey: 'new_selling_price',
         header: 'New Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.new_selling_price), normalizeCurrency(row.original.currency ?? 'USD'))}`,
+        cell: ({ row }) => `${formatCurrency(Number(row.original.new_selling_price), 'USD')}`,
 
     },
 
