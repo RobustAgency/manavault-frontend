@@ -38,20 +38,20 @@ type FieldKey =
   | "selling_price"
   | "cost_price"
   | "name"
-  | "brand_name"
+  | "brand"
   | "supplier_id"
   | "currency"
-  | "regions"
+  | "region"
   | string;
 
 export const FIELD_OPERATOR_MAP: Record<FieldKey, Operator[]> = {
   selling_price: ["=", "!=", ">", ">=", "<", "<="],
   cost_price: ["=", "!=", ">", ">=", "<", "<="],
   name: ["=", "!=", "contains"],
-  brand_name: ["=", "!="],
+  brand: ["=", "!="],
   supplier_id: ["=", "!="],
   currency: ["=", "!="],
-  regions: ["=", "!="],
+  region: ["=", "!="],
 };
 
 export const OPERATOR_LABELS: Record<Operator, string> = {
@@ -160,8 +160,8 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
 
   const getValueOptions = (field: string): DropdownOption[] | null => {
     switch (field) {
-      case "brand_name":
-        return brands.map((b) => ({ value: b.name, label: b.name }));
+      // case "brand_name":
+      //   return brands.map((b) => ({ value: b.name, label: b.name }));
       case "supplier_id":
         return supplierOptions.map((s) => ({
           value: String(s.id),
@@ -183,8 +183,8 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
     { value: "cost_price", label: "Cost Price" },
     { value: "supplier_id", label: "Supplier" },
     { value: "currency", label: "Currency" },
-    { value: "regions", label: "Region" },
-    { value: "brand_name", label: "Brand" },
+    { value: "region", label: "Region" },
+    { value: "brand", label: "Brand" },
   ];
 
   const getOperatorOptions = (field: FieldKey) => {

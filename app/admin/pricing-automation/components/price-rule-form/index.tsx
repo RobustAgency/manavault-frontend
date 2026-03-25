@@ -96,6 +96,9 @@ const PriceRuleForm = ({
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log(formData,'formData');
+
     if (!validateForm()) return;
     if (formData.action_value == null || !formData.action_value) {
       toast.error("Selling price value is required");
