@@ -234,6 +234,15 @@ export interface Product {
   is_out_of_stock?: boolean;
 }
 
+// Preview product from POST /price-rules/preview (paginated)
+export interface PreviewAffectedProduct {
+  digital_product_id: number;
+  digital_product_name: string;
+  face_value: number;
+  current_selling_price: number;
+  new_selling_price: number;
+}
+
 // Post-view product from price-rules/{id}/digital-products API
 export interface PostViewProduct {
   id: number;

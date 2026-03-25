@@ -1,5 +1,5 @@
 import { PriceRule } from "@/types";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export interface PriceRuleErrors {
   name : string;
@@ -118,9 +118,9 @@ export const usePricingAutomationForm = ( isEditMode: boolean,
     });
   };
 
-  const updateFormData = (updates: Partial<PriceRule>) => {
+  const updateFormData = useCallback((updates: Partial<PriceRule>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
-  };
+  }, []);
 
   return {
     formData,
