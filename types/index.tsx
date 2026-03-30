@@ -131,6 +131,7 @@ export interface BulkCreateDigitalProductsData {
 }
 
 export interface UpdateDigitalProductData {
+  supplier_id?: number;
   name?: string;
   brand?: string;
   description?: string;
@@ -138,8 +139,10 @@ export interface UpdateDigitalProductData {
   image_url?: string | File | null;
   cost_price?: number;
   selling_price?: number;
+  face_value?: number;
   region?: string;
   metadata?: Record<string, unknown>;
+  currency?: string;
 }
 
 
