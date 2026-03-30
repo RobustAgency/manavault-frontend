@@ -32,7 +32,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 sku: product.sku || '',
                 brand: product.brand || '',
                 description: product.description || '',
-                tags: product.tags?.join(', ') || '',
+                tags: Array.isArray(product.tags) ? product.tags?.join(', ') : product.tags || '',
                 image: product.image_url || '',
                 cost_price: product.cost_price?.toString() ?? '',
                 selling_price: product.selling_price?.toString() ?? '',
