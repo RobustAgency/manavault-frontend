@@ -62,11 +62,7 @@ export const createRulesColumns = ({
       accessorKey: "action-value",
       header: 'Action Value',
       cell: ({ row }) => (
-         <span>
-      {row.original.action_value == null
-        ? "-"
-        : formatCurrency(row.original.action_value)}
-    </span>
+        row.original.action_mode === "percentage" ? <span>{row.original.action_value}%</span> : <span>{formatCurrency(row.original.action_value ?? 0)}</span>
       ),
     },
     {
@@ -87,6 +83,7 @@ export const createRulesColumns = ({
   if (!canEdit && !canDelete) {
     return baseColumns;
   }
+
 
   return [
     ...baseColumns,
