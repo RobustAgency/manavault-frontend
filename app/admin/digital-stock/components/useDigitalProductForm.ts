@@ -8,7 +8,7 @@ export interface DigitalProductFormErrors {
   selling_price?: string;
   face_value?: string;
   tags?: string;
-  regions?: string;
+  region?: string;
   metadata?: string;
 }
 
@@ -111,17 +111,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       }
     }
 
-    // Validate regions format (optional)
-    if (formData.region.trim()) {
-      // const regionsArray = formData.regions.split(',').map(region => region.trim()).filter(Boolean);
-      if (formData.region.length > 0) {
-        // const invalidRegions = regionsArray.filter(region => region.length > 10);
-        const invalidRegions = formData.region.length>10;
-        if (invalidRegions) {
-          newErrors.regions = 'Each region code must be 10 characters or less';
-        }
-      }
-    }
+
 
     // Validate metadata JSON (optional)
     if (formData.metadata.trim()) {
@@ -170,7 +160,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     //   .split(',')
     //   .map(region => region.trim())
     //   .filter(Boolean);
-    const regionsArray = formData.region;
+    const regionValue = formData.region.trim();
 
     let metadataObj: Record<string, unknown> | undefined;
     if (formData.metadata.trim()) {
@@ -182,7 +172,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     }
 
     // For create mode, include all fields including SKU
-    // For edit mode, exclude SKU (it cannot be updated) and supplier_id
+    // For edit mode, exclude SKU (it cannot be updated)
     if (isEditMode) {
       const imageUrlValue =
         formData.image === null
@@ -192,18 +182,19 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
             : undefined;
 
       return {
+        supplier_id: formData.supplier_id > 0 ? formData.supplier_id : undefined,
         name: formData.name.trim(),
         brand: formData.brand.trim() || undefined,
         description: formData.description.trim() || undefined,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
-        image:
+        image_url:
           imageUrlValue === null
             ? null
             : imageUrlValue || undefined,
         cost_price: parseFloat(formData.cost_price),
         selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
         face_value: formData.face_value.trim() ? parseFloat(formData.face_value) : undefined,
-        regions: regionsArray.length > 0 ? regionsArray : undefined,
+        region: regionValue.length > 0 ? regionValue : undefined,
         metadata: metadataObj,
         currency: formData.currency || undefined,
       };
@@ -223,7 +214,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       cost_price: parseFloat(formData.cost_price),
       selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
       face_value: formData.face_value.trim() ? parseFloat(formData.face_value) : undefined,
-      regions: regionsArray.length > 0 ? regionsArray : undefined,
+      region: regionValue.length > 0 ? regionValue : undefined,
       metadata: metadataObj,
       currency: formData.currency || undefined,
     };
