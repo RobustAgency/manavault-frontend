@@ -26,22 +26,27 @@ export const PostViewColumns = (): ColumnDef<PostViewProduct, unknown>[] => [
         header: 'Name',
         cell: ({ row }) => (
             <span className="font-medium text-primary">
-                {row.original.product.name}
+                {row.original.digital_product?.name}
             </span>
         ),
     },
     {
-        accessorKey: 'original_selling_price',
-        header: 'Original Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.original_selling_price), normalizeCurrency(row.original.product.currency ?? 'USD'))}`,
+        accessorKey: 'current_selling_price',
+        header: 'Current Selling Price',
+        cell: ({ row }) =>
+            formatCurrency(
+                Number(row.original.original_selling_price),
+                normalizeCurrency(row.original.digital_product?.currency ?? 'USD')
+            ),
     },
     {
-        accessorKey: 'final_selling_price',
-        header: 'Final Selling Price',
-        cell: ({ row }) => `${formatCurrency(Number(row.original.final_selling_price), normalizeCurrency(row.original.product.currency ?? 'USD'))}`,
-
+        accessorKey: 'new_selling_price',
+        header: 'New Selling Price',
+        cell: ({ row }) =>
+            formatCurrency(
+                Number(row.original.final_selling_price),
+                normalizeCurrency(row.original.digital_product?.currency ?? 'USD')
+            ),
     },
-  
-
 ];
 

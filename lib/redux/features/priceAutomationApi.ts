@@ -1,6 +1,13 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { productsApi } from "@/lib/redux/features/productsApi";
-import { MutationError, PaginationMeta, PriceRule, PriceRuleQuery, Product } from "@/types";
+import {
+  MutationError,
+  PaginationMeta,
+  PostViewProduct,
+  PreviewAffectedProduct,
+  PriceRule,
+  PriceRuleQuery,
+} from "@/types";
 import { axiosBaseQuery } from "../base";
 
 export const priceAutomationApi = createApi({
@@ -189,37 +196,69 @@ export const priceAutomationApi = createApi({
     }),
 
     getPreviewRuleAffectedProducts: builder.query<
-      { data: Product[] },
-      PriceRule
+      { data: PreviewAffectedProduct[]; pagination: PaginationMeta },
+      { rule: PriceRule; page?: number }
     >({
-      query: (data) => ({
+      query: ({ rule, page = 1 }) => ({
         url: "/price-rules/preview",
         method: "POST",
-        data: data,
+        params: { page },
+        data: rule,
       }),
       transformResponse: (response: {
-        data: Product[] | undefined;
+        data?:
+          | {
+              data?: PreviewAffectedProduct[];
+              current_page: number;
+              per_page: number;
+              total: number;
+              last_page: number;
+              from: number;
+              to: number;
+            }
+          | undefined;
         error?: boolean;
         message?: string;
       }) => {
-        if (response.data) {
-          return { data: response.data } as { data: Product[] };
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return {
+            data: response.data.data,
+            pagination: {
+              current_page: response.data.current_page,
+              per_page: response.data.per_page,
+              total: response.data.total,
+              last_page: response.data.last_page,
+              from: response.data.from,
+              to: response.data.to,
+            },
+          };
         }
-          return { data: [] } as { data: Product[] };
+        return {
+          data: [],
+          pagination: {
+            current_page: 1,
+            per_page: 10,
+            total: 0,
+            last_page: 1,
+            from: 0,
+            to: 0,
+          },
+        };
       },
      
     }),
     getPostViewRuleAffectedProducts: builder.query<
-      { data: Product[]; pagination: PaginationMeta },
-      PriceRule
+      { data: PostViewProduct[]; pagination: PaginationMeta },
+      { rule: PriceRule; page?: number }
     >({
-      query: (data) => ({
-        url: `/price-rules/${data.id}/products`,
+      query: ({ rule, page = 1 }) => ({
+        url: `/price-rules/${rule.id}/digital-products`,
         method: "GET",
+        params: { page },
       }),
       transformResponse: (response: {
         data: {
-          data: Product[]; 
+          data: PostViewProduct[];
           current_page: number;
           per_page: number;
           total: number;

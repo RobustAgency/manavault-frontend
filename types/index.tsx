@@ -58,6 +58,7 @@ export interface DigitalProduct {
   image?: string | File | null;
   cost_price: string | number;
   selling_price?: string | number | null;
+  face_value?: string | number | null;
   status: DigitalProductStatus;
   region?: string | null;
   metadata?: Record<string, unknown> | null;
@@ -199,6 +200,7 @@ export type ProductStatus = "in_active" | "active" | "archived";
 export interface Product {
   id: number;
   name: string;
+  digital_product_name?: string;
   brand?: string | null | {
     id: number;
     name: string;
@@ -232,10 +234,19 @@ export interface Product {
   is_out_of_stock?: boolean;
 }
 
-// create a post view product interface
+// Preview product from POST /price-rules/preview (paginated)
+export interface PreviewAffectedProduct {
+  digital_product_id: number;
+  digital_product_name: string;
+  face_value: number;
+  current_selling_price: number;
+  new_selling_price: number;
+}
+
+// Post-view product from price-rules/{id}/digital-products API
 export interface PostViewProduct {
   id: number;
-  product_id: number;
+  digital_product_id: number;
   price_rule_id: number;
   original_selling_price: string;
   base_value: string;
@@ -246,8 +257,24 @@ export interface PostViewProduct {
   final_selling_price: string;
   applied_at: string;
   created_at: string;
-  product: Product;
   updated_at: string;
+  digital_product: DigitalProduct & {
+    latest_price_rule_digital_product?: {
+      id: number;
+      digital_product_id: number;
+      price_rule_id: number;
+      original_selling_price: string;
+      base_value: string;
+      action_mode: string;
+      action_operator: string;
+      action_value: string;
+      calculated_price: string;
+      final_selling_price: string;
+      applied_at: string;
+      created_at: string;
+      updated_at: string;
+    };
+  };
 }
 
 

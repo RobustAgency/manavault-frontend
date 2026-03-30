@@ -108,7 +108,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             // Merge with existing pending so previous additions are retained
             const existingById = new Map(existingPendingProducts.map((p) => [p.id, p]));
             selectedProducts.forEach((p) =>
-                existingById.set(p.id, { ...p, selling_price: null })
+                existingById.set(p.id, { ...p, selling_price: p.selling_price ?? null })
             );
             const merged = Array.from(existingById.values());
             dispatch(setSelectedProducts(merged));

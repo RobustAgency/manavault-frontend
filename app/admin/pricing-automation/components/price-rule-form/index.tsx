@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import { usePricingAutomationForm } from "../pricing-form-hook";
 import DynamicField from "../dynamic-field";
 import { useRouter } from "next/navigation";
 import { useGetBrandsQuery } from "@/lib/redux/features";
+import { useGetSuppliersQuery } from "@/lib/redux/features/suppliersApi";
 import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
 import { useLazyGetPostViewRuleAffectedProductsQuery, useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
 import { toast } from "react-toastify";
-import { Condition, PriceRule } from "@/types";
+import { Condition, PriceRule, Supplier } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 
 interface PriceRuleFormProps {
@@ -64,36 +65,146 @@ const PriceRuleForm = ({
 
   const { formData, errors, updateFormData, validateForm } = usePricingAutomationForm(mode === "edit", initialData);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
   const [triggerPreview, { data: previewData, isLoading: isPreviewing }] = useLazyGetPreviewRuleAffectedProductsQuery()
   const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] = useLazyGetPostViewRuleAffectedProductsQuery()
 
+  const suppliers: Supplier[] = useMemo(
+    () => suppliersData?.data ?? [],
+    [suppliersData]
+  );
+  const suppliersById = useMemo(() => new Map<number, string>(suppliers.map((s) => [Number(s.id), s.name])), [suppliers]);
+  const suppliersByNameToFirstId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of suppliers) {
+      if (!map.has(s.name)) map.set(s.name, Number(s.id));
+    }
+    return map;
+  }, [suppliers]);
+
+  const convertSupplierConditionValueToId = useCallback(
+    (rule?: Partial<PriceRule>): Partial<PriceRule> | undefined => {
+      if (!rule) return rule;
+
+      return {
+        ...rule,
+        conditions: rule.conditions?.map((c) => {
+          if (c.field !== "supplier_name") return c;
+
+          const asId = Number(c.value);
+          if (!Number.isNaN(asId) && suppliersById.has(asId)) {
+            return { ...c, value: String(asId) };
+          }
+
+          const mappedId = suppliersByNameToFirstId.get(c.value);
+          if (mappedId == null) return c;
+          return { ...c, value: String(mappedId) };
+        }),
+      };
+    },
+    [suppliersById, suppliersByNameToFirstId]
+  );
+
+  // Backend needs supplier name. UI stores supplier id for stable select values.
+  const toRulePayload = (rule: PriceRule): PriceRule => {
+    return {
+      ...rule,
+      conditions: rule.conditions.map((c) => {
+        if (c.field !== "supplier_name") return c;
+        const supplierId = Number(c.value);
+        const supplierName = suppliersById.get(supplierId);
+        if (!supplierName) return c;
+        return { ...c, value: supplierName };
+      }),
+    };
+  };
+
   const hasFormChangesInEditMode = useMemo(() => {
     if (mode !== "edit") return false;
-    const initialSnapshot = normalizeRuleForComparison(initialData);
-    const currentSnapshot = normalizeRuleForComparison(formData);
+    const initialSnapshot = normalizeRuleForComparison(convertSupplierConditionValueToId(initialData));
+    const currentSnapshot = normalizeRuleForComparison(convertSupplierConditionValueToId(formData));
     return JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot);
-  }, [mode, initialData, formData]);
+  }, [mode, initialData, formData, convertSupplierConditionValueToId, suppliersById, suppliersByNameToFirstId]);
 
   const shouldUsePreviewMode = mode === "create" || hasFormChangesInEditMode;
+
+  useEffect(() => {
+    // In edit mode, backend might return `supplier_name` value as a supplier name.
+    // Since our select uses supplier id as the internal value, map name -> id here.
+    if (mode !== "edit") return;
+    if (!suppliers.length) return;
+
+    setConditions((prev) => {
+      let changed = false;
+      const next = prev.map((c) => {
+        if (c.field !== "supplier_name") return c;
+
+        const asId = Number(c.value);
+        if (!Number.isNaN(asId) && suppliersById.has(asId)) {
+          const nextValue = String(asId);
+          if (nextValue === c.value) return c;
+          changed = true;
+          return { ...c, value: nextValue };
+        }
+
+        const mappedId = suppliersByNameToFirstId.get(c.value);
+        if (mappedId == null) return c;
+        const nextValue = String(mappedId);
+        if (nextValue === c.value) return c;
+        changed = true;
+        return { ...c, value: nextValue };
+      });
+
+      // Important: return the same reference when nothing changes.
+      // Otherwise React will re-render indefinitely if this effect runs repeatedly.
+      return changed ? next : prev;
+    });
+  }, [mode, suppliers, suppliersById, suppliersByNameToFirstId]);
 
   useEffect(() => {
     updateFormData({
       conditions,
       match_type: matchCondition,
     });
-  }, [conditions, matchCondition]);
+  }, [conditions, matchCondition, updateFormData]);
 
   const handlePreview = async () => {
     if (!formData.conditions[0].value || !formData.action_value) {
       toast.error("Please fill the form to preview products.");
     }
-    const triggerView = shouldUsePreviewMode ? triggerPreview : triggerPostView;
-    await triggerView(formData).unwrap().then(() => {
-      setIsPreviewDialogOpen(true);
-    });
+
+    const hasSupplierNameCondition = formData.conditions.some(
+      (c) => c.field === "supplier_name"
+    );
+    if (hasSupplierNameCondition && !suppliers.length) {
+      toast.error("Suppliers are loading. Please try again in a moment.");
+      return;
+    }
+
+    const payload = toRulePayload(formData);
+    if (shouldUsePreviewMode) {
+      await triggerPreview({ rule: payload, page: 1 }).unwrap();
+    } else {
+      await triggerPostView({ rule: payload, page: 1 }).unwrap();
+    }
+    setIsPreviewDialogOpen(true);
   };
+
+  const handlePreviewPageChange = async (page: number) => {
+    const payload = toRulePayload(formData);
+    await triggerPreview({ rule: payload, page }).unwrap();
+  };
+
+  const handlePostViewPageChange = async (page: number) => {
+    const payload = toRulePayload(formData);
+    await triggerPostView({ rule: payload, page }).unwrap();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log(formData,'formData');
+
     if (!validateForm()) return;
     if (formData.action_value == null || !formData.action_value) {
       toast.error("Selling price value is required");
@@ -103,14 +214,24 @@ const PriceRuleForm = ({
       toast.error("Selling price value must be greater than 0");
       return;
     }
-    await triggerPreview(formData).unwrap().then(() => {
+
+    const hasSupplierNameCondition = formData.conditions.some(
+      (c) => c.field === "supplier_name"
+    );
+    if (hasSupplierNameCondition && !suppliers.length) {
+      toast.error("Suppliers are loading. Please try again in a moment.");
+      return;
+    }
+
+    const payload = toRulePayload(formData);
+    await triggerPreview({ rule: payload, page: 1 }).unwrap().then(() => {
       setIsPreviewRuleExecuteOpen(true);
     });
   };
 
   const handleConfirmExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
-    onSubmit(formData);
+    onSubmit(toRulePayload(formData));
   };
   const handleCancelExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
@@ -178,7 +299,15 @@ const PriceRuleForm = ({
             </div>
           </div>
           {/* Dynamic Conditions */}
-          <DynamicField conditionError={errors?.conditions} matchCondition={matchCondition} setMatchCondition={setMatchCondition} conditions={conditions} setConditions={setConditions} selectorOptions={brandsData?.data ?? []} />
+          <DynamicField
+            conditionError={errors?.conditions}
+            matchCondition={matchCondition}
+            setMatchCondition={setMatchCondition}
+            conditions={conditions}
+            setConditions={setConditions}
+            brandOptions={brandsData?.data ?? []}
+            supplierOptions={suppliersData?.data ?? []}
+          />
 
           {/* Price Fields */}
           <div className="flex flex-col gap-0  border-t py-1">
@@ -263,14 +392,15 @@ const PriceRuleForm = ({
         mode={shouldUsePreviewMode ? "create" : "edit"}
         onOpenChange={setIsPreviewDialogOpen}
         products={shouldUsePreviewMode ? previewData?.data ?? [] : postViewData?.data ?? []}
-        pagination={shouldUsePreviewMode ? undefined : postViewData?.pagination}
+        pagination={shouldUsePreviewMode ? previewData?.pagination : postViewData?.pagination}
+        onPageChange={shouldUsePreviewMode ? handlePreviewPageChange : handlePostViewPageChange}
         isLoading={shouldUsePreviewMode ? isPreviewing : isPostViewing}
       />
       <ConfirmationDialog
         isOpen={isPreviewRuleExecuteOpen}
         onClose={() => handleCancelExecute()}
         title={confirmationTitle}
-        description={`This action will affect ${previewData?.data?.length ?? 0} product`}
+        description={`This action will affect ${previewData?.pagination?.total ?? previewData?.data?.length ?? 0} product`}
         confirmText="Execute"
         type="warning"
         isLoading={isPostViewing}

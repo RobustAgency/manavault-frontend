@@ -55,6 +55,16 @@ export const createDigitalProductColumns = ({
       cell: ({ row }) => formatCurrency(Number(row.original.cost_price), row.original.currency),
     },
     {
+      accessorKey: 'selling_price',
+      header: 'Selling Price',
+      cell: ({ row }) => formatCurrency(Number(row.original.selling_price), row.original.currency),
+    },
+    {
+      accessorKey: 'face_value',
+      header: 'Face Value',
+      cell: ({ row }) => formatCurrency(Number(row.original.face_value), row.original.currency),
+    },
+    {
       accessorKey: 'quantity',
       header: 'Quantity',
       cell: ({ row }) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { use, useEffect } from 'react';
+import { use, useEffect, useState } from 'react';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     const { formData, setFormData, errors, validateForm, updateFormData, getFormDataForSubmit } =
         useDigitalProductForm(true);
     const [updateDigitalProduct, { isLoading, isSuccess, isError, error }] = useUpdateDigitalProductMutation();
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     useEffect(() => {
         if (product) {
 
@@ -35,6 +36,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 image: product.image_url || '',
                 cost_price: product.cost_price?.toString() ?? '',
                 selling_price: product.selling_price?.toString() ?? '',
+                face_value: product.face_value?.toString() ?? '',
                 region: product.region || '',
                 metadata: product.metadata ? JSON.stringify(product.metadata, null, 2) : '',
                 currency: product.currency || '',
@@ -42,19 +44,37 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
         }
     }, [product, setFormData]);
 
-    useEffect(() => {
-        if (isSuccess) {
-            // toast.success('Digital product updated successfully');
-            router.push('/admin/digital-stock');
-        }
-    }, [isSuccess, router]);
 
-    useEffect(() => {
-        if (isError) {
-            // toast.error('Failed to update digital product');
-            console.error('Update digital product error:', error);
+    // Fire the API immediately when the image is picked or removed (same behaviour as products)
+    const handleImageChange = async (value: string | File | null) => {
+        const previousImage = formData.image;
+        updateFormData({ image: value ?? '' });
+
+        // Only call the API for File uploads or explicit removal (null/empty)
+        if (typeof value === 'string' && value !== '') return;
+
+        const payload: FormData | { image: null } =
+            value instanceof File
+                ? (() => {
+                    const fd = new FormData();
+                    fd.append('image', value);
+                    return fd;
+                })()
+                : { image: null };
+
+        setIsUploadingImage(true);
+        try {
+            await updateDigitalProduct({
+                id: productId,
+                data: payload as UpdateDigitalProductData,
+            }).unwrap();
+        } catch {
+            updateFormData({ image: previousImage ?? '' });
+            toast.error('Failed to update image');
+        } finally {
+            setIsUploadingImage(false);
         }
-    }, [isError, error]);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,31 +82,15 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
 
         try {
             const submitData = getFormDataForSubmit();
-            let payload: UpdateDigitalProductData | FormData = submitData as UpdateDigitalProductData;
-
-            if (formData.image instanceof File) {
-                const formPayload = new FormData();
-                Object.entries(submitData).forEach(([key, value]) => {
-                    if (value === undefined || value === null || value === '') return;
-                    if (Array.isArray(value)) {
-                        value.forEach((item) => formPayload.append(`${key}[]`, String(item)));
-                        return;
-                    }
-                    if (typeof value === 'object') {
-                        formPayload.append(key, JSON.stringify(value));
-                        return;
-                    }
-                    formPayload.append(key, String(value));
-                });
-                formPayload.append('image', formData.image);
-                payload = formPayload;
-            }
+            // Exclude image - it is sent separately via handleImageChange when picked/removed
+            const { image: _image, image_url: _imageUrl, ...rest } = submitData as UpdateDigitalProductData & { image?: unknown };
+            const payload: UpdateDigitalProductData = rest;
 
             await updateDigitalProduct({
                 id: productId,
-                data: payload as UpdateDigitalProductData,
+                data: payload,
             }).unwrap();
-
+            router.push('/admin/digital-stock');
             toast.success('Digital product updated successfully');
         } catch (error) {
             toast.error('Failed to update digital product');
@@ -159,6 +163,8 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                             isEditMode={true}
                             suppliers={suppliersData?.data || []}
                             onUpdate={updateFormData}
+                            onImageChange={handleImageChange}
+                            isImageUploading={isUploadingImage}
                         />
                     </div>
                 </div>
