@@ -178,6 +178,27 @@ export const ProductFormFields = ({
         />
         {formErrors.selling_price && <p className="text-sm text-red-500">{formErrors.selling_price}</p>}
       </div>
+      {isEditMode && (
+        <div className="grid gap-2">
+          <Label htmlFor={`selling_discount-${formItemId}`}>Selling Discount (%)</Label>
+          <Input
+            id={`selling_discount-${formItemId}`}
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            value={form.selling_discount}
+            onChange={(e) => onUpdate({ selling_discount: e.target.value })}
+            placeholder="10.00"
+          />
+          <div className="min-h-[20px]">
+            {formErrors.selling_discount && <p className="text-sm text-red-500">{formErrors.selling_discount}</p>}
+            {!formErrors.selling_discount && (
+              <p className="text-xs text-muted-foreground">Optional: percentage between 0 and 100</p>
+            )}
+          </div>
+        </div>
+      )}
       <div className="grid gap-2">
         <Label htmlFor={`face_value-${formItemId}`}>Face Value *</Label>
         <Input

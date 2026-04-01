@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DigitalProduct, DigitalProductStatus } from '@/lib/redux/features';
 import Link from 'next/link';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { DigitalDiscountCell } from './DigitalDiscountCell';
 
 export const getStatusColor = (status: DigitalProductStatus): 'success' | 'default' => {
   switch (status) {
@@ -22,6 +23,8 @@ interface DigitalProductColumnsProps {
   onDelete: (product: DigitalProduct) => void;
   canEdit: boolean;
   canDelete: boolean;
+  onUpdateDiscount?: (product: DigitalProduct, value: string) => void | Promise<void>;
+  savingDiscountId?: number | null;
 }
 
 export const createDigitalProductColumns = ({
@@ -29,6 +32,8 @@ export const createDigitalProductColumns = ({
   onDelete,
   canEdit,
   canDelete,
+  onUpdateDiscount,
+  savingDiscountId,
 }: DigitalProductColumnsProps): ColumnDef<DigitalProduct>[] => [
     {
       accessorKey: 'name',
@@ -40,9 +45,19 @@ export const createDigitalProductColumns = ({
       cell: ({ row }) => row.original.supplier_name || '-',
     },
     {
-      accessorKey: 'sku',
-      header: 'SKU',
-      cell: ({ row }) => <code className="text-xs bg-gray-100 px-2 py-1 rounded">{row.original.sku}</code>,
+      accessorKey: 'regions',
+      header: 'Region',
+      cell: ({ row }) => {
+        const region = row.original.region;
+        if (!region || region.length === 0) return '-';
+        return (
+          <div className="flex flex-wrap gap-1">
+            <Badge variant="outlined" className="text-xs">
+              +{region}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
       accessorKey: 'brand',
@@ -50,9 +65,33 @@ export const createDigitalProductColumns = ({
       cell: ({ row }) => row.original.brand || '-',
     },
     {
+      accessorKey: 'face_value',
+      header: 'Face Value',
+      cell: ({ row }) => formatCurrency(Number(row.original.face_value), row.original.currency),
+    },
+    {
       accessorKey: 'cost_price',
       header: 'Cost Price',
       cell: ({ row }) => formatCurrency(Number(row.original.cost_price), row.original.currency),
+    },
+    {
+      accessorKey: 'cost_price_discount',
+      header: 'Cost Price (%)',
+      cell: ({ row }) => Number(row.original.cost_price_discount) + '%',
+    },
+
+
+    {
+      accessorKey: 'selling_discount',
+      header: 'Selling Discount (%)',
+      cell: ({ row }) => (
+        <DigitalDiscountCell
+          product={row.original}
+          canEdit={canEdit}
+          onUpdateDiscount={onUpdateDiscount}
+          savingDiscountId={savingDiscountId}
+        />
+      ),
     },
     {
       accessorKey: 'selling_price',
@@ -60,9 +99,9 @@ export const createDigitalProductColumns = ({
       cell: ({ row }) => formatCurrency(Number(row.original.selling_price), row.original.currency),
     },
     {
-      accessorKey: 'face_value',
-      header: 'Face Value',
-      cell: ({ row }) => formatCurrency(Number(row.original.face_value), row.original.currency),
+      accessorKey: 'profit_margin',
+      header: 'Profit Margin',
+      cell: ({ row }) => Number(row.original.profit_margin) + '%',
     },
     {
       accessorKey: 'quantity',
@@ -96,21 +135,7 @@ export const createDigitalProductColumns = ({
         );
       },
     },
-    {
-      accessorKey: 'regions',
-      header: 'Region',
-      cell: ({ row }) => {
-        const region = row.original.region;
-        if (!region || region.length === 0) return '-';
-        return (
-          <div className="flex flex-wrap gap-1">
-            <Badge variant="outlined" className="text-xs">
-              +{region}
-            </Badge>
-          </div>
-        );
-      },
-    },
+   
     {
       id: 'actions',
       header: 'Actions',
