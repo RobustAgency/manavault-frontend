@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../base";
 import { BulkCreateDigitalProductsData, DigitalProduct, DigitalProductFilters, GetLowStockProduct, MutationError, PaginationMeta, UpdateDigitalProductData } from "@/types";
+import { productsApi } from "./productsApi";
 
 export const digitalProductsApi = createApi({
   reducerPath: "digitalProductsApi",
@@ -205,7 +206,7 @@ export const digitalProductsApi = createApi({
 
     updateDigitalProduct: builder.mutation<
       DigitalProduct,
-      { id: number; data: UpdateDigitalProductData | FormData }
+      { id: number; data: UpdateDigitalProductData | FormData; productId?: number }
     >({
       query: ({ id, data }) => ({
         url: `/digital-products/${id}`,
@@ -216,9 +217,16 @@ export const digitalProductsApi = createApi({
         { type: "DigitalProduct", id: String(id) },
         { type: "DigitalProduct", id: "LIST" },
       ],
-      async onQueryStarted(_, { queryFulfilled }) {
+      async onQueryStarted({ productId }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          if (productId) {
+            dispatch(
+              productsApi.util.invalidateTags([
+                { type: "Product", id: String(productId) },
+              ])
+            );
+          }
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
