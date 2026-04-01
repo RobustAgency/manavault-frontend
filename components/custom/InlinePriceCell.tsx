@@ -9,6 +9,8 @@ export interface PendingPriceCellProps {
     initialValue?: string;
     isSaving?: boolean;
     placeholder?: string;
+    /** Price: must be &gt; 0. Percentage: 0–100 inclusive. */
+    variant?: 'price' | 'percentage';
     /** Label shown on the confirm button. Defaults to "Add". Pass "Save" for edit mode. */
     buttonLabel?: string;
     /** When true, triggers validation and shows error state if value is invalid (e.g. on main Save clicked) */
@@ -24,7 +26,8 @@ export interface PendingPriceCellProps {
 export const PendingPriceCell = ({
     initialValue = '',
     isSaving = false,
-    placeholder = '0.00',
+    placeholder,
+    variant = 'price',
     buttonLabel = 'Add',
     forceShowError = false,
     onClearError,
@@ -32,19 +35,37 @@ export const PendingPriceCell = ({
     onAdd,
     onCancel,
 }: PendingPriceCellProps) => {
+    const isPercentage = variant === 'percentage';
+    const resolvedPlaceholder =
+        placeholder ?? (isPercentage ? '0' : '0.00');
+
     const [value, setValue] = useState(initialValue);
     const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
+
+    useEffect(() => {
         if (forceShowError) {
             const parsed = parseFloat(value);
-            const isInvalid = !value.trim() || isNaN(parsed) || parsed <= 0; // 0 is invalid
+            const isInvalid = isPercentage
+                ? !value.trim() || isNaN(parsed) || parsed < 0 || parsed > 100
+                : !value.trim() || isNaN(parsed) || parsed <= 0;
             setHasError(isInvalid);
         }
-    }, [forceShowError, value]);
+    }, [forceShowError, value, isPercentage]);
 
     const validate = (): boolean => {
         const parsed = parseFloat(value);
+        if (isPercentage) {
+            if (!value.trim() || isNaN(parsed) || parsed < 0 || parsed > 100) {
+                setHasError(true);
+                return false;
+            }
+            setHasError(false);
+            return true;
+        }
         if (!value.trim() || isNaN(parsed) || parsed <= 0) {
             setHasError(true);
             return false;
@@ -57,6 +78,12 @@ export const PendingPriceCell = ({
         if (!validate()) return;
         onClearError?.();
         onAdd(value);
+    };
+
+    const handleCancelClick = () => {
+        setValue(initialValue);
+        setHasError(false);
+        onCancel();
     };
 
     return (
@@ -75,13 +102,14 @@ export const PendingPriceCell = ({
                         ? 'border-red-500 focus-visible:ring-red-500 bg-red-50 dark:bg-red-950/20'
                         : ''
                         }`}
-                    min="0.01"
+                    min={isPercentage ? '0' : '0.01'}
+                    max={isPercentage ? '100' : undefined}
                     step="0.01"
                     autoFocus
-                    placeholder={placeholder}
+                    placeholder={resolvedPlaceholder}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') handleConfirm();
-                        if (e.key === 'Escape') onCancel();
+                        if (e.key === 'Escape') handleCancelClick();
                     }}
                 />
                 <Button
@@ -96,14 +124,18 @@ export const PendingPriceCell = ({
                     size="sm"
                     variant="outline"
                     className="h-7 px-2 text-xs"
-                    onClick={onCancel}
+                    onClick={handleCancelClick}
                     disabled={isSaving}
                 >
                     Cancel
                 </Button>
             </div>
             {hasError && (
-                <p className="text-xs text-red-500 ml-0.5">Price must be greater than 0</p>
+                <p className="text-xs text-red-500 ml-0.5">
+                    {isPercentage
+                        ? 'Enter a percentage between 0 and 100'
+                        : 'Price must be greater than 0'}
+                </p>
             )}
         </div>
     );

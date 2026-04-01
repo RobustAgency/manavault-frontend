@@ -58,6 +58,9 @@ export interface DigitalProduct {
   image?: string | File | null;
   cost_price: string | number;
   selling_price?: string | number | null;
+  selling_discount?: string | number | null;
+  cost_price_discount?: string | number | null;
+  profit_margin?: string | number | null;
   face_value?: string | number | null;
   status: DigitalProductStatus;
   region?: string | null;
@@ -91,6 +94,7 @@ export interface DigitalProductFilters {
   brand?: string;
   supplier_id?: number;
   currency?: string;
+  region?: string;
   status?: DigitalProductStatus;
   stock?: DigitalProductStock;
 }
@@ -139,6 +143,7 @@ export interface UpdateDigitalProductData {
   image_url?: string | File | null;
   cost_price?: number;
   selling_price?: number;
+  selling_discount?: number;
   face_value?: number;
   region?: string;
   metadata?: Record<string, unknown>;
@@ -200,6 +205,8 @@ export type ProductStatus = "in_active" | "active" | "archived";
 
 
 
+
+
 export interface Product {
   id: number;
   name: string;
@@ -222,6 +229,14 @@ export interface Product {
   regions?: string[];
   created_at: string;
   updated_at: string;
+  digital_product?: {
+    cost_price: number;
+    selling_discount: number;
+    supplier?: {
+      name: string;
+    };
+
+  };
   digital_products?: DigitalProduct[];
   supplier?: {
     id: number;

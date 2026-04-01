@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { PencilIcon, TrashIcon, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Product, ProductStatus } from '@/lib/redux/features';
+import { DigitalProduct, Product, ProductStatus } from '@/lib/redux/features';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { DigitalDiscountCell } from '../../digital-stock/components/DigitalDiscountCell';
 
 type CurrencyCode = 'USD' | 'EUR' | 'PKR';
 
@@ -40,6 +41,8 @@ interface ProductColumnsProps {
   canView: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  onUpdateDiscount?: (digitalProduct: DigitalProduct, value: string) => Promise<void>;
+  savingDiscountId?: number | null;
 }
 
 export const createProductColumns = ({
@@ -48,22 +51,23 @@ export const createProductColumns = ({
   canView,
   canEdit,
   canDelete,
+  onUpdateDiscount,
+  savingDiscountId,
 }: ProductColumnsProps): ColumnDef<Product>[] => {
+
   const baseColumns: ColumnDef<Product>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
-    cell: ({ row }) =>
-      canView ? (
-        <Link
-          href={`/admin/products/${row.original.id}`}
-          className="font-medium text-primary hover:underline"
-        >
+    cell: ({ row }) => {
+      return (
+        <>
+        <Link href={`/admin/products/${row.original.id}`} className="font-medium text-primary hover:underline">
           {row.original.name}
         </Link>
-      ) : (
-        <span className="font-medium">{row.original.name}</span>
-      ),
+        </>
+      );
+    },
   },
   {
     accessorKey: 'brand',
@@ -72,6 +76,54 @@ export const createProductColumns = ({
       const brand = row.original.brand;
       if (!brand) return '-';
       return typeof brand === 'string' ? brand : brand.name;
+    },
+  },
+  {
+    accessorKey: 'cost_price',
+    header: 'Cost Price',
+    cell: ({ row }) => formatCurrency(row.original.digital_product?.cost_price || 0, normalizeCurrency(row.original?.currency)),
+  },
+  {
+    accessorKey: 'supplier',
+    header: 'Supplier',
+    cell: ({ row }) => row.original.digital_product?.supplier?.name || '-',
+  },
+  {
+    accessorKey: 'region',
+    header: 'Region',
+    cell: ({ row }) => row.original.regions?.join(', ') || '-',
+  },
+  {
+    accessorKey: 'selling_discount',
+    header: 'Discount',
+    cell: ({ row }) => {
+      const dp = row.original.digital_product?.selling_discount;
+      const digitalProductId = (
+        row.original.digital_product as { id?: number } | undefined
+      )?.id;
+
+      if (digitalProductId == null) {
+        return (
+          <span className="text-sm tabular-nums">
+            {dp !== null && dp !== undefined ? `${Number(dp)}%` : '—'}
+          </span>
+        );
+      }
+
+      const discountProduct = {
+        id: digitalProductId,
+        selling_discount: dp ?? null,
+        selling_price: row.original.selling_price,
+      } as DigitalProduct;
+
+      return (
+        <DigitalDiscountCell
+          product={discountProduct}
+          canEdit={canEdit}
+          onUpdateDiscount={onUpdateDiscount}
+          savingDiscountId={savingDiscountId}
+        />
+      );
     },
   },
   {

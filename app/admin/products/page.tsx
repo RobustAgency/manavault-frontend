@@ -17,6 +17,8 @@ import {
   useGetProductsQuery,
   useDeleteProductMutation,
   useGetBrandsQuery,
+  useUpdateDigitalProductMutation,
+  type DigitalProduct,
   type Product,
   type ProductStatus,
 } from '@/lib/redux/features';
@@ -59,7 +61,7 @@ export default function ProductsPage() {
     setPage(1);
   }, [brandFilter]);
 
-  const { data, isLoading } = useGetProductsQuery({
+  const { data : productsData, refetch: refetchProducts, isLoading } = useGetProductsQuery({
     page,
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -67,6 +69,8 @@ export default function ProductsPage() {
     brand_id: brandFilter === 'all' ? undefined : parseInt(brandFilter),
   });
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [updateDigitalProduct] = useUpdateDigitalProductMutation();
+  const [savingDiscountId, setSavingDiscountId] = useState<number | null>(null);
 
   // Dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -82,6 +86,23 @@ export default function ProductsPage() {
       setSelectedProduct(null);
     } catch (error) {
       toast.error('Failed to delete product');
+    }
+  };
+
+  const handleUpdateDiscount = async (digitalProduct: DigitalProduct, value: string) => {
+    const discount = parseFloat(value);
+    setSavingDiscountId(digitalProduct.id);
+    try {
+      await updateDigitalProduct({
+        id: digitalProduct.id,
+        data: { selling_discount: discount },
+      }).unwrap();
+      refetchProducts();
+      toast.success('Discount updated successfully');
+    } catch {
+      toast.error('Failed to update discount');
+    } finally {
+      setSavingDiscountId(null);
     }
   };
 
@@ -110,8 +131,9 @@ export default function ProductsPage() {
     canView,
     canEdit,
     canDelete,
+    onUpdateDiscount: handleUpdateDiscount,
+    savingDiscountId,
   });
-
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
@@ -170,14 +192,14 @@ export default function ProductsPage() {
 
       <DataTable
         columns={columns}
-        data={data?.data || []}
+        data={productsData?.data || []}
         loading={isLoading}
         serverSide
         pagination={{
-          page: data?.pagination.current_page || 1,
+          page: productsData?.pagination.current_page || 1,
           limit: perPage,
-          total: data?.pagination.total || 0,
-          totalPages: data?.pagination.last_page || 1,
+          total: productsData?.pagination.total || 0,
+          totalPages: productsData?.pagination.last_page || 1,
         }}
         onPageChange={setPage}
       />
