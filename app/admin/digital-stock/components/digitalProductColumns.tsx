@@ -101,7 +101,7 @@ export const createDigitalProductColumns = ({
     {
       accessorKey: 'profit_margin',
       header: 'Profit Margin',
-      cell: ({ row }) => Number(row.original.profit_margin) + '%',
+      cell: ({ row }) => Number(row.original.profit_margin),
     },
     {
       accessorKey: 'quantity',
