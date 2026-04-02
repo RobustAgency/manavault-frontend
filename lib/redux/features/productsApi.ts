@@ -157,6 +157,31 @@ export const productsApi = createApi({
       },
     }),
 
+    importProductsCsv: builder.mutation<
+      { error?: boolean; message?: string },
+      FormData
+    >({
+      query: (data) => ({
+        url: "/products/batch-import",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message ||
+              "Failed to import products CSV";
+            console.error(errorMessage);
+          }
+        }
+      },
+    }),
+
     updateProduct: builder.mutation<
       Product,
       { id: number; data: UpdateProductData | FormData }
@@ -262,6 +287,7 @@ export const {
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
   useCreateProductMutation,
+  useImportProductsCsvMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   useAssignDigitalProductsMutation,
