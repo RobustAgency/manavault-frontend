@@ -116,6 +116,7 @@ export {
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
   useCreateProductMutation,
+  useImportProductsCsvMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   useAssignDigitalProductsMutation,

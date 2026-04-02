@@ -301,6 +301,7 @@ export interface ProductFilters {
   page?: number;
   per_page?: number;
   name?: string;
+  region?: string;
   brand?: string;
   brand_id?: number;
   status?: ProductStatus;

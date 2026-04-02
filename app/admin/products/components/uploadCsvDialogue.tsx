@@ -1,0 +1,153 @@
+'use client';
+
+import { useRef, useState } from 'react';
+import { File, Upload, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+interface UploadCsvDialogueProps {
+  isOpen: boolean;
+  isSubmitting: boolean;
+  onClose: () => void;
+  onSubmit: (formData: FormData) => Promise<void>;
+}
+
+export const UploadCsvDialogue = ({
+  isOpen,
+  isSubmitting,
+  onClose,
+  onSubmit,
+}: UploadCsvDialogueProps) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const resetForm = () => {
+    setFile(null);
+    setError(null);
+    if (fileRef.current) {
+      fileRef.current.value = '';
+    }
+  };
+
+  const openFilePicker = () => {
+    fileRef.current?.click();
+  };
+
+  const handleUploadCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    setError(null);
+    setFile(selectedFile);
+  };
+
+  const handleRemove = () => {
+    setFile(null);
+    setError(null);
+    if (fileRef.current) {
+      fileRef.current.value = '';
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSubmit = async () => {
+    if (!file) {
+      setError('CSV file is required');
+      return;
+    }
+
+    if (file.type !== 'text/csv' && !file.name.toLowerCase().endsWith('.csv')) {
+      setError('Only CSV files are allowed');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    await onSubmit(formData);
+    resetForm();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Upload CSV</DialogTitle>
+          <DialogDescription>Upload a CSV file to import products</DialogDescription>
+        </DialogHeader>
+
+        <div className="flex justify-end">
+          <a
+            href="/sample-csv/products.csv"
+            download
+            className="flex text-blue-600! text-[12px] text-decoration-none justify-end pb-2"
+          >
+            Download Sample CSV
+          </a>
+        </div>
+
+        <div className="p-8 border-2 border-dashed rounded-lg text-center bg-gray-50 cursor-pointer hover:border-black">
+          <Input
+            ref={fileRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onClick={openFilePicker}
+            onChange={handleUploadCSV}
+          />
+
+          {!file ? (
+            <div onClick={openFilePicker}>
+              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-sm font-medium mb-1">Click to upload or drag & drop</p>
+              <p className="text-xs text-muted-foreground">Only CSV files are allowed</p>
+              {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between bg-white p-4 rounded-md shadow-sm">
+              <div className="flex items-center gap-3">
+                <File className="h-6 w-6 text-muted-foreground" />
+                <div className="text-left">
+                  <p className="text-sm font-medium">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(file.size / 1024).toFixed(2)} KB
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={openFilePicker}>
+                  <Upload className="h-4 w-4 mr-1" />
+                  Change
+                </Button>
+                <Button size="sm" variant="destructive" onClick={handleRemove}>
+                  <X className="h-4 w-4 mr-1" />
+                  Remove
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Importing...' : 'Add CSV'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
