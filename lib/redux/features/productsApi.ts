@@ -286,6 +286,7 @@ export const {
   useGetProductsQuery,
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
+  useLazyGetProductQuery,
   useCreateProductMutation,
   useImportProductsCsvMutation,
   useUpdateProductMutation,

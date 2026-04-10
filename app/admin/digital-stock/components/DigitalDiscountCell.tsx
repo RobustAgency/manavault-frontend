@@ -16,16 +16,20 @@ interface DigitalDiscountCellProps {
   product: DigitalProduct;
   canEdit: boolean;
   onUpdateDiscount?: (product: DigitalProduct, value: string) => void | Promise<void>;
+  onUpdateSellingPrice?: (product: DigitalProduct, value: string) => void | Promise<void>;
   savingDiscountId?: number | null;
 }
+
+type EditKind = null | 'price' | 'discount';
 
 export function DigitalDiscountCell({
   product,
   canEdit,
   onUpdateDiscount,
+  onUpdateSellingPrice,
   savingDiscountId,
 }: DigitalDiscountCellProps) {
-  const [editing, setEditing] = useState(false);
+  const [editKind, setEditKind] = useState<EditKind>(null);
 
   const sellingPrice = product.selling_price;
   const hasSellingPrice =
@@ -35,12 +39,12 @@ export function DigitalDiscountCell({
   const hasExistingDiscount = initialStr !== '';
   const isSaving = savingDiscountId === product.id;
 
-  const handleSave = useCallback(
+  const handleSaveDiscount = useCallback(
     async (value: string) => {
       if (!onUpdateDiscount) return;
       try {
         await onUpdateDiscount(product, value);
-        setEditing(false);
+        setEditKind(null);
       } catch {
         // Keep edit mode open; toast is shown by the parent handler.
       }
@@ -48,12 +52,58 @@ export function DigitalDiscountCell({
     [onUpdateDiscount, product]
   );
 
+  const handleSavePrice = useCallback(
+    async (value: string) => {
+      if (!onUpdateSellingPrice) return;
+      try {
+        await onUpdateSellingPrice(product, value);
+        setEditKind(null);
+      } catch {
+        // Keep edit mode open; toast is shown by the parent handler.
+      }
+    },
+    [onUpdateSellingPrice, product]
+  );
+
   const handleCancel = useCallback(() => {
-    setEditing(false);
+    setEditKind(null);
   }, []);
 
   if (!hasSellingPrice) {
-    return <span className="text-muted-foreground">—</span>;
+    if (!canEdit || !onUpdateSellingPrice) {
+      return <span className="text-muted-foreground">—</span>;
+    }
+    if (editKind === 'price') {
+      return (
+        <div className="flex items-center gap-1">
+          <PendingPriceCell
+            key={`${product.id}-price`}
+            variant="price"
+            initialValue=""
+            isSaving={isSaving}
+            buttonLabel="Save"
+            onAdd={(value) => void handleSavePrice(value)}
+            onCancel={handleCancel}
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2 min-h-8">
+        <span className="text-muted-foreground">—</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+          onClick={() => setEditKind('price')}
+          disabled={isSaving}
+          aria-label="Set selling price"
+        >
+          <PencilIcon className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    );
   }
 
   if (!canEdit || !onUpdateDiscount) {
@@ -64,7 +114,7 @@ export function DigitalDiscountCell({
     );
   }
 
-  if (editing) {
+  if (editKind === 'discount') {
     return (
       <div className="flex items-center gap-1">
         <PendingPriceCell
@@ -73,7 +123,7 @@ export function DigitalDiscountCell({
           initialValue={initialStr}
           isSaving={isSaving}
           buttonLabel={hasExistingDiscount ? 'Save' : 'Add'}
-          onAdd={(value) => void handleSave(value)}
+          onAdd={(value) => void handleSaveDiscount(value)}
           onCancel={handleCancel}
         />
       </div>
@@ -90,7 +140,7 @@ export function DigitalDiscountCell({
         variant="ghost"
         size="icon"
         className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-        onClick={() => setEditing(true)}
+        onClick={() => setEditKind('discount')}
         disabled={isSaving}
         aria-label={hasExistingDiscount ? 'Edit discount' : 'Add discount'}
       >

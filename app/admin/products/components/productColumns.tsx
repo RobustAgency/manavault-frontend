@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DigitalProduct, Product, ProductStatus } from '@/lib/redux/features';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { DigitalDiscountCell } from '../../digital-stock/components/DigitalDiscountCell';
+import { ProductListDiscountCell } from './ProductListDiscountCell';
 
 type CurrencyCode = 'USD' | 'EUR' | 'PKR';
 
@@ -41,7 +41,16 @@ interface ProductColumnsProps {
   canView: boolean;
   canEdit: boolean;
   canDelete: boolean;
-  onUpdateDiscount?: (digitalProduct: DigitalProduct, value: string) => Promise<void>;
+  onUpdateDiscount?: (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => Promise<void>;
+  onUpdateSellingPrice?: (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => Promise<void>;
   savingDiscountId?: number | null;
 }
 
@@ -52,6 +61,7 @@ export const createProductColumns = ({
   canEdit,
   canDelete,
   onUpdateDiscount,
+  onUpdateSellingPrice,
   savingDiscountId,
 }: ProductColumnsProps): ColumnDef<Product>[] => {
 
@@ -96,35 +106,15 @@ export const createProductColumns = ({
   {
     accessorKey: 'selling_discount',
     header: 'Discount',
-    cell: ({ row }) => {
-      const dp = row.original.digital_product?.selling_discount;
-      const digitalProductId = (
-        row.original.digital_product as { id?: number } | undefined
-      )?.id;
-
-      if (digitalProductId == null) {
-        return (
-          <span className="text-sm tabular-nums">
-            {dp !== null && dp !== undefined ? `${Number(dp)}%` : '—'}
-          </span>
-        );
-      }
-
-      const discountProduct = {
-        id: digitalProductId,
-        selling_discount: dp ?? null,
-        selling_price: row.original.selling_price,
-      } as DigitalProduct;
-
-      return (
-        <DigitalDiscountCell
-          product={discountProduct}
-          canEdit={canEdit}
-          onUpdateDiscount={onUpdateDiscount}
-          savingDiscountId={savingDiscountId}
-        />
-      );
-    },
+    cell: ({ row }) => (
+      <ProductListDiscountCell
+        product={row.original}
+        canEdit={canEdit}
+        onUpdateDiscount={onUpdateDiscount}
+        onUpdateSellingPrice={onUpdateSellingPrice}
+        savingDiscountId={savingDiscountId}
+      />
+    ),
   },
   {
     accessorKey: 'sku',
