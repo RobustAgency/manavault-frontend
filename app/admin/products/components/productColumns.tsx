@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { PencilIcon, TrashIcon, EyeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Product, ProductStatus } from '@/lib/redux/features';
+import { DigitalProduct, Product, ProductStatus } from '@/lib/redux/features';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { ProductListDiscountCell } from './ProductListDiscountCell';
 
 type CurrencyCode = 'USD' | 'EUR' | 'PKR';
 
@@ -40,6 +41,17 @@ interface ProductColumnsProps {
   canView: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  onUpdateDiscount?: (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => Promise<void>;
+  onUpdateSellingPrice?: (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => Promise<void>;
+  savingDiscountId?: number | null;
 }
 
 export const createProductColumns = ({
@@ -48,22 +60,24 @@ export const createProductColumns = ({
   canView,
   canEdit,
   canDelete,
+  onUpdateDiscount,
+  onUpdateSellingPrice,
+  savingDiscountId,
 }: ProductColumnsProps): ColumnDef<Product>[] => {
+
   const baseColumns: ColumnDef<Product>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
-    cell: ({ row }) =>
-      canView ? (
-        <Link
-          href={`/admin/products/${row.original.id}`}
-          className="font-medium text-primary hover:underline"
-        >
+    cell: ({ row }) => {
+      return (
+        <>
+        <Link href={`/admin/products/${row.original.id}`} className="font-medium text-primary hover:underline">
           {row.original.name}
         </Link>
-      ) : (
-        <span className="font-medium">{row.original.name}</span>
-      ),
+        </>
+      );
+    },
   },
   {
     accessorKey: 'brand',
@@ -73,6 +87,34 @@ export const createProductColumns = ({
       if (!brand) return '-';
       return typeof brand === 'string' ? brand : brand.name;
     },
+  },
+  {
+    accessorKey: 'cost_price',
+    header: 'Cost Price',
+    cell: ({ row }) => formatCurrency(row.original.digital_product?.cost_price || 0, normalizeCurrency(row.original?.currency)),
+  },
+  {
+    accessorKey: 'supplier',
+    header: 'Supplier',
+    cell: ({ row }) => row.original.digital_product?.supplier?.name || '-',
+  },
+  {
+    accessorKey: 'region',
+    header: 'Region',
+    cell: ({ row }) => row.original.regions?.join(', ') || '-',
+  },
+  {
+    accessorKey: 'selling_discount',
+    header: 'Discount',
+    cell: ({ row }) => (
+      <ProductListDiscountCell
+        product={row.original}
+        canEdit={canEdit}
+        onUpdateDiscount={onUpdateDiscount}
+        onUpdateSellingPrice={onUpdateSellingPrice}
+        savingDiscountId={savingDiscountId}
+      />
+    ),
   },
   {
     accessorKey: 'sku',

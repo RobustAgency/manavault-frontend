@@ -19,6 +19,7 @@ import {
   type DigitalProduct,
   type DigitalProductStatus,
   useCreatePurchaseOrderMutation,
+  useUpdateDigitalProductMutation,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { createDigitalProductColumns } from './components';
@@ -34,6 +35,7 @@ export default function DigitalProductsPage() {
   const [page, setPage] = useState(1);
   const [stockFilter, setStockFilter] = useState<DigitalProductStock | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
+  const [regionSearch, setRegionSearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -49,6 +51,7 @@ export default function DigitalProductsPage() {
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const [debouncedBrandSearch, setDebouncedBrandSearch] = useState('');
+  const [debouncedRegionSearch, setDebouncedRegionSearch] = useState('');
   const perPage = 10;
 
   // Debounce search inputs
@@ -61,27 +64,39 @@ export default function DigitalProductsPage() {
     return () => clearTimeout(timer);
   }, [nameSearch]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedBrandSearch(brandSearch);
-      setPage(1); // Reset to first page on search
-    }, 500);
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedBrandSearch(brandSearch);
+        setPage(1); // Reset to first page on search
+      }, 500);
 
-    return () => clearTimeout(timer);
-  }, [brandSearch]);
+      return () => clearTimeout(timer);
+    }, [brandSearch]);
 
-  const { data, isLoading } = useGetDigitalProductsQuery({
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedRegionSearch(regionSearch);
+        setPage(1); // Reset to first page on search
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }, [regionSearch]);
+
+  const { data, isLoading, refetch: refetchDigitalProducts } = useGetDigitalProductsQuery({
     page,
     per_page: perPage,
     stock: stockFilter === 'all' ? undefined : stockFilter,
     name: debouncedNameSearch || undefined,
     brand: debouncedBrandSearch || undefined,
+    region: debouncedRegionSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
     
   });
 
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
   const [deleteDigitalProduct, { isLoading: isDeleting }] = useDeleteDigitalProductMutation();
+  const [updateDigitalProduct] = useUpdateDigitalProductMutation();
+  const [savingDiscountId, setSavingDiscountId] = useState<number | null>(null);
 
   const handleCreate = async (data: any) => {
     try {
@@ -120,11 +135,53 @@ export default function DigitalProductsPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleUpdateDiscount = async (product: DigitalProduct, rawValue: string) => {
+    const parsed = parseFloat(rawValue);
+    if (rawValue.trim() === '' || Number.isNaN(parsed) || parsed < 0 || parsed > 100) {
+      toast.error('Enter a valid percentage between 0 and 100');
+      throw new Error('invalid_discount');
+    }
+    setSavingDiscountId(product.id);
+    try {
+      await updateDigitalProduct({
+        id: product.id,
+        data: { selling_discount: parsed },
+      }).unwrap();
+      await refetchDigitalProducts();
+      toast.success('Discount updated');
+    } catch (e) {
+      toast.error('Failed to update discount');
+      throw e;
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
+  const handleUpdateSellingPrice = async (product: DigitalProduct, rawValue: string) => {
+    const price = parseFloat(rawValue);
+    setSavingDiscountId(product.id);
+    try {
+      await updateDigitalProduct({
+        id: product.id,
+        data: { selling_price: price },
+      }).unwrap();
+      void refetchDigitalProducts();
+      toast.success('Selling price updated');
+    } catch {
+      toast.error('Failed to update selling price');
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
   const columns = createDigitalProductColumns({
     onEdit: openEditPage,
     onDelete: openDeleteDialog,
     canEdit,
     canDelete,
+    onUpdateDiscount: handleUpdateDiscount,
+    onUpdateSellingPrice: handleUpdateSellingPrice,
+    savingDiscountId,
   });
 
   const handleUploadClick = () => {
@@ -196,6 +253,14 @@ export default function DigitalProductsPage() {
             ]}
             onChange={(value) => setStockFilter(value as DigitalProductStock | 'all')}
           />
+        </div>
+        <div className="flex-1 min-w-[200px]">
+        <Input
+            placeholder="Search by region..."
+            value={regionSearch}
+            onChange={(e) => setRegionSearch(e.target.value)}
+          />
+         
         </div>
         <div className="flex-1 min-w-[200px]">
           <Input

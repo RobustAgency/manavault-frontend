@@ -100,6 +100,7 @@ export const DigitalProductFormDialog = ({
         description: selectedProduct.description || '',
         tags: selectedProduct.tags?.join(', ') || '',
         selling_price: selectedProduct.selling_price?.toString() ?? '',
+        selling_discount: selectedProduct.selling_discount?.toString() ?? '',
         image: selectedProduct.image || '',
         face_value: selectedProduct.face_value?.toString() ?? '',
         cost_price: selectedProduct.cost_price?.toString() ?? '',

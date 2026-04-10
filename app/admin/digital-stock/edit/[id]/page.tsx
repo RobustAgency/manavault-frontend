@@ -36,6 +36,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
                 image: product.image_url || '',
                 cost_price: product.cost_price?.toString() ?? '',
                 selling_price: product.selling_price?.toString() ?? '',
+                selling_discount: product.selling_discount?.toString() ?? '',
                 face_value: product.face_value?.toString() ?? '',
                 region: product.region || '',
                 metadata: product.metadata ? JSON.stringify(product.metadata, null, 2) : '',
@@ -93,7 +94,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
             router.push('/admin/digital-stock');
             toast.success('Digital product updated successfully');
         } catch (error) {
-            toast.error('Failed to update digital product');
+            toast.error((error as any).data?.message || 'Failed to update digital product');
         }
 
 

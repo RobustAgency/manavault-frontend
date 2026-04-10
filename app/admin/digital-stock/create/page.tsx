@@ -127,8 +127,7 @@ export default function CreateDigitalProductPage() {
             const count = Array.isArray(products) ? products.length : 1;
             toast.success(`Digital product ${count > 1 ? 's' : ''} created successfully`);
         } catch (error) {
-            console.error('Create digital product error:', error);
-            toast.error('Failed to create digital product(s)');
+            toast.error((error as any).data?.message || 'Failed to create digital product(s)');
         }
     };
 

@@ -27,8 +27,8 @@ export const productsApi = createApi({
           ]
           : [{ type: "Product", id: "LIST" }],
       transformResponse: (response: {
-        data: {
-          data: Product[];
+        data: Product[];
+        meta: {
           current_page: number;
           per_page: number;
           total: number;
@@ -39,16 +39,17 @@ export const productsApi = createApi({
         error?: boolean;
         message?: string;
       }) => {
-        if (response.data?.data && Array.isArray(response.data.data)) {
+        if (response) {
+          const { data: items, meta } = response;
           return {
-            data: response.data.data,
+            data: items ?? [],
             pagination: {
-              current_page: response.data.current_page,
-              per_page: response.data.per_page,
-              total: response.data.total,
-              last_page: response.data.last_page,
-              from: response.data.from,
-              to: response.data.to,
+              current_page: meta?.current_page,
+              per_page: meta?.per_page,
+              total: meta?.total,
+              last_page: meta?.last_page,
+              from: meta?.from,
+              to: meta?.to,
             },
           };
         }
@@ -150,6 +151,31 @@ export const productsApi = createApi({
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
               mutationError?.error?.data?.message || "Failed to create product";
+            console.error(errorMessage);
+          }
+        }
+      },
+    }),
+
+    importProductsCsv: builder.mutation<
+      { error?: boolean; message?: string },
+      FormData
+    >({
+      query: (data) => ({
+        url: "/products/batch-import",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: [{ type: "Product", id: "LIST" }],
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          const mutationError = error as MutationError;
+          if (!mutationError?.error?.data?.errors) {
+            const errorMessage =
+              mutationError?.error?.data?.message ||
+              "Failed to import products CSV";
             console.error(errorMessage);
           }
         }
@@ -260,7 +286,9 @@ export const {
   useGetProductsQuery,
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
+  useLazyGetProductQuery,
   useCreateProductMutation,
+  useImportProductsCsvMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   useAssignDigitalProductsMutation,

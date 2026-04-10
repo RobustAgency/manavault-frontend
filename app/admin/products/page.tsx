@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PlusIcon } from 'lucide-react';
+import { File, PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,9 @@ import {
   useGetProductsQuery,
   useDeleteProductMutation,
   useGetBrandsQuery,
+  useImportProductsCsvMutation,
+  useUpdateDigitalProductMutation,
+  type DigitalProduct,
   type Product,
   type ProductStatus,
 } from '@/lib/redux/features';
@@ -27,6 +30,7 @@ import { getModulePermission, hasPermission } from '@/lib/permissions';
 import { usePermissions } from '@/hooks/usePermissions';
 import { selectUserRole } from '@/lib/redux/features';
 import { useAppSelector } from '@/lib/redux/hooks';
+import { UploadCsvDialogue } from './components/uploadCsvDialogue';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -35,10 +39,21 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ProductStatus | 'all'>('all');
   const [nameSearch, setNameSearch] = useState('');
+  const [regionSearch, setRegionSearch] = useState('');
   const [brandFilter, setBrandFilter] = useState<string>('all');
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
+  const [debouncedRegionSearch, setDebouncedRegionSearch] = useState('');
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setDebouncedRegionSearch(regionSearch);
+        setPage(1); 
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }, [regionSearch]);
   const perPage = 10;
 
   // Fetch brands for the filter dropdown
@@ -58,15 +73,20 @@ export default function ProductsPage() {
   useEffect(() => {
     setPage(1);
   }, [brandFilter]);
+  
 
-  const { data, isLoading } = useGetProductsQuery({
+  const { data : productsData, refetch: refetchProducts, isLoading } = useGetProductsQuery({
     page,
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
+    region: debouncedRegionSearch || undefined,
     name: debouncedNameSearch || undefined,
     brand_id: brandFilter === 'all' ? undefined : parseInt(brandFilter),
   });
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [importProductsCsv, { isLoading: isImportingCsv }] = useImportProductsCsvMutation();
+  const [updateDigitalProduct] = useUpdateDigitalProductMutation();
+  const [savingDiscountId, setSavingDiscountId] = useState<number | null>(null);
 
   // Dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -85,6 +105,69 @@ export default function ProductsPage() {
     }
   };
 
+  const handleUpdateDiscount = async (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => {
+    const discount = parseFloat(value);
+    if (
+      value.trim() === '' ||
+      Number.isNaN(discount) ||
+      discount < 0 ||
+      discount > 100
+    ) {
+      toast.error('Enter a valid percentage between 0 and 100');
+      throw new Error('invalid_discount');
+    }
+    setSavingDiscountId(digitalProduct.id);
+    try {
+      await updateDigitalProduct({
+        id: digitalProduct.id,
+        data: { selling_discount: discount },
+        productId,
+      }).unwrap();
+      await refetchProducts();
+      toast.success('Discount updated successfully');
+    } catch (e) {
+      if ((e as Error)?.message !== 'invalid_discount') {
+        toast.error('Failed to update discount');
+      }
+      throw e;
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
+  const handleUpdateSellingPrice = async (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => {
+    const price = parseFloat(value);
+    if (value.trim() === '' || Number.isNaN(price) || price <= 0) {
+      toast.error('Price must be greater than 0');
+      throw new Error('invalid_price');
+    }
+    setSavingDiscountId(digitalProduct.id);
+    try {
+      await updateDigitalProduct({
+        id: digitalProduct.id,
+        data: { selling_price: price },
+        productId,
+      }).unwrap();
+      await refetchProducts();
+      toast.success('Selling price updated successfully');
+    } catch (e) {
+      if ((e as Error)?.message !== 'invalid_price') {
+        toast.error('Failed to update selling price');
+      }
+      throw e;
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
   const openEditPage = (product: Product) => {
     router.push(`/admin/products/edit/${product.id}`);
   };
@@ -92,6 +175,21 @@ export default function ProductsPage() {
   const openDeleteDialog = (product: Product) => {
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleUploadClick = () => {
+    setIsUploadDialogOpen(true);
+  };
+
+  const handleCsvImport = async (formData: FormData) => {
+    try {
+      await importProductsCsv(formData).unwrap();
+      toast.success('CSV uploaded successfully');
+      setIsUploadDialogOpen(false);
+      refetchProducts();
+    } catch {
+      toast.error('Failed to upload CSV file');
+    }
   };
 
   const isSuperAdmin = role === "super_admin";
@@ -110,8 +208,10 @@ export default function ProductsPage() {
     canView,
     canEdit,
     canDelete,
+    onUpdateDiscount: handleUpdateDiscount,
+    onUpdateSellingPrice: handleUpdateSellingPrice,
+    savingDiscountId,
   });
-
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
@@ -120,6 +220,12 @@ export default function ProductsPage() {
           <p className="text-muted-foreground mt-1">Manage your product inventory</p>
         </div>
         <div className="flex gap-2">
+          {canCreate && (
+            <Button type="button" onClick={handleUploadClick}>
+              <File className="h-4 w-4 mr-2" />
+              Upload CSV
+            </Button>
+          )}
           {canCreate && (
             <Button onClick={() => router.push('/admin/products/create')}>
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -159,6 +265,13 @@ export default function ProductsPage() {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="flex-1 min-w-[200px]"> <Input
+            placeholder="Search by region..."
+            value={regionSearch}
+            onChange={(e) => setRegionSearch(e.target.value)}
+          />
+        </div>
         <div className="flex-1">
           <Input
             placeholder="Search by name..."
@@ -170,14 +283,14 @@ export default function ProductsPage() {
 
       <DataTable
         columns={columns}
-        data={data?.data || []}
+        data={productsData?.data || []}
         loading={isLoading}
         serverSide
         pagination={{
-          page: data?.pagination.current_page || 1,
+          page: productsData?.pagination.current_page || 1,
           limit: perPage,
-          total: data?.pagination.total || 0,
-          totalPages: data?.pagination.last_page || 1,
+          total: productsData?.pagination.total || 0,
+          totalPages: productsData?.pagination.last_page || 1,
         }}
         onPageChange={setPage}
       />
@@ -192,6 +305,12 @@ export default function ProductsPage() {
         onConfirm={handleDelete}
         isLoading={isDeleting}
         type="danger"
+      />
+      <UploadCsvDialogue
+        isOpen={isUploadDialogOpen}
+        isSubmitting={isImportingCsv}
+        onClose={() => setIsUploadDialogOpen(false)}
+        onSubmit={handleCsvImport}
       />
     </div>
   );

@@ -6,6 +6,7 @@ export interface DigitalProductFormErrors {
   sku?: string;
   cost_price?: string;
   selling_price?: string;
+  selling_discount?: string;
   face_value?: string;
   tags?: string;
   region?: string;
@@ -22,6 +23,7 @@ export interface DigitalProductFormState {
   image: string | File | null;
   cost_price: string;
   selling_price: string;
+  selling_discount: string;
   face_value: string;
   region: string; // Comma-separated string for input
   metadata: string; // JSON string for input
@@ -39,6 +41,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
     image: '',
     cost_price: '',
     selling_price: '',
+    selling_discount: '',
     face_value: '',
     region: '',
     metadata: '',
@@ -90,6 +93,15 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       }
     }
 
+    if (formData.selling_discount.trim()) {
+      const sellingDiscountValue = parseFloat(formData.selling_discount);
+      if (Number.isNaN(sellingDiscountValue)) {
+        newErrors.selling_discount = 'Selling discount must be a valid number';
+      } else if (sellingDiscountValue < 0 || sellingDiscountValue > 100) {
+        newErrors.selling_discount = 'Selling discount must be between 0 and 100';
+      }
+    }
+
     if (!formData.face_value.trim()) {
       newErrors.face_value = 'Face value is required';
     } else {
@@ -137,6 +149,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       image: '',
       cost_price: '',
       selling_price: '',
+      selling_discount: '',
       face_value: '',
       region: '',
       metadata: '',
@@ -193,6 +206,7 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
             : imageUrlValue || undefined,
         cost_price: parseFloat(formData.cost_price),
         selling_price: formData.selling_price.trim() ? parseFloat(formData.selling_price) : undefined,
+        selling_discount: formData.selling_discount.trim() ? parseFloat(formData.selling_discount) : undefined,
         face_value: formData.face_value.trim() ? parseFloat(formData.face_value) : undefined,
         region: regionValue.length > 0 ? regionValue : undefined,
         metadata: metadataObj,
