@@ -48,7 +48,7 @@ export const PreviewProductsDialog = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <DialogTitle className="text-lg font-semibold">
-            Preview Affected Products
+          {mode === "edit" ?  "Postview Affected Products" : "Preview Affected Products"}
           </DialogTitle>
         </div>
         {/* Content */}

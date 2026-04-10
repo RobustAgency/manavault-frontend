@@ -94,7 +94,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
             router.push('/admin/digital-stock');
             toast.success('Digital product updated successfully');
         } catch (error) {
-            toast.error('Failed to update digital product');
+            toast.error((error as any).data?.message || 'Failed to update digital product');
         }
 
 
