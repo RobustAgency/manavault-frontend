@@ -32,7 +32,7 @@ export const PostViewColumns = (): ColumnDef<PostViewProduct, unknown>[] => [
     },
     {
         accessorKey: 'current_selling_price',
-        header: 'Current Selling Price',
+        header: 'Old Selling Price',
         cell: ({ row }) =>
             formatCurrency(
                 Number(row.original.original_selling_price),
