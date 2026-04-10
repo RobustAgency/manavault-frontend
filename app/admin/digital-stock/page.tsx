@@ -82,7 +82,7 @@ export default function DigitalProductsPage() {
       return () => clearTimeout(timer);
     }, [regionSearch]);
 
-  const { data, isLoading } = useGetDigitalProductsQuery({
+  const { data, isLoading, refetch: refetchDigitalProducts } = useGetDigitalProductsQuery({
     page,
     per_page: perPage,
     stock: stockFilter === 'all' ? undefined : stockFilter,
@@ -147,10 +147,28 @@ export default function DigitalProductsPage() {
         id: product.id,
         data: { selling_discount: parsed },
       }).unwrap();
+      await refetchDigitalProducts();
       toast.success('Discount updated');
     } catch (e) {
       toast.error('Failed to update discount');
       throw e;
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
+  const handleUpdateSellingPrice = async (product: DigitalProduct, rawValue: string) => {
+    const price = parseFloat(rawValue);
+    setSavingDiscountId(product.id);
+    try {
+      await updateDigitalProduct({
+        id: product.id,
+        data: { selling_price: price },
+      }).unwrap();
+      void refetchDigitalProducts();
+      toast.success('Selling price updated');
+    } catch {
+      toast.error('Failed to update selling price');
     } finally {
       setSavingDiscountId(null);
     }
@@ -162,6 +180,7 @@ export default function DigitalProductsPage() {
     canEdit,
     canDelete,
     onUpdateDiscount: handleUpdateDiscount,
+    onUpdateSellingPrice: handleUpdateSellingPrice,
     savingDiscountId,
   });
 

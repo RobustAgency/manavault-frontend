@@ -105,18 +105,64 @@ export default function ProductsPage() {
     }
   };
 
-  const handleUpdateDiscount = async (digitalProduct: DigitalProduct, value: string) => {
+  const handleUpdateDiscount = async (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => {
     const discount = parseFloat(value);
+    if (
+      value.trim() === '' ||
+      Number.isNaN(discount) ||
+      discount < 0 ||
+      discount > 100
+    ) {
+      toast.error('Enter a valid percentage between 0 and 100');
+      throw new Error('invalid_discount');
+    }
     setSavingDiscountId(digitalProduct.id);
     try {
       await updateDigitalProduct({
         id: digitalProduct.id,
         data: { selling_discount: discount },
+        productId,
       }).unwrap();
-      refetchProducts();
+      await refetchProducts();
       toast.success('Discount updated successfully');
-    } catch {
-      toast.error('Failed to update discount');
+    } catch (e) {
+      if ((e as Error)?.message !== 'invalid_discount') {
+        toast.error('Failed to update discount');
+      }
+      throw e;
+    } finally {
+      setSavingDiscountId(null);
+    }
+  };
+
+  const handleUpdateSellingPrice = async (
+    productId: number,
+    digitalProduct: DigitalProduct,
+    value: string
+  ) => {
+    const price = parseFloat(value);
+    if (value.trim() === '' || Number.isNaN(price) || price <= 0) {
+      toast.error('Price must be greater than 0');
+      throw new Error('invalid_price');
+    }
+    setSavingDiscountId(digitalProduct.id);
+    try {
+      await updateDigitalProduct({
+        id: digitalProduct.id,
+        data: { selling_price: price },
+        productId,
+      }).unwrap();
+      await refetchProducts();
+      toast.success('Selling price updated successfully');
+    } catch (e) {
+      if ((e as Error)?.message !== 'invalid_price') {
+        toast.error('Failed to update selling price');
+      }
+      throw e;
     } finally {
       setSavingDiscountId(null);
     }
@@ -163,6 +209,7 @@ export default function ProductsPage() {
     canEdit,
     canDelete,
     onUpdateDiscount: handleUpdateDiscount,
+    onUpdateSellingPrice: handleUpdateSellingPrice,
     savingDiscountId,
   });
   return (
