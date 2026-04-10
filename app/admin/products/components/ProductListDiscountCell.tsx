@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, PencilIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
-import { useLazyGetProductQuery } from '@/lib/redux/features';
 import type { DigitalProduct, Product } from '@/lib/redux/features';
 import { DigitalDiscountCell } from '../../digital-stock/components/DigitalDiscountCell';
+import { useLazyGetProductQuery } from '@/lib/redux/features/productsApi';
 
 function resolveDigitalFromProduct(product: Product): {
   id: number | null;
