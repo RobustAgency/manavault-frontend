@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import type { StoreVoucherCodePayload } from '@/types';
 import {
   ImportVouchersResponse,
   PurchaseOrder,
@@ -303,10 +304,7 @@ export const ImportVouchersDialog = ({
         }
 
         // Collect voucher codes as flat array with product IDs
-        const voucherCodes: Array<{
-          code: string;
-          digital_product_id: number;
-        }> = [];
+        const voucherCodes: StoreVoucherCodePayload[] = [];
         for (const product of internalProducts) {
           const vouchersText = manualVouchers[product.id] || '';
           try {
