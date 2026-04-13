@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ImportVouchersDialog } from '@/app/admin/purchase-orders/components';
+import { SalesOrderGiftCodesActions } from '@/app/admin/sale-orders/components/SalesOrderGiftCodesActions';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
 import { PurchaseOrder } from '@/types';
 
@@ -32,6 +33,11 @@ export const PurchaseOrderHeader = ({
     return 'outlined';
   };
 
+  const showGiftCodesActions =
+    orderType === 'sales' && order.status?.toLowerCase() === 'completed';
+  const showImportVouchers =
+    isExternalSupplier !== undefined && !isExternalSupplier;
+
   return (
     <div className="mb-6">
       <Button variant="ghost" onClick={() => router.back()} className="mb-4">
@@ -55,8 +61,21 @@ export const PurchaseOrderHeader = ({
             </code>
           </p>
         </div>
-        {isExternalSupplier !== undefined && !isExternalSupplier && (
-          <ImportVouchersDialog order={order as PurchaseOrder} onSuccess={onRefetch} />
+        {(showGiftCodesActions || showImportVouchers) && (
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+            {showGiftCodesActions && (
+              <SalesOrderGiftCodesActions
+                orderId={order.id}
+                orderNumber={order.order_number}
+              />
+            )}
+            {showImportVouchers && (
+              <ImportVouchersDialog
+                order={order as PurchaseOrder}
+                onSuccess={onRefetch}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>
