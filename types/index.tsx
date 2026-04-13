@@ -31,7 +31,7 @@ export interface UpdateBrandData {
   image?: File | string;
 }
 
-// Type for RTK Query mutation errors
+// Type for RTK Query / axios mutation rejections (unwrap may expose nested `error` or top-level `data`)
 export interface MutationError {
   error?: {
     status: number;
@@ -39,6 +39,10 @@ export interface MutationError {
       message?: string;
       errors?: Record<string, string[]>;
     };
+  };
+  data?: {
+    message?: string;
+    errors?: Record<string, string[]>;
   };
 }
 

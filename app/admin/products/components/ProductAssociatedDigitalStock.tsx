@@ -29,7 +29,7 @@ import { getStatusColor } from './productColumns';
 import { toast } from 'react-toastify';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
 import { PendingPriceCell } from '@/components/custom/InlinePriceCell';
-import { DigitalProduct, Product, ProductStatus } from '@/types';
+import { DigitalProduct, MutationError, Product, ProductStatus } from '@/types';
 
 
 interface ProductAssociatedDigitalStockProps {
@@ -202,16 +202,31 @@ const ProductAssociatedDigitalStock = ({
 
         setIsSavingDiscount(true);
         try {
-            await updateDigitalProduct({
+            const mutationResult = await updateDigitalProduct({
                 id: dp.id,
                 data: { selling_discount: discount },
                 productId: product.id,
             }).unwrap();
 
+            const updatedPayload =
+                mutationResult &&
+                typeof mutationResult === 'object' &&
+                'data' in mutationResult &&
+                mutationResult.data != null &&
+                typeof mutationResult.data === 'object'
+                    ? (mutationResult as { data: DigitalProduct }).data
+                    : (mutationResult as DigitalProduct);
+
             setSortTableData((prev) =>
-                prev.map((item) =>
-                    item.id === dp.id ? { ...item, selling_discount: discount } : item
-                )
+                prev.map((item) => {
+                    if (item.id !== dp.id) return item;
+                    const next: DigitalProduct = { ...item, selling_discount: discount };
+                    const sp = updatedPayload?.selling_price;
+                    if (sp != null && sp !== '') {
+                        next.selling_price = sp;
+                    }
+                    return next;
+                })
             );
             setEditingDiscountId(null);
             setEditingDiscountValue('');
@@ -222,8 +237,11 @@ const ProductAssociatedDigitalStock = ({
             });
             setCompletedDiscountsMap((prev) => new Map(prev).set(dp.id, discount));
             toast.success('Discount updated successfully');
-        } catch {
-            toast.error('Failed to update discount');
+        } catch (error) {
+            toast.error(
+                (error as MutationError)?.data?.message ||
+                    'Failed to update discount'
+            );
         } finally {
             setIsSavingDiscount(false);
         }
@@ -264,8 +282,16 @@ const ProductAssociatedDigitalStock = ({
         {
             accessorKey: 'selling_price',
             header: 'Selling Price',
-            cell: ({ row }) =>
-                formatCurrency(parseFloat(row.getValue('selling_price')), row.original.currency),
+            cell: ({ row }) => {
+                const raw = row.getValue('selling_price') as string | number | null | undefined;
+                const sellingPrice = parseFloat(raw === null || raw === undefined ? '' : String(raw));
+                if (!Number.isFinite(sellingPrice)) {
+                    return (
+                    <span className="text-muted-foreground">—</span>
+                );
+                }
+                return formatCurrency(sellingPrice, row.original.currency);
+            },
         },
         {
             accessorKey: 'selling_discount',
