@@ -46,14 +46,14 @@ export default function ProductsPage() {
   // Debounced search states for API queries
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const [debouncedRegionSearch, setDebouncedRegionSearch] = useState('');
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setDebouncedRegionSearch(regionSearch);
-        setPage(1); 
-      }, 500);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedRegionSearch(regionSearch);
+      setPage(1);
+    }, 500);
 
-      return () => clearTimeout(timer);
-    }, [regionSearch]);
+    return () => clearTimeout(timer);
+  }, [regionSearch]);
   const perPage = 10;
 
   // Fetch brands for the filter dropdown
@@ -73,9 +73,9 @@ export default function ProductsPage() {
   useEffect(() => {
     setPage(1);
   }, [brandFilter]);
-  
 
-  const { data : productsData, refetch: refetchProducts, isLoading } = useGetProductsQuery({
+
+  const { data: productsData, refetch: refetchProducts, isLoading } = useGetProductsQuery({
     page,
     per_page: perPage,
     status: statusFilter === 'all' ? undefined : statusFilter,
@@ -267,10 +267,10 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex-1 min-w-[200px]"> <Input
-            placeholder="Search by region..."
-            value={regionSearch}
-            onChange={(e) => setRegionSearch(e.target.value)}
-          />
+          placeholder="Search by region..."
+          value={regionSearch}
+          onChange={(e) => setRegionSearch(e.target.value)}
+        />
         </div>
         <div className="flex-1">
           <Input
