@@ -643,9 +643,14 @@ export interface VoucherCodeItem {
   voucher_id: number;
 }
 
+export interface StoreVoucherCodePayload {
+  code: string;
+  digital_product_id: number;
+}
+
 export interface StoreVouchersData {
   purchase_order_id: number;
-  voucher_codes: VoucherCodeItem[];
+  voucher_codes: StoreVoucherCodePayload[];
 }
 
 export interface StoreVouchersResponse extends ApiResponse<unknown> {
