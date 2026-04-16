@@ -15,6 +15,7 @@ import {
   Supplier,
 } from '@/lib/redux/features';
 import { type DigitalProductFormState } from './useDigitalProductForm';
+import { useEffect } from 'react';
 
 const IMAGEPREFIX = process.env.NEXT_PUBLIC_IMAGE_PREFIX || '';
 
@@ -49,6 +50,12 @@ export const ProductFormFields = ({
           ? form.image
           : `${IMAGEPREFIX}/${form.image}`
         : '';
+
+        useEffect(() => {
+        // calculate selling price based on cost price and selling discount
+          const sellingPrice = form.face_value ? parseFloat(form.face_value) * (1 - form.selling_discount / 100) : 0;
+          onUpdate({ selling_price: sellingPrice.toString() });
+      }, [form.face_value, form.selling_discount]);
 
   return (
     <div className="grid gap-4">
@@ -172,13 +179,14 @@ export const ProductFormFields = ({
           type="number"
           step="0.01"
           min="0"
+          readOnly
           value={form.selling_price}
           onChange={(e) => onUpdate({ selling_price: e.target.value })}
           placeholder="50.00"
         />
         {formErrors.selling_price && <p className="text-sm text-red-500">{formErrors.selling_price}</p>}
       </div>
-      {isEditMode && (
+      
         <div className="grid gap-2">
           <Label htmlFor={`selling_discount-${formItemId}`}>Selling Discount (%)</Label>
           <Input
@@ -188,17 +196,11 @@ export const ProductFormFields = ({
             min="0"
             max="100"
             value={form.selling_discount}
-            onChange={(e) => onUpdate({ selling_discount: e.target.value })}
+            onChange={(e) => onUpdate({ selling_discount: Number(e.target.value) })}
             placeholder="10.00"
           />
-          <div className="min-h-[20px]">
-            {formErrors.selling_discount && <p className="text-sm text-red-500">{formErrors.selling_discount}</p>}
-            {!formErrors.selling_discount && (
-              <p className="text-xs text-muted-foreground">Optional: percentage between 0 and 100</p>
-            )}
-          </div>
+          {formErrors.selling_discount && <p className="text-sm text-red-500">{formErrors.selling_discount}</p>}
         </div>
-      )}
       <div className="grid gap-2">
         <Label htmlFor={`face_value-${formItemId}`}>Face Value *</Label>
         <Input
