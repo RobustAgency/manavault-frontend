@@ -130,12 +130,7 @@ export default function ProductsPage() {
       await refetchProducts();
       toast.success('Discount updated successfully');
     } catch (e) {
-      if ((e as Error)?.message !== 'invalid_discount') {
-        toast.error('Failed to update discount');
-      }
-      throw e;
-    } finally {
-      setSavingDiscountId(null);
+      toast.error((e as any)?.data?.message || 'Failed to update discount');
     }
   };
 

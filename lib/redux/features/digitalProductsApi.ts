@@ -228,7 +228,6 @@ export const digitalProductsApi = createApi({
             );
           }
         } catch (error) {
-          // console.error(error);
           const mutationError = error as MutationError;
           if (mutationError?.error?.data?.message) {
             const errorMessage =
