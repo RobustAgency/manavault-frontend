@@ -115,6 +115,7 @@ export {
   useGetProductsQuery,
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
+  useLazyGetProductQuery,
   useCreateProductMutation,
   useImportProductsCsvMutation,
   useUpdateProductMutation,

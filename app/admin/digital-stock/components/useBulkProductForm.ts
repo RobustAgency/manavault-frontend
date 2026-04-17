@@ -21,7 +21,7 @@ export const useBulkProductForm = () => {
       brand: "",
       description: "",
       selling_price: "",
-      selling_discount: "",
+      selling_discount: 0,
       tags: "",
       image: "",
       cost_price: '0',

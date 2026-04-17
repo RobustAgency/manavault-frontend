@@ -35,6 +35,14 @@ export interface salesOrderFilters {
   status?: string;
   order_number?: string;
 }
+
+/** Full JSON body from GET /sale-orders/:id/codes (pass-through from the API). */
+export type SaleOrderCodesApiResponse = {
+  data: unknown;
+  error?: boolean;
+  message?: string;
+};
+
 // Custom base query using existing Axios client
 const axiosBaseQuery =
   (): BaseQueryFn<
@@ -43,17 +51,19 @@ const axiosBaseQuery =
       method?: AxiosRequestConfig["method"];
       data?: AxiosRequestConfig["data"];
       params?: AxiosRequestConfig["params"];
+      responseType?: AxiosRequestConfig["responseType"];
     },
     unknown,
     unknown
   > =>
-    async ({ url, method = "GET", data, params }) => {
+    async ({ url, method = "GET", data, params, responseType }) => {
       try {
         const result = await apiClient({
           url,
           method,
           data,
           params,
+          ...(responseType !== undefined ? { responseType } : {}),
         });
         return { data: result.data };
       } catch (axiosError) {
@@ -158,11 +168,64 @@ export const salesOrdersApi = createApi({
         return response as unknown as SalesOrderDetails;
       },
     }),
-   
+
+    getSaleOrderCodes: builder.query<SaleOrderCodesApiResponse, number>({
+      query: (id) => ({
+        url: `/sale-orders/${id}/codes`,
+        method: "GET",
+      }),
+      transformResponse: (
+        response: SaleOrderCodesApiResponse | undefined
+      ): SaleOrderCodesApiResponse => response ?? { data: [] },
+    }),
+
+    /** Blob is not Redux-serializable; download runs in queryFn, cache stores `{ ok: true }` only. */
+    downloadSaleOrderCodes: builder.mutation<
+      { ok: true },
+      {
+        saleOrderId: number;
+        productId?: number | null;
+        filename: string;
+      }
+    >({
+      async queryFn(
+        { saleOrderId, productId, filename },
+        _api,
+        _extraOptions,
+        fetchWithBQ
+      ) {
+        const qs =
+          productId != null && productId > 0
+            ? `?product_id=${productId}`
+            : "";
+        const result = await fetchWithBQ({
+          url: `/sale-orders/${saleOrderId}/codes/download${qs}`,
+          method: "GET",
+          responseType: "blob" as const,
+        });
+        if (result.error) {
+          return { error: result.error };
+        }
+        const blob = result.data as Blob;
+        if (typeof window !== "undefined") {
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(downloadUrl);
+        }
+        return { data: { ok: true as const } };
+      },
+    }),
   }),
 });
 
 export const {
   useGetSalesOrdersQuery,
   useGetSalesOrderQuery,
+  useGetSaleOrderCodesQuery,
+  useDownloadSaleOrderCodesMutation,
 } = salesOrdersApi;

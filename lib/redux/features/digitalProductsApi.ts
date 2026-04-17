@@ -229,11 +229,11 @@ export const digitalProductsApi = createApi({
           }
         } catch (error) {
           const mutationError = error as MutationError;
-          if (!mutationError?.error?.data?.errors) {
+          if (mutationError?.error?.data?.message) {
             const errorMessage =
               mutationError?.error?.data?.message ||
               "Failed to update digital product";
-            console.error(errorMessage);
+            throw new Error(errorMessage);
           }
         }
       },

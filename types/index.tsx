@@ -31,7 +31,7 @@ export interface UpdateBrandData {
   image?: File | string;
 }
 
-// Type for RTK Query mutation errors
+// Type for RTK Query / axios mutation rejections (unwrap may expose nested `error` or top-level `data`)
 export interface MutationError {
   error?: {
     status: number;
@@ -39,6 +39,10 @@ export interface MutationError {
       message?: string;
       errors?: Record<string, string[]>;
     };
+  };
+  data?: {
+    message?: string;
+    errors?: Record<string, string[]>;
   };
 }
 
@@ -639,13 +643,18 @@ export interface ImportVouchersData {
 }
 
 export interface VoucherCodeItem {
+  code_value: string;
+  voucher_id: number;
+}
+
+export interface StoreVoucherCodePayload {
   code: string;
   digital_product_id: number;
 }
 
 export interface StoreVouchersData {
   purchase_order_id: number;
-  voucher_codes: VoucherCodeItem[];
+  voucher_codes: StoreVoucherCodePayload[];
 }
 
 export interface StoreVouchersResponse extends ApiResponse<unknown> {
@@ -775,3 +784,24 @@ export interface PendingPriceCellProps {
   onCancel: () => void;
 }
 
+export interface SaleOrderGiftCodeRow {
+  digital_product_brand: string;
+  digital_product_id: number;
+  digital_product_name: string;
+  digital_product_sku: string;
+  order_number: string;
+  product_id: number;
+  product_name: string;
+  sale_order_id: number;
+  sale_order_item_id: number;
+  voucher_codes: VoucherCodeItem[];
+}
+
+export interface GiftCodesDialogProps {
+  orderId: number;
+  orderNumber: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDownloadZip: (productId?: number | null) => Promise<void>;
+  isDownloading?: boolean;
+}

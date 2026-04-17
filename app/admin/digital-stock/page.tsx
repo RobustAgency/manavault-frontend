@@ -150,10 +150,7 @@ export default function DigitalProductsPage() {
       await refetchDigitalProducts();
       toast.success('Discount updated');
     } catch (e) {
-      toast.error('Failed to update discount');
-      throw e;
-    } finally {
-      setSavingDiscountId(null);
+      toast.error((e as any)?.data?.message || 'Failed to update discount');
     }
   };
 
