@@ -137,8 +137,7 @@ export default function DigitalProductsPage() {
 
   const handleUpdateDiscount = async (product: DigitalProduct, rawValue: string) => {
     const parsed = parseFloat(rawValue);
-    if (rawValue.trim() === '' || Number.isNaN(parsed) || parsed < 0 || parsed > 100) {
-      toast.error('Enter a valid percentage between 0 and 100');
+    if (rawValue.trim() === '' || Number.isNaN(parsed) || parsed > 100) {
       throw new Error('invalid_discount');
     }
     setSavingDiscountId(product.id);
@@ -150,7 +149,10 @@ export default function DigitalProductsPage() {
       await refetchDigitalProducts();
       toast.success('Discount updated');
     } catch (e) {
+      console.log(e)
       toast.error((e as any)?.data?.message || 'Failed to update discount');
+    } finally {
+      setSavingDiscountId(null);
     }
   };
 
@@ -160,7 +162,7 @@ export default function DigitalProductsPage() {
     try {
       await updateDigitalProduct({
         id: product.id,
-        data: { selling_price: price },
+        data: { selling_discount: price },
       }).unwrap();
       void refetchDigitalProducts();
       toast.success('Selling price updated');
