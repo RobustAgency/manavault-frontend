@@ -9,15 +9,10 @@ export interface PendingPriceCellProps {
     initialValue?: string;
     isSaving?: boolean;
     placeholder?: string;
-    /** Price: must be &gt; 0. Percentage: 0–100 inclusive. */
     variant?: 'price' | 'percentage';
-    /** Label shown on the confirm button. Defaults to "Add". Pass "Save" for edit mode. */
     buttonLabel?: string;
-    /** When true, triggers validation and shows error state if value is invalid (e.g. on main Save clicked) */
     forceShowError?: boolean;
-    /** Called when Add/Save button is clicked to clear parent error state */
     onClearError?: () => void;
-    /** Called when input value changes - used by parent to validate on main Save (e.g. edit mode) */
     onValueChange?: (value: string) => void;
     onAdd: (value: string) => void;
     onCancel: () => void;
@@ -46,12 +41,17 @@ export const PendingPriceCell = ({
         setValue(initialValue);
     }, [initialValue]);
 
+    const percentageIsInvalid = (raw: string, parsed: number): boolean => {
+        if (!raw.trim() || isNaN(parsed)) return true;
+        return parsed > 100;
+    };
+
     useEffect(() => {
         if (forceShowError) {
             const parsed = parseFloat(value);
             const isInvalid = isPercentage
-                ? !value.trim() || isNaN(parsed) || parsed < 0 || parsed > 100
-                : !value.trim() || isNaN(parsed) || parsed <= 0;
+                ? percentageIsInvalid(value, parsed)
+                : !value.trim() || isNaN(parsed);
             setHasError(isInvalid);
         }
     }, [forceShowError, value, isPercentage]);
@@ -59,14 +59,14 @@ export const PendingPriceCell = ({
     const validate = (): boolean => {
         const parsed = parseFloat(value);
         if (isPercentage) {
-            if (!value.trim() || isNaN(parsed) || parsed < 0 || parsed > 100) {
+            if (percentageIsInvalid(value, parsed)) {
                 setHasError(true);
                 return false;
             }
             setHasError(false);
             return true;
         }
-        if (!value.trim() || isNaN(parsed) || parsed <= 0) {
+        if (!value.trim() || isNaN(parsed) ) {
             setHasError(true);
             return false;
         }
@@ -102,15 +102,11 @@ export const PendingPriceCell = ({
                         ? 'border-red-500 focus-visible:ring-red-500 bg-red-50 dark:bg-red-950/20'
                         : ''
                         }`}
-                    min={isPercentage ? '0' : '0.01'}
+                    min={isPercentage ? undefined : '0.01'}
                     max={isPercentage ? '100' : undefined}
                     step="0.01"
                     autoFocus
                     placeholder={resolvedPlaceholder}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleConfirm();
-                        if (e.key === 'Escape') handleCancelClick();
-                    }}
                 />
                 <Button
                     size="sm"
@@ -133,7 +129,7 @@ export const PendingPriceCell = ({
             {hasError && (
                 <p className="text-xs text-red-500 ml-0.5">
                     {isPercentage
-                        ? 'Enter a percentage between 0 and 100'
+                        ? 'Enter a valid percentage (100% maximum; negatives allowed)'
                         : 'Price must be greater than 0'}
                 </p>
             )}

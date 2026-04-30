@@ -195,8 +195,8 @@ const ProductAssociatedDigitalStock = ({
 
     const handleSaveDiscount = async (dp: DigitalProduct, rawValue: string) => {
         const discount = parseFloat(rawValue);
-        if (!rawValue.trim() || isNaN(discount) || discount < 0 || discount > 100) {
-            toast.error('Please enter a valid discount percentage (0–100)');
+        if (!rawValue.trim() || isNaN(discount) || discount > 100) {
+            toast.error('Please enter a valid discount percentage (100% maximum; negatives allowed)');
             return;
         }
 

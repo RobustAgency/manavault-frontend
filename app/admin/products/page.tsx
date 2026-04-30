@@ -114,10 +114,8 @@ export default function ProductsPage() {
     if (
       value.trim() === '' ||
       Number.isNaN(discount) ||
-      discount < 0 ||
       discount > 100
     ) {
-      toast.error('Enter a valid percentage between 0 and 100');
       throw new Error('invalid_discount');
     }
     setSavingDiscountId(digitalProduct.id);
@@ -131,6 +129,8 @@ export default function ProductsPage() {
       toast.success('Discount updated successfully');
     } catch (e) {
       toast.error((e as any)?.data?.message || 'Failed to update discount');
+    } finally {
+      setSavingDiscountId(null);
     }
   };
 
