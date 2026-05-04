@@ -192,8 +192,6 @@ export const ProductFormFields = ({
           <Input
             id={`selling_discount-${formItemId}`}
             type="number"
-            step="0.01"
-            min="0"
             max="100"
             value={form.selling_discount}
             onChange={(e) => onUpdate({ selling_discount: Number(e.target.value) })}
