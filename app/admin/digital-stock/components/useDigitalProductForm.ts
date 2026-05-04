@@ -88,15 +88,13 @@ export const useDigitalProductForm = (isEditMode: boolean) => {
       const sellingPriceValue = parseFloat(formData.selling_price);
       if (Number.isNaN(sellingPriceValue)) {
         newErrors.selling_price = 'Selling price must be a valid number';
-      } else if (sellingPriceValue < 0) {
-        newErrors.selling_price = 'Selling price must be 0 or greater';
-      }
+      } 
     }
 
     if (formData.selling_discount) {
       const sellingDiscountValue = formData.selling_discount;
-      if (sellingDiscountValue < 0 || sellingDiscountValue > 100) {
-        newErrors.selling_discount = 'Selling discount must be between 0 and 100';
+      if (sellingDiscountValue > 100) {
+        newErrors.selling_discount = 'Selling discount must be 100% or less';
       }
     }
 
