@@ -59,15 +59,12 @@ export const ProductFormDialog = ({
   // Initialize form when editing
   useEffect(() => {
     if (isEditMode && selectedProduct) {
-      // Get brand_id from product.brand_id or from brand object
       let brandId = '';
       if (selectedProduct.brand_id) {
         brandId = String(selectedProduct.brand_id);
       } else if (selectedProduct.brand && typeof selectedProduct.brand === 'object' && selectedProduct.brand.id) {
-        // Use brand object ID directly if available
         brandId = String(selectedProduct.brand.id);
       } else if (selectedProduct.brand && typeof selectedProduct.brand === 'string' && brandsData?.data) {
-        // Fallback: find by brand name if it's a string
         const foundBrand = brandsData.data.find(
           (brand) => brand.name === selectedProduct.brand
         );
