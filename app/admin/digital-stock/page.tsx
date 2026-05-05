@@ -5,6 +5,7 @@ import { File, PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { RegionSelect } from '@/components/custom/RegionSelect';
 import {
   Select,
   SelectContent,
@@ -254,12 +255,12 @@ export default function DigitalProductsPage() {
           />
         </div>
         <div className="flex-1 min-w-[200px]">
-        <Input
-            placeholder="Search by region..."
+          <RegionSelect
             value={regionSearch}
-            onChange={(e) => setRegionSearch(e.target.value)}
+            onChange={setRegionSearch}
+            placeholder="Filter by region"
+            allowMultiple={false}
           />
-         
         </div>
         <div className="flex-1 min-w-[200px]">
           <Input

@@ -3,6 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { XIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select';
 import { useGetProductRegionsQuery } from '@/lib/redux/features';
 
 interface RegionSelectProps {
@@ -37,11 +44,16 @@ export function RegionSelect({
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) {
+      setDebouncedSearch('');
+      return;
+    }
     const timeout = setTimeout(() => {
-      setDebouncedSearch(searchTerm.trim());
+      const trimmed = searchTerm.trim();
+      setDebouncedSearch(trimmed.length >= 2 ? trimmed : '');
     }, 300);
     return () => clearTimeout(timeout);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   const { data: regionOptions = [], isFetching } = useGetProductRegionsQuery(
     debouncedSearch ? { search: debouncedSearch } : undefined,
@@ -54,6 +66,15 @@ export function RegionSelect({
       .filter((region) => region.length > 0)
       .filter((region) => (allowMultiple ? !selectedSet.has(region) : true));
   }, [regionOptions, allowMultiple, selectedSet]);
+
+  useEffect(() => {
+    if (isOpen && !allowMultiple) {
+      const timeout = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+  }, [isOpen, allowMultiple, debouncedSearch, filteredOptions.length]);
 
   const updateValue = (regions: string[]) => {
     onChange(regions.join(', '));
@@ -82,17 +103,72 @@ export function RegionSelect({
     updateValue(selectedRegions.filter((item) => item !== region));
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter') {
-      return;
-    }
-    const trimmed = searchTerm.trim();
-    if (!trimmed) {
-      return;
-    }
-    event.preventDefault();
-    handleSelect(trimmed.toUpperCase());
-  };
+
+  if (!allowMultiple) {
+    const selectedRegion = selectedRegions[0] ?? '';
+    console.log('selectedRegion', selectedRegion);
+    return (
+      <div className="space-y-2">
+        <Select
+          value={selectedRegion}
+          onValueChange={(region) => onChange(region)}
+          disabled={disabled}
+          open={isOpen}
+          onOpenChange={(open) => {
+            setIsOpen(open);
+            if (!open) {
+              setSearchTerm('');
+            }
+          }}
+        >
+          <SelectTrigger>
+            <span className={selectedRegion ? '' : 'text-muted-foreground'}>
+              {selectedRegion || placeholder}
+            </span>
+          </SelectTrigger>
+          <SelectContent
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+            }}
+          >
+            <div className="p-2">
+              <Input
+                ref={inputRef}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value.toUpperCase())}
+                placeholder="Search regions..."
+                autoFocus
+                onKeyDown={(event) => {
+                  event.stopPropagation();
+                }}
+              />
+            </div>
+            {isFetching && (
+              <div className="px-3 py-2 text-sm text-muted-foreground">Loading regions...</div>
+            )}
+            {!isFetching && filteredOptions.length === 0 && (
+              <div className="px-3 py-2 text-sm text-muted-foreground">
+                No regions found.
+              </div>
+            )}
+            {selectedRegion && !filteredOptions.includes(selectedRegion) && (
+              <SelectItem value={selectedRegion} className="hidden">
+                {selectedRegion}
+              </SelectItem>
+            )}
+            {!isFetching &&
+              filteredOptions.map((region) => (
+                <SelectItem key={region} value={region}>
+                  {region}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+
+        {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -139,7 +215,6 @@ export function RegionSelect({
                 setSearchTerm('');
               }, 150);
             }}
-            onKeyDown={handleKeyDown}
             placeholder={selectedRegions.length === 0 ? placeholder : ''}
             disabled={disabled}
             className="min-w-[120px] flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
