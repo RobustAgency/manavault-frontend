@@ -55,7 +55,7 @@ export const createDigitalProductColumns = ({
         return (
           <div className="flex flex-wrap gap-1">
             <Badge variant="outlined" className="text-xs">
-              +{region}
+              {region}
             </Badge>
           </div>
         );
