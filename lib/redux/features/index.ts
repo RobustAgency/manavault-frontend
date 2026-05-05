@@ -112,6 +112,7 @@ export {
 } from "./suppliersApi";
 
 export {
+  useGetProductRegionsQuery,
   useGetProductsQuery,
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
