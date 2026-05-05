@@ -7,6 +7,27 @@ export const productsApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ["Product", "ThirdPartyProduct"],
   endpoints: (builder) => ({
+    getProductRegions: builder.query<string[], { search?: string } | void>({
+      query: (params) => ({
+        url: "/products/regions",
+        method: "GET",
+        params: params ?? undefined,
+      }),
+      transformResponse: (response: {
+        data?: string[];
+        regions?: string[];
+        error?: boolean;
+        message?: string;
+      }) => {
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+        if (Array.isArray(response.regions)) {
+          return response.regions;
+        }
+        return [];
+      },
+    }),
     getProducts: builder.query<
       { data: Product[]; pagination: PaginationMeta },
       ProductFilters | void
@@ -283,6 +304,7 @@ export const productsApi = createApi({
 });
 
 export const {
+  useGetProductRegionsQuery,
   useGetProductsQuery,
   useGetThirdPartyProductsQuery,
   useGetProductQuery,
