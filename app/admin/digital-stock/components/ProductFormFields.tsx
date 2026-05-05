@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ImagePicker } from '@/components/custom/ImagePicker';
-import { RegionSelect } from '@/components/custom/RegionSelect';
 import {
   Supplier,
 } from '@/lib/redux/features';
@@ -233,12 +232,11 @@ export const ProductFormFields = ({
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`regions-${formItemId}`}>Region</Label>
-        <RegionSelect
+        <Input
+          id={`regions-${formItemId}`}
           value={form.region}
-          onChange={(value) => onUpdate({ region: value })}
+          onChange={(e) => onUpdate({ region: e.target.value })}
           placeholder="Search regions..."
-          allowMultiple
-          helperText="Select one or more regions (press Enter to add a custom code)."
         />
         {formErrors.region && <p className="text-sm text-red-500">{formErrors.region}</p>}
       </div>
