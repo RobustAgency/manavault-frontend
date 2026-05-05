@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RegionSelect } from '@/components/custom/RegionSelect';
 import {
   Product,
   ProductStatus,
@@ -29,7 +30,6 @@ import {
 } from '@/lib/redux/features';
 import { useProductForm } from './useProductForm';
 import { BrandSelector } from './BrandSelector';
-import { RegionSelect } from '@/components/custom/RegionSelect';
 
 interface ProductFormDialogProps {
   isOpen: boolean;

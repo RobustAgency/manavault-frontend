@@ -5,7 +5,6 @@ import { File, PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { RegionSelect } from '@/components/custom/RegionSelect';
 import {
   Select,
   SelectContent,
@@ -65,23 +64,23 @@ export default function DigitalProductsPage() {
     return () => clearTimeout(timer);
   }, [nameSearch]);
 
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setDebouncedBrandSearch(brandSearch);
-        setPage(1); // Reset to first page on search
-      }, 500);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBrandSearch(brandSearch);
+      setPage(1); // Reset to first page on search
+    }, 500);
 
-      return () => clearTimeout(timer);
-    }, [brandSearch]);
+    return () => clearTimeout(timer);
+  }, [brandSearch]);
 
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setDebouncedRegionSearch(regionSearch);
-        setPage(1); // Reset to first page on search
-      }, 500);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedRegionSearch(regionSearch);
+      setPage(1); // Reset to first page on search
+    }, 500);
 
-      return () => clearTimeout(timer);
-    }, [regionSearch]);
+    return () => clearTimeout(timer);
+  }, [regionSearch]);
 
   const { data, isLoading, refetch: refetchDigitalProducts } = useGetDigitalProductsQuery({
     page,
@@ -91,7 +90,7 @@ export default function DigitalProductsPage() {
     brand: debouncedBrandSearch || undefined,
     region: debouncedRegionSearch || undefined,
     supplier_id: supplierFilter === 'all' ? undefined : parseInt(supplierFilter),
-    
+
   });
 
   const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
@@ -255,11 +254,10 @@ export default function DigitalProductsPage() {
           />
         </div>
         <div className="flex-1 min-w-[200px]">
-          <RegionSelect
+          <Input
+            placeholder="Search by region..."
             value={regionSearch}
-            onChange={setRegionSearch}
-            placeholder="Filter by region"
-            allowMultiple={false}
+            onChange={(e) => setRegionSearch(e.target.value)}
           />
         </div>
         <div className="flex-1 min-w-[200px]">

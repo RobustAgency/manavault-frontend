@@ -363,13 +363,13 @@ function CreateProductPage() {
 
                         <div className="space-y-2">
                             <Label htmlFor="regions" className="text-sm font-medium">Regions</Label>
-                            <RegionSelect
-                                value={formData.regions}
-                                onChange={(value) => updateFormData({ regions: value })}
-                                placeholder="Search regions..."
-                                allowMultiple
-                                helperText="Select one or more regions (press Enter to add a custom code)."
-                            />
+                           <Input
+                            id="regions"
+                            value={formData.regions}
+                            onChange={(e) => updateFormData({ regions: e.target.value })}
+                            placeholder="Search regions..."
+                            className="h-10"
+                           />
                         </div>
                     </div>
                 </div>
