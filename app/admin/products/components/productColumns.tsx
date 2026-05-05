@@ -101,8 +101,18 @@ export const createProductColumns = ({
   {
     accessorKey: 'region',
     header: 'Region',
-    cell: ({ row }) => row.original.regions?.join(', ') || '-',
-  },
+    cell: ({ row }) => {
+        const region = row.original.regions;
+        if (!region || region.length === 0) return '-';
+        return (
+          <div className="flex flex-wrap gap-1">
+            <Badge variant="outlined" className="text-xs">
+              {region.join(', ')}
+            </Badge>
+          </div>
+        );
+      },
+    },
   {
     accessorKey: 'selling_discount',
     header: 'Discount',
