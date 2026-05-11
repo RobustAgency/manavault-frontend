@@ -51,11 +51,11 @@ export const ProductFormFields = ({
           : `${IMAGEPREFIX}/${form.image}`
         : '';
 
-        useEffect(() => {
-        // calculate selling price based on cost price and selling discount
-          const sellingPrice = form.face_value ? parseFloat(form.face_value) * (1 - form.selling_discount / 100) : 0;
-          onUpdate({ selling_price: sellingPrice.toString() });
-      }, [form.face_value, form.selling_discount]);
+  useEffect(() => {
+    // calculate selling price based on cost price and selling discount
+    const sellingPrice = form.face_value ? parseFloat(form.face_value) * (1 - form.selling_discount / 100) : 0;
+    onUpdate({ selling_price: sellingPrice.toString() });
+  }, [form.face_value, form.selling_discount]);
 
   return (
     <div className="grid gap-4">
@@ -186,19 +186,19 @@ export const ProductFormFields = ({
         />
         {formErrors.selling_price && <p className="text-sm text-red-500">{formErrors.selling_price}</p>}
       </div>
-      
-        <div className="grid gap-2">
-          <Label htmlFor={`selling_discount-${formItemId}`}>Selling Discount (%)</Label>
-          <Input
-            id={`selling_discount-${formItemId}`}
-            type="number"
-            max="100"
-            value={form.selling_discount}
-            onChange={(e) => onUpdate({ selling_discount: Number(e.target.value) })}
-            placeholder="10.00"
-          />
-          {formErrors.selling_discount && <p className="text-sm text-red-500">{formErrors.selling_discount}</p>}
-        </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor={`selling_discount-${formItemId}`}>Selling Discount (%)</Label>
+        <Input
+          id={`selling_discount-${formItemId}`}
+          type="number"
+          max="100"
+          value={form.selling_discount}
+          onChange={(e) => onUpdate({ selling_discount: Number(e.target.value) })}
+          placeholder="10.00"
+        />
+        {formErrors.selling_discount && <p className="text-sm text-red-500">{formErrors.selling_discount}</p>}
+      </div>
       <div className="grid gap-2">
         <Label htmlFor={`face_value-${formItemId}`}>Face Value *</Label>
         <Input
@@ -215,33 +215,29 @@ export const ProductFormFields = ({
 
       <div className="grid gap-2">
         <Label htmlFor={`currency-${formItemId}`}>Currency *</Label>
-          <Select
-               key={form.currency}
-                value={form?.currency || ''}
-                onValueChange={(value) => onUpdate({ currency: value })}
-              >
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select field" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="usd">USD ($)</SelectItem>
-                  <SelectItem value="eur">EUR (€)</SelectItem>
-                </SelectContent>
-              </Select>
+        <Select
+          key={form.currency}
+          value={form?.currency || ''}
+          onValueChange={(value) => onUpdate({ currency: value })}
+        >
+          <SelectTrigger className="h-11">
+            <SelectValue placeholder="Select field" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="usd">USD ($)</SelectItem>
+            <SelectItem value="eur">EUR (€)</SelectItem>
+          </SelectContent>
+        </Select>
         {formErrors.currency && <p className="text-sm text-red-500">{formErrors.currency}</p>}
       </div>
-      
-      
-
       <div className="grid gap-2">
         <Label htmlFor={`regions-${formItemId}`}>Region</Label>
         <Input
           id={`regions-${formItemId}`}
           value={form.region}
           onChange={(e) => onUpdate({ region: e.target.value })}
-          placeholder="US"
+          placeholder="Search regions..."
         />
-        <p className="text-xs text-muted-foreground">Comma-separated region codes (e.g., US, CA, UK)</p>
         {formErrors.region && <p className="text-sm text-red-500">{formErrors.region}</p>}
       </div>
 

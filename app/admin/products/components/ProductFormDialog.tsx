@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RegionSelect } from '@/components/custom/RegionSelect';
 import {
   Product,
   ProductStatus,
@@ -255,13 +256,13 @@ export const ProductFormDialog = ({
 
           <div className="grid gap-2">
             <Label htmlFor="regions">Region</Label>
-            <Input
-              id="regions"
+            <RegionSelect
               value={formData.regions}
-              onChange={(e) => updateFormData({ regions: e.target.value })}
-              placeholder="US"
+              onChange={(value) => updateFormData({ regions: value })}
+              placeholder="Search regions..."
+              allowMultiple
+              helperText="Select one or more regions (press Enter to add a custom code)."
             />
-            {/* <p className="text-xs text-muted-foreground">Separate multiple regions with commas (e.g., US, CA, UK)</p> */}
           </div>
 
           <div className="grid gap-2">

@@ -24,6 +24,7 @@ import { useProductForm } from '../components/useProductForm';
 import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { ImagePicker } from '@/components/custom/ImagePicker';
+import { RegionSelect } from '@/components/custom/RegionSelect';
 import { BrandSelector } from '../components/BrandSelector';
 import { withPermission } from '@/components/auth/withPermission';
 import { getModulePermission } from '@/lib/permissions';
@@ -362,14 +363,13 @@ function CreateProductPage() {
 
                         <div className="space-y-2">
                             <Label htmlFor="regions" className="text-sm font-medium">Regions</Label>
-                            <Input
-                                id="region"
-                                value={formData.regions}
-                                onChange={(e) => updateFormData({ regions: e.target.value })}
-                                placeholder="US"
-                                className="h-10"
-                            />
-                            {/* <p className="text-xs text-muted-foreground">Comma-separated region codes where this product is available</p> */}
+                           <Input
+                            id="regions"
+                            value={formData.regions}
+                            onChange={(e) => updateFormData({ regions: e.target.value })}
+                            placeholder="Search regions..."
+                            className="h-10"
+                           />
                         </div>
                     </div>
                 </div>
