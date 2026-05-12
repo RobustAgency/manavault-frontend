@@ -26,23 +26,11 @@ export default function PurchaseOrdersPage() {
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
 
-
-  // Reset page to 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [currentPage, statusFilter, orderNumberSearch]);
+  }, [statusFilter, orderNumberSearch]);
 
-  // Dialog states
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-
-  const openViewDialog = (orderId: number) => {
-    setSelectedOrderId(orderId);
-    setIsViewDialogOpen(true);
-  };
-
-
-  const columns = createOrderColumns({ onView: openViewDialog });
+  const columns = createOrderColumns();
 
   return (
     <div className="container mx-auto py-8">
