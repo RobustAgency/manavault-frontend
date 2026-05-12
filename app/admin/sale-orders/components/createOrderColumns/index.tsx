@@ -27,10 +27,8 @@ const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'inf
   return 'default';
 };
 
-interface OrderColumnsProps {
-}
 
-export const createOrderColumns = ({  }: OrderColumnsProps): ColumnDef<SalesOrderDetails>[] => [
+export const createOrderColumns = (): ColumnDef<SalesOrderDetails>[] => [
   {
     accessorKey: 'order_number',
     header: 'Order Number',
