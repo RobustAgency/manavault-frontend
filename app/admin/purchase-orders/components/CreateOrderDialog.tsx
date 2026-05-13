@@ -46,8 +46,6 @@ export const CreateOrderDialog = ({
   const { formData, errors, validateForm, resetForm, addItem, updateItem, removeItem, currency, setCurrency } = usePurchaseOrderForm();
 
   // Dialog states for adding new items
-  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
   const [isSelectProductsDialogOpen, setIsSelectProductsDialogOpen] = useState(false);
   const [selectedSupplierForProducts, setSelectedSupplierForProducts] = useState<number | null>(null);
 
@@ -118,8 +116,6 @@ export const CreateOrderDialog = ({
   useEffect(() => {
     if (!isOpen) {
       resetForm();
-      setIsAddProductDialogOpen(false);
-      setIsAddSupplierDialogOpen(false);
       setIsSelectProductsDialogOpen(false);
       setSelectedSupplierForProducts(null);
       setActiveSupplierSelects([0]); // Reset to one empty select
@@ -255,8 +251,6 @@ export const CreateOrderDialog = ({
     resetForm();
     onClose();
   };
-
-  console.log(formData);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -417,10 +411,6 @@ export const CreateOrderDialog = ({
         isSubmitting={false}
         onClose={handleProductsDialogClose}
         onSubmit={handleProductsSelected}
-        onAddNewProduct={() => {
-          setIsSelectProductsDialogOpen(false);
-          setIsAddProductDialogOpen(true);
-        }}
       />
     </Dialog>
   );

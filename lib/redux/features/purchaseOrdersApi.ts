@@ -289,7 +289,10 @@ export const purchaseOrdersApi = createApi({
         error: false,
       },
     }),
-    invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
+    invalidatesTags: (result, error, id) => [
+      { type: "PurchaseOrder", id: String(id) },
+      { type: "PurchaseOrder", id: "LIST" },
+    ],
     async onQueryStarted(_, { queryFulfilled }) {
       try {
         await queryFulfilled;

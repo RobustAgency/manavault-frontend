@@ -90,7 +90,6 @@ export const createSupplierColumns = ({
       );
     },
   },
-  // only
   {
     id: 'actions',
     header: 'Actions',
