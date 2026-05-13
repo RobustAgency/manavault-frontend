@@ -24,31 +24,28 @@ vi.mock('@/lib/redux/features', async () => {
   };
 });
 
-vi.mock(
-  '/Users/alijee/Documents/GitHub/manavault-frontend/app/admin/purchase-orders/components/usePurchaseOrderForm.ts',
-  () => ({
-    usePurchaseOrderForm: () => ({
-      formData: {
-        items: [
-          {
-            supplier_id: 10,
-            digital_product_id: 501,
-            quantity: 2,
-            currency: 'usd',
-          },
-        ],
-      },
-      errors: {},
-      validateForm: () => true,
-      resetForm: vi.fn(),
-      addItem: vi.fn(),
-      updateItem: vi.fn(),
-      removeItem: vi.fn(),
-      currency: 'usd',
-      setCurrency: vi.fn(),
-    }),
-  })
-);
+vi.mock('@/app/admin/purchase-orders/components/usePurchaseOrderForm', () => ({
+  usePurchaseOrderForm: () => ({
+    formData: {
+      items: [
+        {
+          supplier_id: 10,
+          digital_product_id: 501,
+          quantity: 2,
+          currency: 'usd',
+        },
+      ],
+    },
+    errors: {},
+    validateForm: () => true,
+    resetForm: vi.fn(),
+    addItem: vi.fn(),
+    updateItem: vi.fn(),
+    removeItem: vi.fn(),
+    currency: 'usd',
+    setCurrency: vi.fn(),
+  }),
+}));
 
 describe('CreateOrderDialog', () => {
   it('submits items with supplier and product association', async () => {
