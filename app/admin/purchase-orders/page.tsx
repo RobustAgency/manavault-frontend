@@ -80,7 +80,7 @@ export default function PurchaseOrdersPage() {
     setSelectedOrderId(null);
   };
 
-  const columns = createOrderColumns({ onView: openViewDialog });
+  const columns = createOrderColumns();
 
   return (
     <div className="container mx-auto py-8">

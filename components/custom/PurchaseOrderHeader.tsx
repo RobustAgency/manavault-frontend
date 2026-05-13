@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ImportVouchersDialog } from '@/app/admin/purchase-orders/components';
-import { SalesOrderGiftCodesActions } from '@/app/admin/sale-orders/components/SalesOrderGiftCodesActions';
+import { SalesOrderGiftCodesActions } from '@/app/admin/sale-orders/components/gift-codes';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
 import { PurchaseOrder } from '@/types';
 

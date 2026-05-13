@@ -30,11 +30,7 @@ const getStatusColor = (status?: string): 'success' | 'warning' | 'error' | 'inf
   return 'default';
 };
 
-interface OrderColumnsProps {
-  onView?: (orderId: number) => void; 
-}
-
-export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<PurchaseOrder>[] => [
+export const createOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
   {
     accessorKey: 'order_number',
     header: 'Order Number',
@@ -98,8 +94,7 @@ export const createOrderColumns = ({ onView }: OrderColumnsProps): ColumnDef<Pur
     accessorKey: 'updated_at',
     header: 'Date',
     cell: ({ row }) => formatDate(row.original.created_at),
-  },
-  
+  }, 
   {
     id: 'actions',
     header: 'Actions',
