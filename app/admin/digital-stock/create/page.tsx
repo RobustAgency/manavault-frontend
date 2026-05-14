@@ -134,7 +134,7 @@ export default function CreateDigitalProductPage() {
     };
 
     return (
-        <div className="container mx-auto py-8 max-w-4xl">   
+        <div className="container mx-auto py-8 max-w-4xl">
             <CreateDigitalProductHeader
                 productCount={productForms.length}
                 onBack={() => router.back()}

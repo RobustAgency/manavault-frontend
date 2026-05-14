@@ -23,7 +23,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData, getFormDataForSubmit } =
         useDigitalProductForm(true);
-    const [updateDigitalProduct, { isLoading}] = useUpdateDigitalProductMutation();
+    const [updateDigitalProduct, { isLoading }] = useUpdateDigitalProductMutation();
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     useEffect(() => {
         if (product) {
