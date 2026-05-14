@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { File, Upload, X } from 'lucide-react';
-import Link from 'next/link';
 import React, { useRef } from 'react';
 
 export const CSVUploader: React.FC<{ file: File | null; setFile: React.Dispatch<React.SetStateAction<File | null>>; error: string | undefined, }> = ({

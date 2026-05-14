@@ -2,16 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
-import { ArrowLeftIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
     useGetDigitalProductQuery,
     useGetSuppliersQuery,
     useUpdateDigitalProductMutation,
     type UpdateDigitalProductData,
 } from '@/lib/redux/features';
-import { ProductFormFields, useDigitalProductForm } from '../../components';
+import { useDigitalProductForm } from '../../components';
 import { toast } from 'react-toastify';
+import { EditDigitalProductForm } from '../../components/EditDigitalProductForm';
+import { EditDigitalProductHeader } from '../../components/EditDigitalProductHeader';
+import { EditLoadingState } from '../../components/EditLoadingState';
+import { ErrorState } from '../../components/ErrorState';
 
 export default function EditDigitalProductPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -21,7 +23,7 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
     const { formData, setFormData, errors, validateForm, updateFormData, getFormDataForSubmit } =
         useDigitalProductForm(true);
-    const [updateDigitalProduct, { isLoading, isSuccess, isError, error }] = useUpdateDigitalProductMutation();
+    const [updateDigitalProduct, { isLoading}] = useUpdateDigitalProductMutation();
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     useEffect(() => {
         if (product) {
@@ -46,7 +48,6 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     }, [product, setFormData]);
 
 
-    // Fire the API immediately when the image is picked or removed (same behaviour as products)
     const handleImageChange = async (value: string | File | null) => {
         const previousImage = formData.image;
         updateFormData({ image: value ?? '' });
@@ -101,90 +102,27 @@ export default function EditDigitalProductPage({ params }: { params: Promise<{ i
     };
 
     if (isLoadingProduct) {
-        return (
-            <div className="container mx-auto py-8 max-w-4xl">
-                <div className="animate-pulse space-y-6">
-                    <div className="h-8 bg-muted rounded w-1/4"></div>
-                    <div className="h-4 bg-muted rounded w-1/2"></div>
-                    <div className="bg-card border rounded-lg shadow-sm">
-                        <div className="border-b p-6">
-                            <div className="h-6 bg-muted rounded w-1/3"></div>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div className="h-10 bg-muted rounded"></div>
-                            <div className="h-10 bg-muted rounded"></div>
-                            <div className="h-10 bg-muted rounded"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <EditLoadingState />;
     }
 
     if (!product) {
-        return (
-            <div className="container mx-auto py-8 max-w-4xl">
-                <div className="text-center py-12">
-                    <p className="text-muted-foreground text-lg mb-4">Digital product not found</p>
-                    <Button onClick={() => router.push('/admin/digital-stock')}>
-                        Go to Digital Stock
-                    </Button>
-                </div>
-            </div>
-        );
+        return <ErrorState hasError={false} onBack={() => router.push('/admin/digital-stock')} />;
     }
 
     return (
         <div className="container mx-auto py-8 max-w-4xl">
-            <div className="mb-8">
-                <Button
-                    variant="ghost"
-                    onClick={() => router.back()}
-                    className="mb-6 -ml-2"
-                >
-                    <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                    Back
-                </Button>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Edit Digital Product</h1>
-                    <p className="text-muted-foreground">Update digital product information</p>
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b px-6 py-4">
-                        <h2 className="text-lg font-semibold">Product Information</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Digital product details and pricing</p>
-                    </div>
-                    <div className="p-6">
-                        <ProductFormFields
-                            form={formData}
-                            formErrors={errors}
-                            isEditMode={true}
-                            suppliers={suppliersData?.data || []}
-                            onUpdate={updateFormData}
-                            onImageChange={handleImageChange}
-                            isImageUploading={isUploadingImage}
-                        />
-                    </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex items-center justify-between pt-6 border-t">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => router.back()}
-                        disabled={isLoading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button type="submit" disabled={isLoading} size="lg" className="min-w-[150px]">
-                        {isLoading ? 'Updating...' : 'Update Digital Product'}
-                    </Button>
-                </div>
-            </form>
+            <EditDigitalProductHeader onBack={() => router.back()} />
+            <EditDigitalProductForm
+                isLoading={isLoading}
+                onSubmit={handleSubmit}
+                onCancel={() => router.back()}
+                formData={formData}
+                errors={errors as Record<string, string>}
+                suppliers={suppliersData?.data || []}
+                onUpdate={updateFormData}
+                onImageChange={handleImageChange}
+                isImageUploading={isUploadingImage}
+            />
         </div>
     );
 }
