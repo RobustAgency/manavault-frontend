@@ -71,7 +71,11 @@ export function DigitalDiscountCell({
 
   if (!hasSellingPrice) {
     if (!canEdit || !onUpdateSellingPrice) {
-      return <span className="text-muted-foreground">—</span>;
+      return (
+        <div className="flex items-center gap-2 min-h-8">
+          <span className="text-muted-foreground">—</span>
+        </div>
+      );
     }
     if (editKind === 'price') {
       return (

@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { File, PlusIcon } from 'lucide-react';
 import { DataTable } from '@/components/custom/DataTable';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import {
   useGetSuppliersQuery,
   useDeleteDigitalProductMutation,
   type DigitalProduct,
-  type DigitalProductStatus,
   useCreatePurchaseOrderMutation,
   useUpdateDigitalProductMutation,
 } from '@/lib/redux/features';
@@ -58,7 +57,7 @@ export default function DigitalProductsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedNameSearch(nameSearch);
-      setPage(1); // Reset to first page on search
+      setPage(1); 
     }, 500);
 
     return () => clearTimeout(timer);
@@ -67,7 +66,7 @@ export default function DigitalProductsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedBrandSearch(brandSearch);
-      setPage(1); // Reset to first page on search
+      setPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -76,7 +75,7 @@ export default function DigitalProductsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedRegionSearch(regionSearch);
-      setPage(1); // Reset to first page on search
+      setPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
