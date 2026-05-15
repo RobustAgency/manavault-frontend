@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProductFormDialog } from '@/app/admin/products/components/ProductFormDialog';
 import type { Product } from '@/lib/redux/features';
@@ -149,12 +149,10 @@ describe('ProductFormDialog — create mode', () => {
     expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled();
   });
 
-  it('shows validation errors when submitted with empty required fields', async () => {
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
-
+  it('shows validation errors when submitted with empty required fields', () => {
     render(<ProductFormDialog {...baseProps} />);
 
-    await user.click(screen.getByRole('button', { name: /^create$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^create$/i }));
 
     expect(screen.getByText('Name is required')).toBeInTheDocument();
     expect(screen.getByText('SKU is required')).toBeInTheDocument();

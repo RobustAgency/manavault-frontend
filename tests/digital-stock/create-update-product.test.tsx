@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateDigitalProductForm } from '@/app/admin/digital-stock/components/CreateDigitalProductForm';
 import { EditDigitalProductForm } from '@/app/admin/digital-stock/components/EditDigitalProductForm';
@@ -187,8 +187,7 @@ describe('CreateDigitalProductForm', () => {
     expect(screen.getByText(/product 2/i)).toBeInTheDocument();
   });
 
-  it('calls onRemoveProduct when the trash button is clicked in multi-product view', async () => {
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
+  it('calls onRemoveProduct when the trash button is clicked in multi-product view', () => {
     const onRemoveProduct = vi.fn();
 
     const forms = [
@@ -207,13 +206,13 @@ describe('CreateDigitalProductForm', () => {
       />
     );
 
-    // Trash button on the last (expanded) product
-    const trashButtons = screen.getAllByRole('button', { name: '' }).filter(
-      (btn) => btn.querySelector('svg')
-    );
-    await user.click(trashButtons[trashButtons.length - 1]);
+    const heading = screen.getByRole('heading', { name: /product 2:/i });
+    const row = heading.closest('.flex');
+    const trashBtn = row?.querySelector('button[type="button"]');
+    expect(trashBtn).toBeTruthy();
+    fireEvent.click(trashBtn!);
 
-    expect(onRemoveProduct).toHaveBeenCalled();
+    expect(onRemoveProduct).toHaveBeenCalledWith('form-b');
   });
 });
 

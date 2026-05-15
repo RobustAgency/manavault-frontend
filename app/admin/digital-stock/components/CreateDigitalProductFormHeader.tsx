@@ -25,7 +25,7 @@ export const CreateDigitalProductFormHeader = ({
         </div>
         <div className="p-6">
             <GlobalSupplierSelector
-                selectedSupplierId={selectedSupplierId ?? undefined}
+                selectedSupplierId={selectedSupplierId}
                 suppliers={suppliers}
                 error={supplierError}
                 onSupplierChange={onSupplierChange}

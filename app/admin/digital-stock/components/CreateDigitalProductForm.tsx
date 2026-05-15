@@ -61,7 +61,7 @@ export const CreateDigitalProductForm = ({
                             formData={form.formData}
                             errors={form.errors}
                             isExpanded={expandedItems.has(form.id)}
-                            canRemove={productForms.length > 1}
+                            canRemove
                             suppliers={suppliers}
                             onToggle={() => onToggleAccordion(form.id)}
                             onRemove={() => onRemoveProduct(form.id)}
@@ -74,19 +74,17 @@ export const CreateDigitalProductForm = ({
                                 Product {productForms.length}:{' '}
                                 {productForms[productForms.length - 1].formData.name || 'New Product'}
                             </h3>
-                            {productForms.length > 1 && (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                        onRemoveProduct(productForms[productForms.length - 1].id)
-                                    }
-                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    <TrashIcon className="h-4 w-4" />
-                                </Button>
-                            )}
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    onRemoveProduct(productForms[productForms.length - 1].id)
+                                }
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                                <TrashIcon className="h-4 w-4" />
+                            </Button>
                         </div>
                         <ProductFormFields
                             form={productForms[productForms.length - 1].formData}

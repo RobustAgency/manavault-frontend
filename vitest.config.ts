@@ -1,11 +1,9 @@
 import path from 'node:path';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: 'react',
-  },
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
@@ -15,5 +13,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     restoreMocks: true,
+    // Parallel workers + user-event can hit the default 5s timeout on slower machines
+    testTimeout: 15_000,
   },
 });

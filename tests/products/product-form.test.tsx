@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProductForm } from '@/app/admin/products/components/ProductForm';
 import type { ProductFormState, ProductFormErrors } from '@/app/admin/products/components/useProductForm';
@@ -188,13 +188,12 @@ describe('ProductForm — create mode', () => {
     expect(screen.getByText('Face value is required')).toBeInTheDocument();
   });
 
-  it('calls onUpdate when the brand selector fires', async () => {
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
+  it('calls onUpdate when the brand selector fires', () => {
     const onUpdate = vi.fn();
 
     render(<ProductForm {...baseCreateProps} onUpdate={onUpdate} />);
 
-    await user.click(screen.getByRole('button', { name: /select brand/i }));
+    fireEvent.click(screen.getByRole('button', { name: /select brand/i }));
 
     expect(onUpdate).toHaveBeenCalledWith({ brand_id: '1' });
   });

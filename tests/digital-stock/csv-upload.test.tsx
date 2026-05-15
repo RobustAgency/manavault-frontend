@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UploadCsvDialogue } from '@/app/admin/digital-stock/components/uploadCsvDialogue';
 import { CSVUploader } from '@/app/admin/digital-stock/components/CsvUploader';
@@ -120,7 +120,6 @@ describe('UploadCsvDialogue', () => {
 
   it('shows success toast and closes dialog on successful upload', async () => {
     const { toast } = await import('react-toastify');
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onClose = vi.fn();
 
     render(
@@ -133,16 +132,18 @@ describe('UploadCsvDialogue', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: /select supplier/i }));
+    fireEvent.click(screen.getByRole('button', { name: /select supplier/i }));
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     const csvFile = new File(['sku,name\nSKU001,Product A'], 'products.csv', { type: 'text/csv' });
-    await user.upload(fileInput, csvFile);
+    fireEvent.change(fileInput, { target: { files: [csvFile] } });
 
-    await user.click(screen.getByRole('button', { name: /add csv/i }));
+    fireEvent.click(screen.getByRole('button', { name: /add csv/i }));
 
-    expect(toast.success).toHaveBeenCalledWith('CSV uploaded successfully');
-    expect(onClose).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('CSV uploaded successfully');
+      expect(onClose).toHaveBeenCalled();
+    });
   });
 
   it('shows error toast when upload fails', async () => {
