@@ -18,32 +18,27 @@ import { useRouter } from "next/navigation";
 import { useGetBrandsQuery } from "@/lib/redux/features";
 import { useGetSuppliersQuery } from "@/lib/redux/features/suppliersApi";
 import { ToggleSwitch } from "@/components/custom/ToggleSwitch";
-import { useLazyGetPostViewRuleAffectedProductsQuery, useLazyGetPreviewRuleAffectedProductsQuery } from "@/lib/redux/features/priceAutomationApi";
+import {
+  useLazyGetPostViewRuleAffectedProductsQuery,
+  useLazyGetPreviewRuleAffectedProductsQuery,
+} from "@/lib/redux/features/priceAutomationApi";
 import { PreviewProductsDialog } from "../preview-products-dialogue";
 import { toast } from "react-toastify";
 import { Condition, PriceRule, Supplier } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
+import {
+  fromRulePayload,
+  normalizeRuleForComparison,
+  resolveShouldUsePreviewMode,
+  toRulePayload,
+  validatePriceRuleForm,
+} from "@/app/admin/pricing-automation/utils/ruleUtils";
 
 interface PriceRuleFormProps {
   mode: "create" | "edit";
   initialData?: PriceRule;
   onSubmit: (data: PriceRule) => void;
 }
-
-const normalizeRuleForComparison = (rule?: Partial<PriceRule>) => ({
-  name: rule?.name ?? "",
-  description: rule?.description ?? "",
-  status: rule?.status ?? "active",
-  match_type: rule?.match_type ?? "all",
-  action_value: rule?.action_value ?? null,
-  action_operator: rule?.action_operator ?? "+",
-  action_mode: rule?.action_mode ?? "percentage",
-  conditions: (rule?.conditions ?? []).map((condition) => ({
-    field: condition.field ?? "",
-    operator: condition.operator ?? "",
-    value: condition.value ?? "",
-  })),
-});
 
 const PriceRuleForm = ({
   mode = "create",
@@ -63,17 +58,23 @@ const PriceRuleForm = ({
     initialData?.match_type ?? "all"
   );
 
-  const { formData, errors, updateFormData, validateForm } = usePricingAutomationForm(mode === "edit", initialData);
+  const { formData, errors, updateFormData, validateForm, setErrors } =
+    usePricingAutomationForm(mode === "edit", initialData);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
   const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
-  const [triggerPreview, { data: previewData, isLoading: isPreviewing }] = useLazyGetPreviewRuleAffectedProductsQuery()
-  const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] = useLazyGetPostViewRuleAffectedProductsQuery()
+  const [triggerPreview, { data: previewData, isLoading: isPreviewing }] =
+    useLazyGetPreviewRuleAffectedProductsQuery();
+  const [triggerPostView, { data: postViewData, isLoading: isPostViewing }] =
+    useLazyGetPostViewRuleAffectedProductsQuery();
 
   const suppliers: Supplier[] = useMemo(
     () => suppliersData?.data ?? [],
     [suppliersData]
   );
-  const suppliersById = useMemo(() => new Map<number, string>(suppliers.map((s) => [Number(s.id), s.name])), [suppliers]);
+  const suppliersById = useMemo(
+    () => new Map<number, string>(suppliers.map((s) => [Number(s.id), s.name])),
+    [suppliers]
+  );
   const suppliersByNameToFirstId = useMemo(() => {
     const map = new Map<string, number>();
     for (const s of suppliers) {
@@ -82,51 +83,27 @@ const PriceRuleForm = ({
     return map;
   }, [suppliers]);
 
-  const convertSupplierConditionValueToId = useCallback(
-    (rule?: Partial<PriceRule>): Partial<PriceRule> | undefined => {
-      if (!rule) return rule;
-
-      return {
-        ...rule,
-        conditions: rule.conditions?.map((c) => {
-          if (c.field !== "supplier_name") return c;
-
-          const asId = Number(c.value);
-          if (!Number.isNaN(asId) && suppliersById.has(asId)) {
-            return { ...c, value: String(asId) };
-          }
-
-          const mappedId = suppliersByNameToFirstId.get(c.value);
-          if (mappedId == null) return c;
-          return { ...c, value: String(mappedId) };
-        }),
-      };
-    },
-    [suppliersById, suppliersByNameToFirstId]
-  );
-
-  // Backend needs supplier name. UI stores supplier id for stable select values.
-  const toRulePayload = (rule: PriceRule): PriceRule => {
-    return {
-      ...rule,
-      conditions: rule.conditions.map((c) => {
-        if (c.field !== "supplier_name") return c;
-        const supplierId = Number(c.value);
-        const supplierName = suppliersById.get(supplierId);
-        if (!supplierName) return c;
-        return { ...c, value: supplierName };
-      }),
-    };
-  };
-
   const hasFormChangesInEditMode = useMemo(() => {
     if (mode !== "edit") return false;
-    const initialSnapshot = normalizeRuleForComparison(convertSupplierConditionValueToId(initialData));
-    const currentSnapshot = normalizeRuleForComparison(convertSupplierConditionValueToId(formData));
+    const initialSnapshot = normalizeRuleForComparison(
+      fromRulePayload(initialData ?? {}, suppliersByNameToFirstId, suppliersById)
+    );
+    const currentSnapshot = normalizeRuleForComparison(
+      fromRulePayload(formData, suppliersByNameToFirstId, suppliersById)
+    );
     return JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot);
-  }, [mode, initialData, formData, convertSupplierConditionValueToId, suppliersById, suppliersByNameToFirstId]);
+  }, [
+    mode,
+    initialData,
+    formData,
+    suppliersByNameToFirstId,
+    suppliersById,
+  ]);
 
-  const shouldUsePreviewMode = mode === "create" || hasFormChangesInEditMode;
+  const shouldUsePreviewMode = resolveShouldUsePreviewMode(
+    mode,
+    hasFormChangesInEditMode
+  );
 
   useEffect(() => {
     // In edit mode, backend might return `supplier_name` value as a supplier name.
@@ -155,8 +132,6 @@ const PriceRuleForm = ({
         return { ...c, value: nextValue };
       });
 
-      // Important: return the same reference when nothing changes.
-      // Otherwise React will re-render indefinitely if this effect runs repeatedly.
       return changed ? next : prev;
     });
   }, [mode, suppliers, suppliersById, suppliersByNameToFirstId]);
@@ -168,9 +143,17 @@ const PriceRuleForm = ({
     });
   }, [conditions, matchCondition, updateFormData]);
 
+  const buildPayload = useCallback(
+    () => toRulePayload(formData, suppliersById),
+    [formData, suppliersById]
+  );
+
   const handlePreview = async () => {
-    if (!formData.conditions[0].value || !formData.action_value) {
+    const { errors: validationErrors, isValid } = validatePriceRuleForm(formData);
+    setErrors(validationErrors);
+    if (!isValid) {
       toast.error("Please fill the form to preview products.");
+      return;
     }
 
     const hasSupplierNameCondition = formData.conditions.some(
@@ -181,39 +164,39 @@ const PriceRuleForm = ({
       return;
     }
 
-    const payload = toRulePayload(formData);
-    if (shouldUsePreviewMode) {
-      await triggerPreview({ rule: payload, page: 1 }).unwrap();
-    } else {
-      await triggerPostView({ rule: payload, page: 1 }).unwrap();
+    const payload = buildPayload();
+    try {
+      if (shouldUsePreviewMode) {
+        await triggerPreview({ rule: payload, page: 1 }).unwrap();
+      } else {
+        await triggerPostView({ rule: payload, page: 1 }).unwrap();
+      }
+      setIsPreviewDialogOpen(true);
+    } catch {
+      toast.error("Could not load affected products. Please try again.");
     }
-    setIsPreviewDialogOpen(true);
   };
 
   const handlePreviewPageChange = async (page: number) => {
-    const payload = toRulePayload(formData);
-    await triggerPreview({ rule: payload, page }).unwrap();
+    try {
+      await triggerPreview({ rule: buildPayload(), page }).unwrap();
+    } catch {
+      toast.error("Could not load preview page. Please try again.");
+    }
   };
 
   const handlePostViewPageChange = async (page: number) => {
-    const payload = toRulePayload(formData);
-    await triggerPostView({ rule: payload, page }).unwrap();
+    try {
+      await triggerPostView({ rule: buildPayload(), page }).unwrap();
+    } catch {
+      toast.error("Could not load products. Please try again.");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log(formData,'formData');
 
     if (!validateForm()) return;
-    if (formData.action_value == null || !formData.action_value) {
-      toast.error("Selling price value is required");
-      return;
-    }
-    if (formData.action_value == null || formData.action_value <= 0) {
-      toast.error("Selling price value must be greater than 0");
-      return;
-    }
 
     const hasSupplierNameCondition = formData.conditions.some(
       (c) => c.field === "supplier_name"
@@ -223,20 +206,24 @@ const PriceRuleForm = ({
       return;
     }
 
-    const payload = toRulePayload(formData);
-    await triggerPreview({ rule: payload, page: 1 }).unwrap().then(() => {
+    try {
+      await triggerPreview({
+        rule: buildPayload(),
+        page: 1,
+      }).unwrap();
       setIsPreviewRuleExecuteOpen(true);
-    });
+    } catch {
+      toast.error("Could not load preview for execution. Please try again.");
+    }
   };
 
   const handleConfirmExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
-    onSubmit(toRulePayload(formData));
+    onSubmit(buildPayload());
   };
   const handleCancelExecute = () => {
     setIsPreviewRuleExecuteOpen(false);
   };
-
 
   const confirmationTitle = `Are you sure you want to execute?`;
   return (
@@ -252,18 +239,30 @@ const PriceRuleForm = ({
             Back
           </Button>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">{mode === "create" ? "Add New Rule" : "Edit Rule"}</h1>
-            <p className="text-muted-foreground"> {mode === "create" ? "Create a new price automation rule with condition" : "Update existing Rule "} </p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {mode === "create" ? "Add New Rule" : "Edit Rule"}
+            </h1>
+            <p className="text-muted-foreground">
+              {" "}
+              {mode === "create"
+                ? "Create a new price automation rule with condition"
+                : "Update existing Rule "}{" "}
+            </p>
           </div>
         </div>
-        <form onSubmit={handleSubmit} className="bg-card rounded-xl shadow-sm border p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-card rounded-xl shadow-sm border p-6"
+        >
           {/* Status */}
           <div className="flex justify-end">
             <ToggleSwitch
               id="status"
               label={`Status`}
               checked={formData.status === "active"}
-              onCheckedChange={(checked) => updateFormData({ status: checked ? "active" : "in_active" })}
+              onCheckedChange={(checked) =>
+                updateFormData({ status: checked ? "active" : "in_active" })
+              }
             />
           </div>
           {/* Rule Details */}
@@ -281,7 +280,9 @@ const PriceRuleForm = ({
                 onChange={(e) => updateFormData({ name: e.target.value })}
                 className="h-11"
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-sm text-red-500">{errors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -293,7 +294,9 @@ const PriceRuleForm = ({
                 maxLength={200}
                 placeholder="Enter Description"
                 value={formData.description ?? ""}
-                onChange={(e) => updateFormData({ description: e.target.value })}
+                onChange={(e) =>
+                  updateFormData({ description: e.target.value })
+                }
                 className="h-11"
               />
             </div>
@@ -377,11 +380,19 @@ const PriceRuleForm = ({
           </div>
 
           <div className="mt-6 flex sm:flex-row flex-col justify-end gap-4">
-            <Button type="button" variant={"outline"} className="h-11 px-6 sm:px-6" onClick={() => handlePreview()}>
-              {shouldUsePreviewMode ? "Preview" : "Postview"} <Eye className="h-4 w-4" />
+            <Button
+              type="button"
+              variant={"outline"}
+              className="h-11 px-6 sm:px-6"
+              onClick={() => handlePreview()}
+            >
+              {shouldUsePreviewMode ? "Preview" : "Postview"}{" "}
+              <Eye className="h-4 w-4" />
             </Button>
             <Button type="submit" className="h-11 px-6 sm:px-6">
-              {mode === "create" ? "Add & Execute Rule " : "Save & Execute Rule"}
+              {mode === "create"
+                ? "Add & Execute Rule "
+                : "Save & Execute Rule"}
             </Button>
           </div>
         </form>
@@ -389,11 +400,21 @@ const PriceRuleForm = ({
 
       <PreviewProductsDialog
         open={isPreviewDialogOpen}
-        mode={shouldUsePreviewMode ? "create" : "edit"}
+        tableVariant={shouldUsePreviewMode ? "preview" : "postview"}
         onOpenChange={setIsPreviewDialogOpen}
-        products={shouldUsePreviewMode ? previewData?.data ?? [] : postViewData?.data ?? []}
-        pagination={shouldUsePreviewMode ? previewData?.pagination : postViewData?.pagination}
-        onPageChange={shouldUsePreviewMode ? handlePreviewPageChange : handlePostViewPageChange}
+        products={
+          shouldUsePreviewMode
+            ? (previewData?.data ?? [])
+            : (postViewData?.data ?? [])
+        }
+        pagination={
+          shouldUsePreviewMode ? previewData?.pagination : postViewData?.pagination
+        }
+        onPageChange={
+          shouldUsePreviewMode
+            ? handlePreviewPageChange
+            : handlePostViewPageChange
+        }
         isLoading={shouldUsePreviewMode ? isPreviewing : isPostViewing}
       />
       <ConfirmationDialog
@@ -403,7 +424,7 @@ const PriceRuleForm = ({
         description={`This action will affect ${previewData?.pagination?.total ?? previewData?.data?.length ?? 0} product`}
         confirmText="Execute"
         type="warning"
-        isLoading={isPostViewing}
+        isLoading={isPreviewing && isPreviewRuleExecuteOpen}
         onConfirm={handleConfirmExecute}
       />
     </>
