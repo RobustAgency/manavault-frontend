@@ -194,8 +194,9 @@ export interface Brand {
 export interface PriceRuleQuery {
   page?: number;
   per_page?: number;
-  status?: "active" | "in_active" | undefined;
-  name: string | undefined
+  status?: "active" | "in_active";
+  /** Omit or pass undefined to skip name filtering */
+  name?: string;
 }
 
 
@@ -705,7 +706,8 @@ export interface Condition {
 export type RuleStatus = "active" | "in_active" | undefined;
 
 export interface PriceRule {
-  id?: string;
+  /** Present after persistence; numeric id from the API */
+  id?: number;
   name: string;
   description: string;
   status: "active" | "in_active" | undefined;

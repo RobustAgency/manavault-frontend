@@ -82,7 +82,7 @@ describe('PreviewProductsDialog – preview mode (create)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={mockPreviewProducts}
         pagination={paginationMeta}
@@ -96,7 +96,7 @@ describe('PreviewProductsDialog – preview mode (create)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={mockPreviewProducts}
         pagination={paginationMeta}
@@ -111,7 +111,7 @@ describe('PreviewProductsDialog – preview mode (create)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={[]}
         pagination={{ current_page: 1, per_page: 10, total: 0, last_page: 1, from: 0, to: 0 }}
@@ -126,7 +126,7 @@ describe('PreviewProductsDialog – preview mode (create)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={mockPreviewProducts}
         pagination={paginationMeta}
@@ -144,7 +144,7 @@ describe('PreviewProductsDialog – postview mode (edit)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="edit"
+        tableVariant="postview"
         onOpenChange={vi.fn()}
         products={mockPostViewProducts}
         pagination={paginationMeta}
@@ -158,7 +158,7 @@ describe('PreviewProductsDialog – postview mode (edit)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="edit"
+        tableVariant="postview"
         onOpenChange={vi.fn()}
         products={mockPostViewProducts}
         pagination={paginationMeta}
@@ -172,7 +172,7 @@ describe('PreviewProductsDialog – postview mode (edit)', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="edit"
+        tableVariant="postview"
         onOpenChange={vi.fn()}
         products={mockPostViewProducts}
         pagination={paginationMeta}
@@ -207,7 +207,7 @@ describe('PreviewProductsDialog – multi-product scenarios', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={manyProducts}
         pagination={largePagination}
@@ -225,7 +225,7 @@ describe('PreviewProductsDialog – multi-product scenarios', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={manyProducts}
         pagination={largePagination}
@@ -247,7 +247,7 @@ describe('PreviewProductsDialog – loading state', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={[]}
         isLoading
@@ -265,7 +265,7 @@ describe('PreviewProductsDialog – open / close behaviour', () => {
     render(
       <PreviewProductsDialog
         open={false}
-        mode="create"
+        tableVariant="preview"
         onOpenChange={vi.fn()}
         products={mockPreviewProducts}
         onPageChange={vi.fn()}
@@ -280,7 +280,7 @@ describe('PreviewProductsDialog – open / close behaviour', () => {
     render(
       <PreviewProductsDialog
         open
-        mode="create"
+        tableVariant="preview"
         onOpenChange={onOpenChange}
         products={mockPreviewProducts}
         pagination={paginationMeta}

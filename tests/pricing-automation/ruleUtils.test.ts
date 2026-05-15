@@ -114,6 +114,26 @@ describe("validatePriceRuleForm – missing fields", () => {
     expect(errors.conditions).toBeTruthy();
   });
 
+  it("fails when a condition has no field selected", () => {
+    const rule: PriceRule = {
+      ...validRule,
+      conditions: [{ id: "1", field: "", operator: "=", value: "foo" }],
+    };
+    const { isValid, errors } = validatePriceRuleForm(rule);
+    expect(isValid).toBe(false);
+    expect(errors.conditions).toBeTruthy();
+  });
+
+  it("fails when a condition has no operator selected", () => {
+    const rule: PriceRule = {
+      ...validRule,
+      conditions: [{ id: "1", field: "name", operator: "", value: "foo" }],
+    };
+    const { isValid, errors } = validatePriceRuleForm(rule);
+    expect(isValid).toBe(false);
+    expect(errors.conditions).toBeTruthy();
+  });
+
   it("fails when action_value is null", () => {
     const { isValid, errors } = validatePriceRuleForm({ ...validRule, action_value: null });
     expect(isValid).toBe(false);
@@ -156,6 +176,15 @@ describe("validatePriceRuleForm – boundary conditions", () => {
     const { isValid, errors } = validatePriceRuleForm({ ...validRule, name });
     expect(isValid).toBe(false);
     expect(errors.name).toBeTruthy();
+  });
+
+  it("fails when action_value is negative", () => {
+    const { isValid, errors } = validatePriceRuleForm({
+      ...validRule,
+      action_value: -1,
+    });
+    expect(isValid).toBe(false);
+    expect(errors.action_value).toBeTruthy();
   });
 
   it("accepts action_value of 0 (zero discount)", () => {

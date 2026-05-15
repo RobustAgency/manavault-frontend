@@ -13,21 +13,23 @@ import { PreviewRulesColumns } from '../preview-product-column';
 import { PaginationMeta, PostViewProduct, PreviewAffectedProduct } from '@/types';
 import { PostViewColumns } from '../post-product-column';
 
+/** Which product payload shape / columns to render (preview API vs post-view API). */
+export type PreviewProductsTableVariant = 'preview' | 'postview';
+
 interface PreviewProductsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "create" | "edit";
+  tableVariant: PreviewProductsTableVariant;
   products: PreviewAffectedProduct[] | PostViewProduct[];
   isLoading?: boolean;
   pagination?: PaginationMeta;
   onPageChange?: (page: number) => void;
 }
 
-
 export const PreviewProductsDialog = ({
   open,
   onOpenChange,
-  mode,
+  tableVariant,
   products,
   pagination,
   isLoading = false,
@@ -37,11 +39,13 @@ export const PreviewProductsDialog = ({
   const postViewProductColumns = PostViewColumns();
 
   const serverSide = Boolean(pagination && onPageChange);
-  const firstProduct = (products as unknown as Array<Record<string, unknown>>)[0];
-  const isPreviewPayload =
-    Boolean(firstProduct) && "digital_product_name" in firstProduct;
-  const shouldRenderPreview =
-    isPreviewPayload || (!firstProduct && mode === "create");
+  const isPreviewTable = tableVariant === 'preview';
+
+  const heading =
+    tableVariant === 'preview'
+      ? 'Preview Affected Products'
+      : 'Postview Affected Products';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -54,13 +58,11 @@ export const PreviewProductsDialog = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <DialogTitle className="text-lg font-semibold">
-          {mode === "edit" ?  "Postview Affected Products" : "Preview Affected Products"}
-          </DialogTitle>
+          <DialogTitle className="text-lg font-semibold">{heading}</DialogTitle>
         </div>
         {/* Content */}
         <div className="max-h-[500px] overflow-auto rounded-lg ">
-          {shouldRenderPreview ? (
+          {isPreviewTable ? (
             <DataTable<PreviewAffectedProduct, unknown>
               columns={productColumns}
               data={products as PreviewAffectedProduct[]}
@@ -98,7 +100,5 @@ export const PreviewProductsDialog = ({
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-
+  );
+};

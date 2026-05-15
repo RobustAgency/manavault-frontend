@@ -112,19 +112,19 @@ export const priceAutomationApi = createApi({
         return response as unknown as PriceRule;
       },
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
         try {
+          await queryFulfilled;
           dispatch(
             productsApi.util.invalidateTags([
               { type: "Product", id: "LIST" },
             ])
           );
-
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-              mutationError?.error?.data?.message || "Failed to create brand";
+              mutationError?.error?.data?.message ||
+              "Failed to create price rule";
             console.error(errorMessage);
           }
         }
@@ -167,7 +167,8 @@ export const priceAutomationApi = createApi({
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {
             const errorMessage =
-            mutationError?.error?.data?.message || "Failed to update brand";
+            mutationError?.error?.data?.message ||
+              "Failed to update price rule";
             console.error(errorMessage);
           }
         }
@@ -189,7 +190,8 @@ export const priceAutomationApi = createApi({
         } catch (error) {
           const mutationError = error as MutationError;
           const errorMessage =
-            mutationError?.error?.data?.message || "Failed to delete brand";
+            mutationError?.error?.data?.message ||
+              "Failed to delete price rule";
           console.error(errorMessage);
         }
       },
@@ -293,23 +295,6 @@ export const priceAutomationApi = createApi({
             to: 0,
           },
         };
-      },
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
-        try {
-          dispatch(
-            productsApi.util.invalidateTags([
-              { type: "Product", id: "LIST" },
-            ])
-          );
-        } catch (error) {
-          const mutationError = error as MutationError;
-          if (!mutationError?.error?.data?.errors) {
-            const errorMessage =
-              mutationError?.error?.data?.message || "Failed to create brand";
-            console.error(errorMessage);
-          }
-        }
       },
     }),
   }),

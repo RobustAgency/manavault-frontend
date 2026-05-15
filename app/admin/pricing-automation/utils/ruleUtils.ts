@@ -51,10 +51,19 @@ export function validatePriceRuleForm(formData: PriceRule): {
   } else if (formData.conditions.some((c) => !c.value?.trim())) {
     errors.conditions = "All conditions must have a value";
     isValid = false;
+  } else if (formData.conditions.some((c) => !c.field?.trim())) {
+    errors.conditions = "All conditions must have a field selected";
+    isValid = false;
+  } else if (formData.conditions.some((c) => !String(c.operator ?? "").trim())) {
+    errors.conditions = "All conditions must have an operator selected";
+    isValid = false;
   }
 
   if (formData.action_value === null || formData.action_value === undefined) {
     errors.action_value = "Action value is required";
+    isValid = false;
+  } else if (formData.action_value < 0) {
+    errors.action_value = "Action value cannot be negative";
     isValid = false;
   }
 
