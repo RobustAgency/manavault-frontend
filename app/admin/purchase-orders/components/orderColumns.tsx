@@ -91,7 +91,7 @@ export const createOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
     },
   },
   {
-    accessorKey: 'updated_at',
+    accessorKey: 'created_at',
     header: 'Date',
     cell: ({ row }) => formatDate(row.original.created_at),
   }, 

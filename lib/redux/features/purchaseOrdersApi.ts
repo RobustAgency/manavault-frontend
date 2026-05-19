@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../base";
 import { createDigitalProductOrder, CreatePurchaseOrderData, CSVUploadData, MutationError, PaginationMeta, PurchaseOrder, PurchaseOrderFilters } from "@/types";
+import { digitalProductsApi } from "./digitalProductsApi";
 
 export const purchaseOrdersApi = createApi({
   reducerPath: "purchaseOrdersApi",
@@ -262,10 +263,15 @@ export const purchaseOrdersApi = createApi({
         method: "POST",
         data: data,
       }),
-      invalidatesTags: [{ type: "PurchaseOrder", id: "LIST" }],
-      async onQueryStarted(_, { queryFulfilled }) {
+      invalidatesTags: [],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          dispatch(
+            digitalProductsApi.util.invalidateTags([
+              { type: "DigitalProduct", id: "LIST" },
+            ])
+          );
         } catch (error) {
           const mutationError = error as MutationError;
           if (!mutationError?.error?.data?.errors) {

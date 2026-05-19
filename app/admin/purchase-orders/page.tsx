@@ -14,11 +14,10 @@ import {
 } from '@/components/ui/select';
 import {
   useGetPurchaseOrdersQuery,
-  useGetPurchaseOrderQuery,
   useCreatePurchaseOrderMutation,
   useGetSuppliersQuery,
 } from '@/lib/redux/features';
-import { CreateOrderDialog, ViewOrderDialog, createOrderColumns } from './components';
+import { CreateOrderDialog, createOrderColumns } from './components';
 import { toast } from 'react-toastify';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getModulePermission, hasPermission } from '@/lib/permissions';
@@ -50,15 +49,7 @@ export default function PurchaseOrdersPage() {
     setPage(1);
   }, [supplierFilter, statusFilter, orderNumberSearch]);
 
-  // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-
-  // Fetch selected order details
-  const { data: selectedOrder } = useGetPurchaseOrderQuery(selectedOrderId!, {
-    skip: !selectedOrderId,
-  });
 
   const handleCreate = async (data: any) => {
     try {
@@ -68,16 +59,6 @@ export default function PurchaseOrdersPage() {
     } catch (error) {
       toast.error('Failed to create purchase order');
     }
-  };
-
-  const openViewDialog = (orderId: number) => {
-    setSelectedOrderId(orderId);
-    setIsViewDialogOpen(true);
-  };
-
-  const closeViewDialog = () => {
-    setIsViewDialogOpen(false);
-    setSelectedOrderId(null);
   };
 
   const columns = createOrderColumns();
@@ -164,14 +145,6 @@ export default function PurchaseOrdersPage() {
         isSubmitting={isCreating}
         onClose={() => setIsCreateDialogOpen(false)}
         onSubmit={handleCreate}
-        onSuppliersRefetch={refetchSuppliers}
-      />
-
-      {/* View Details Dialog */}
-      <ViewOrderDialog
-        isOpen={isViewDialogOpen}
-        order={selectedOrder || null}
-        onClose={closeViewDialog}
       />
     </div>
   );

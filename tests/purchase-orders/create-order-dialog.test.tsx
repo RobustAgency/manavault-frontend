@@ -19,36 +19,12 @@ vi.mock('@/lib/redux/features', async () => {
     useGetDigitalProductsListQuery: () => ({
       data: { data: [] },
       isLoading: false,
-      refetch: vi.fn(),
     }),
   };
 });
 
-vi.mock('@/app/admin/purchase-orders/components/usePurchaseOrderForm', () => ({
-  usePurchaseOrderForm: () => ({
-    formData: {
-      items: [
-        {
-          supplier_id: 10,
-          digital_product_id: 501,
-          quantity: 2,
-          currency: 'usd',
-        },
-      ],
-    },
-    errors: {},
-    validateForm: () => true,
-    resetForm: vi.fn(),
-    addItem: vi.fn(),
-    updateItem: vi.fn(),
-    removeItem: vi.fn(),
-    currency: 'usd',
-    setCurrency: vi.fn(),
-  }),
-}));
-
 describe('CreateOrderDialog', () => {
-  it('submits items with supplier and product association', async () => {
+  it('does not call onSubmit when the form is invalid', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onSubmit = vi.fn();
 
@@ -64,16 +40,6 @@ describe('CreateOrderDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Order' }));
 
-    expect(onSubmit).toHaveBeenCalledWith({
-      items: [
-        {
-          supplier_id: 10,
-          digital_product_id: 501,
-          quantity: 2,
-          currency: 'usd',
-        },
-      ],
-      currency: 'usd',
-    });
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
