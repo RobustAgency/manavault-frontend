@@ -20,6 +20,7 @@ export interface PriceRuleFormErrors {
 
 /**
  * Validates the price-rule form and returns an error map plus an isValid flag.
+ * Action values may be `0` (no-op adjustment); only null/undefined and negatives are rejected.
  */
 export function validatePriceRuleForm(formData: PriceRule): {
   errors: PriceRuleFormErrors;
@@ -81,8 +82,34 @@ export function validatePriceRuleForm(formData: PriceRule): {
 }
 
 /**
+ * Joins non-empty validatePriceRuleForm messages for use with toast.error().
+ */
+export function formatPriceRuleFormErrorsToast(
+  errors: PriceRuleFormErrors
+): string {
+  const order: (keyof PriceRuleFormErrors)[] = [
+    "name",
+    "status",
+    "match_type",
+    "conditions",
+    "action_value",
+    "action_operator",
+    "action_mode",
+  ];
+  const parts: string[] = [];
+  for (const key of order) {
+    const msg = errors[key]?.trim();
+    if (msg) parts.push(msg);
+  }
+  return parts.length > 0
+    ? parts.join(" · ")
+    : "Please fix the form and try again.";
+}
+
+/**
  * Returns an error message when the action value is invalid, or null when OK.
- * Separated from validatePriceRuleForm so it can be shown as a toast.
+ * `0` is treated as valid (same as validatePriceRuleForm / applyPriceRule).
+ * Intended for toast.error() or other UI messaging.
  */
 export function validateActionValue(value: number | null): string | null {
   if (value === null || value === undefined) {
@@ -93,7 +120,6 @@ export function validateActionValue(value: number | null): string | null {
   }
   return null;
 }
-
 // ---------------------------------------------------------------------------
 // Payload transformations (UI ↔ API)
 // ---------------------------------------------------------------------------

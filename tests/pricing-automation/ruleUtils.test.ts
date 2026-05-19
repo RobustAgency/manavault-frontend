@@ -14,11 +14,13 @@ import { describe, it, expect } from "vitest";
 import {
   validatePriceRuleForm,
   validateActionValue,
+  formatPriceRuleFormErrorsToast,
   toRulePayload,
   fromRulePayload,
   normalizeRuleForComparison,
   resolveShouldUsePreviewMode,
 } from "@/app/admin/pricing-automation/utils/ruleUtils";
+import type { PriceRuleFormErrors } from "@/app/admin/pricing-automation/utils/ruleUtils";
 import type { PriceRule, Condition } from "@/types";
 
 // ─── Shared test data ───────────────────────────────────────────────────────
@@ -40,6 +42,40 @@ const validRule: PriceRule = {
   action_operator: "+",
   action_mode: "percentage",
 };
+
+// ─── formatPriceRuleFormErrorsToast ─────────────────────────────────────────
+
+describe("formatPriceRuleFormErrorsToast", () => {
+  it("joins non-empty messages in field order with ·", () => {
+    const errors: PriceRuleFormErrors = {
+      name: "Rule name is required",
+      status: "",
+      match_type: "",
+      conditions: "All conditions must have a value",
+      action_value: "Action value is required",
+      action_operator: "",
+      action_mode: "",
+    };
+    expect(formatPriceRuleFormErrorsToast(errors)).toBe(
+      "Rule name is required · All conditions must have a value · Action value is required"
+    );
+  });
+
+  it("returns fallback when every message is empty", () => {
+    const errors: PriceRuleFormErrors = {
+      name: "",
+      status: "",
+      match_type: "",
+      conditions: "",
+      action_value: "",
+      action_operator: "",
+      action_mode: "",
+    };
+    expect(formatPriceRuleFormErrorsToast(errors)).toBe(
+      "Please fix the form and try again."
+    );
+  });
+});
 
 // ─── 1. Rule creation helpers ────────────────────────────────────────────────
 
@@ -214,15 +250,15 @@ describe("validateActionValue", () => {
   });
 
   it("returns an error string for negative value", () => {
-    expect(validateActionValue(-1)).toBeTruthy();
+    expect(validateActionValue(-1)).toBe("Action value cannot be negative");
   });
 
   it("returns an error string for -0.01 (floating point negative)", () => {
-    expect(validateActionValue(-0.01)).toBeTruthy();
+    expect(validateActionValue(-0.01)).toBe("Action value cannot be negative");
   });
 
   it("returns null for a decimal positive value like 0.5", () => {
-    expect(validateActionValue(0.5)).toBeNull();
+    expect(validateActionValue(0.5)).toBeNull();  
   });
 });
 

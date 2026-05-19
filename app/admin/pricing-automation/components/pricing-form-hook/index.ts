@@ -1,11 +1,10 @@
 import { PriceRule } from "@/types";
 import { useCallback, useState } from "react";
 import {
-  PriceRuleFormErrors,
   validatePriceRuleForm,
 } from "@/app/admin/pricing-automation/utils/ruleUtils";
 
-export type PriceRuleErrors = PriceRuleFormErrors;
+export type { PriceRuleFormErrors } from "@/app/admin/pricing-automation/utils/ruleUtils";
 
 const defaultForm: PriceRule = {
   name: "",
@@ -17,16 +16,6 @@ const defaultForm: PriceRule = {
   action_mode: "percentage",
   action_value: null,
 };
-
-const emptyErrors = (): PriceRuleFormErrors => ({
-  name: "",
-  status: "",
-  match_type: "",
-  conditions: "",
-  action_value: "",
-  action_operator: "",
-  action_mode: "",
-});
 
 export const usePricingAutomationForm = (
   isEditMode: boolean,
@@ -45,17 +34,13 @@ export const usePricingAutomationForm = (
     return defaultForm;
   });
 
-  const [errors, setErrors] = useState<PriceRuleFormErrors>(emptyErrors());
-
-  const validateForm = useCallback(() => {
-    const { errors: nextErrors, isValid } = validatePriceRuleForm(formData);
-    setErrors(nextErrors);
-    return isValid;
-  }, [formData]);
+  const validateForm = useCallback(
+    () => validatePriceRuleForm(formData),
+    [formData]
+  );
 
   const resetForm = () => {
     setFormData({ ...defaultForm });
-    setErrors(emptyErrors());
   };
 
   const updateFormData = useCallback((updates: Partial<PriceRule>) => {
@@ -65,8 +50,6 @@ export const usePricingAutomationForm = (
   return {
     formData,
     setFormData,
-    errors,
-    setErrors,
     resetForm,
     validateForm,
     updateFormData,

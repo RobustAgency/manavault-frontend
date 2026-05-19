@@ -28,6 +28,7 @@ import { Condition, PriceRule, Supplier } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 import {
   fromRulePayload,
+  formatPriceRuleFormErrorsToast,
   normalizeRuleForComparison,
   resolveShouldUsePreviewMode,
   toRulePayload,
@@ -58,7 +59,7 @@ const PriceRuleForm = ({
     initialData?.match_type ?? "all"
   );
 
-  const { formData, errors, updateFormData, validateForm, setErrors } =
+  const { formData, updateFormData, validateForm } =
     usePricingAutomationForm(mode === "edit", initialData);
   const { data: brandsData } = useGetBrandsQuery({ per_page: 100 });
   const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
@@ -150,9 +151,8 @@ const PriceRuleForm = ({
 
   const handlePreview = async () => {
     const { errors: validationErrors, isValid } = validatePriceRuleForm(formData);
-    setErrors(validationErrors);
     if (!isValid) {
-      toast.error("Please fill the form to preview products.");
+      toast.error(formatPriceRuleFormErrorsToast(validationErrors));
       return;
     }
 
@@ -196,7 +196,11 @@ const PriceRuleForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    const { isValid, errors } = validateForm();
+    if (!isValid) {
+      toast.error(formatPriceRuleFormErrorsToast(errors));
+      return;
+    }
 
     const hasSupplierNameCondition = formData.conditions.some(
       (c) => c.field === "supplier_name"
@@ -226,6 +230,11 @@ const PriceRuleForm = ({
   };
 
   const confirmationTitle = `Are you sure you want to execute?`;
+  const affectedProductCount =
+    previewData?.pagination?.total ?? previewData?.data?.length ?? 0;
+  const affectedProductLabel =
+    affectedProductCount === 1 ? "product" : "products";
+
   return (
     <>
       <div className="container mx-auto py-8 max-w-4xl">
@@ -280,9 +289,6 @@ const PriceRuleForm = ({
                 onChange={(e) => updateFormData({ name: e.target.value })}
                 className="h-11"
               />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name}</p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -303,7 +309,6 @@ const PriceRuleForm = ({
           </div>
           {/* Dynamic Conditions */}
           <DynamicField
-            conditionError={errors?.conditions}
             matchCondition={matchCondition}
             setMatchCondition={setMatchCondition}
             conditions={conditions}
@@ -334,11 +339,6 @@ const PriceRuleForm = ({
                   }
                   className="h-9 w-20 text-left"
                 />
-                {errors.action_value && (
-                  <p className="text-xs text-red-500">
-                    {errors.action_value}
-                  </p>
-                )}
               </div>
 
               {/* Action Mode */}
@@ -421,7 +421,7 @@ const PriceRuleForm = ({
         isOpen={isPreviewRuleExecuteOpen}
         onClose={() => handleCancelExecute()}
         title={confirmationTitle}
-        description={`This action will affect ${previewData?.pagination?.total ?? previewData?.data?.length ?? 0} product`}
+        description={`This action will affect ${affectedProductCount} ${affectedProductLabel}`}
         confirmText="Execute"
         type="warning"
         isLoading={isPreviewing && isPreviewRuleExecuteOpen}
