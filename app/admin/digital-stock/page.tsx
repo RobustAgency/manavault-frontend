@@ -17,7 +17,6 @@ import {
   useGetSuppliersQuery,
   useDeleteDigitalProductMutation,
   type DigitalProduct,
-  useCreatePurchaseOrderMutation,
   useUpdateDigitalProductMutation,
 } from '@/lib/redux/features';
 import ConfirmationDialog from '@/components/custom/ConfirmationDialog';
@@ -38,7 +37,6 @@ export default function DigitalProductsPage() {
   const [brandSearch, setBrandSearch] = useState('');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [createPurchaseOrder, { isLoading: isCreating }] = useCreatePurchaseOrderMutation();
   const stock = useSearchParams();
   const { permissionSet } = usePermissions();
   const canCreate = hasPermission(getModulePermission('create', 'digital_stock'), permissionSet);
@@ -92,20 +90,10 @@ export default function DigitalProductsPage() {
 
   });
 
-  const { data: suppliersData, refetch: refetchSuppliers } = useGetSuppliersQuery({ per_page: 100 });
+  const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100 });
   const [deleteDigitalProduct, { isLoading: isDeleting }] = useDeleteDigitalProductMutation();
   const [updateDigitalProduct] = useUpdateDigitalProductMutation();
   const [savingDiscountId, setSavingDiscountId] = useState<number | null>(null);
-
-  const handleCreate = async (data: any) => {
-    try {
-      await createPurchaseOrder(data).unwrap()
-      toast.success('Purchase order created successfully');
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      toast.error('Failed to create purchase order');
-    }
-  };
 
   // Dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -137,7 +125,9 @@ export default function DigitalProductsPage() {
   const handleUpdateDiscount = async (product: DigitalProduct, rawValue: string) => {
     const parsed = parseFloat(rawValue);
     if (rawValue.trim() === '' || Number.isNaN(parsed) || parsed > 100) {
-      throw new Error('invalid_discount');
+      toast.error('Enter a valid discount percentage (100% maximum; negatives allowed)');
+      return;
+
     }
     setSavingDiscountId(product.id);
     try {
@@ -148,25 +138,9 @@ export default function DigitalProductsPage() {
       await refetchDigitalProducts();
       toast.success('Discount updated');
     } catch (e) {
-      console.log(e)
-      toast.error((e as any)?.data?.message || 'Failed to update discount');
-    } finally {
-      setSavingDiscountId(null);
-    }
-  };
-
-  const handleUpdateSellingPrice = async (product: DigitalProduct, rawValue: string) => {
-    const price = parseFloat(rawValue);
-    setSavingDiscountId(product.id);
-    try {
-      await updateDigitalProduct({
-        id: product.id,
-        data: { selling_discount: price },
-      }).unwrap();
-      void refetchDigitalProducts();
-      toast.success('Selling price updated');
-    } catch {
-      toast.error('Failed to update selling price');
+      if ((e as Error)?.message !== 'invalid_discount') {
+        toast.error((e as any)?.data?.message || 'Failed to update discount');
+      }
     } finally {
       setSavingDiscountId(null);
     }
@@ -178,7 +152,6 @@ export default function DigitalProductsPage() {
     canEdit,
     canDelete,
     onUpdateDiscount: handleUpdateDiscount,
-    onUpdateSellingPrice: handleUpdateSellingPrice,
     savingDiscountId,
   });
 
@@ -302,11 +275,7 @@ export default function DigitalProductsPage() {
       />
       <UploadCsvDialogue
         isOpen={isCreateDialogOpen}
-        suppliers={suppliersData?.data || []}
-        isSubmitting={isCreating}
         onClose={() => setIsCreateDialogOpen(false)}
-        onSubmit={handleCreate}
-        onSuppliersRefetch={refetchSuppliers}
       />
     </div>
   );

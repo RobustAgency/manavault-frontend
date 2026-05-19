@@ -228,7 +228,7 @@ export const DigitalProductFormDialog = ({
                       formData={form.formData}
                       errors={form.errors}
                       isExpanded={expandedItems.has(form.id)}
-                      canRemove={productForms.length > 1}
+                      canRemove
                       suppliers={suppliers}
                       onToggle={() => toggleAccordion(form.id)}
                       onRemove={() => removeProduct(form.id)}
@@ -242,8 +242,7 @@ export const DigitalProductFormDialog = ({
                         Product {productForms.length}:{' '}
                         {productForms[productForms.length - 1].formData.name || 'New Product'}
                       </span>
-                      {productForms.length > 1 && (
-                        <Button
+                      <Button
                           type="button"
                           variant="ghost"
                           size="sm"
@@ -252,7 +251,6 @@ export const DigitalProductFormDialog = ({
                         >
                           <TrashIcon className="h-4 w-4" />
                         </Button>
-                      )}
                     </div>
                     <ProductFormFields
                       form={productForms[productForms.length - 1].formData}

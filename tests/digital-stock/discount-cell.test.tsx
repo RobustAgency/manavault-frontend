@@ -159,72 +159,64 @@ describe('DigitalDiscountCell — editing discount', () => {
     // Edit mode should remain open after failure
     expect(screen.getByRole('spinbutton')).toBeInTheDocument();
   });
+
+  it('offers Add discount when selling_price is unset (discount-only column)', () => {
+    const productWithoutSellingPrice: DigitalProduct = {
+      ...baseProduct,
+      selling_price: null,
+      selling_discount: null,
+    };
+
+    render(
+      <DigitalDiscountCell
+        product={productWithoutSellingPrice}
+        canEdit
+        onUpdateDiscount={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Add discount' })).toBeInTheDocument();
+  });
+
+  it('calls onUpdateDiscount for a row with no selling_price', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const productWithoutSellingPrice: DigitalProduct = {
+      ...baseProduct,
+      selling_price: null,
+      selling_discount: null,
+    };
+    const onUpdateDiscount = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <DigitalDiscountCell
+        product={productWithoutSellingPrice}
+        canEdit
+        onUpdateDiscount={onUpdateDiscount}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Add discount' }));
+
+    const input = screen.getByRole('spinbutton');
+    await user.clear(input);
+    await user.type(input, '12');
+    await user.click(screen.getByRole('button', { name: /add/i }));
+
+    expect(onUpdateDiscount).toHaveBeenCalledWith(productWithoutSellingPrice, '12');
+  });
 });
 
-describe('DigitalDiscountCell — editing selling price', () => {
-  const productWithoutPrice: DigitalProduct = {
+describe('DigitalDiscountCell — no selling_price, read-only', () => {
+  const productWithoutSellingPrice: DigitalProduct = {
     ...baseProduct,
     selling_price: null,
     selling_discount: null,
   };
 
-  it('shows a dash and a pencil button to set selling price when none exists', () => {
+  it('renders a static dash when canEdit is false', () => {
     render(
       <DigitalDiscountCell
-        product={productWithoutPrice}
-        canEdit
-        onUpdateSellingPrice={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText('—')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Set selling price' })
-    ).toBeInTheDocument();
-  });
-
-  it('opens the price editor when the pencil button is clicked', async () => {
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
-
-    render(
-      <DigitalDiscountCell
-        product={productWithoutPrice}
-        canEdit
-        onUpdateSellingPrice={vi.fn()}
-      />
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Set selling price' }));
-
-    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
-  });
-
-  it('calls onUpdateSellingPrice with the entered value', async () => {
-    const user = userEvent.setup({ pointerEventsCheck: 0 });
-    const onUpdateSellingPrice = vi.fn().mockResolvedValue(undefined);
-
-    render(
-      <DigitalDiscountCell
-        product={productWithoutPrice}
-        canEdit
-        onUpdateSellingPrice={onUpdateSellingPrice}
-      />
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Set selling price' }));
-
-    const input = screen.getByRole('spinbutton');
-    await user.clear(input);
-    await user.type(input, '25');
-    await user.click(screen.getByRole('button', { name: /save/i }));
-
-    expect(onUpdateSellingPrice).toHaveBeenCalledWith(productWithoutPrice, '25');
-  });
-
-  it('renders a static dash when no selling price and canEdit is false', () => {
-    render(
-      <DigitalDiscountCell
-        product={productWithoutPrice}
+        product={productWithoutSellingPrice}
         canEdit={false}
       />
     );

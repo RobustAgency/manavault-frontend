@@ -57,10 +57,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={vi.fn()}
-        onSubmit={vi.fn()}
       />
     );
 
@@ -75,10 +72,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={vi.fn()}
-        onSubmit={vi.fn()}
       />
     );
 
@@ -95,10 +89,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={vi.fn()}
-        onSubmit={vi.fn()}
       />
     );
 
@@ -125,10 +116,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={onClose}
-        onSubmit={vi.fn()}
       />
     );
 
@@ -157,10 +145,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={vi.fn()}
-        onSubmit={vi.fn()}
       />
     );
 
@@ -182,10 +167,7 @@ describe('UploadCsvDialogue', () => {
     render(
       <UploadCsvDialogue
         isOpen
-        suppliers={[]}
-        isSubmitting={false}
         onClose={onClose}
-        onSubmit={vi.fn()}
       />
     );
 

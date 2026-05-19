@@ -10,8 +10,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
-    Supplier,
-    CreatePurchaseOrderData,
     useGetSuppliersQuery,
 } from '@/lib/redux/features';
 import { GlobalSupplierSelector } from './GlobalSupplierSelector';
@@ -20,24 +18,19 @@ import { useCreateCSVUploadMutation } from '@/lib/redux/features/purchaseOrdersA
 import { useCSVUpload } from './useCSVFileForm';
 import { toast } from 'react-toastify';
 
-interface CreateOrderDialogProps {
+export interface UploadCsvDialogueProps {
     isOpen: boolean;
-    suppliers: Supplier[];
-    isSubmitting: boolean;
     onClose: () => void;
-    onSubmit: (data: CreatePurchaseOrderData) => void;
-    onSuppliersRefetch?: () => void;
 }
 
 export const UploadCsvDialogue = ({
     isOpen,
-    isSubmitting,
     onClose,
-}: CreateOrderDialogProps) => {
+}: UploadCsvDialogueProps) => {
     const { file, setFile, validateForm, selectedSupplierId, setSelectedSupplierId, resetForm, errors } = useCSVUpload();
 
     const { data: suppliersData } = useGetSuppliersQuery({ per_page: 100, status: 'active', type: 'internal' });
-    const [createCSVUpload] = useCreateCSVUploadMutation();
+    const [createCSVUpload, { isLoading: isUploading }] = useCreateCSVUploadMutation();
 
 
     const handleSupplierChange = (supplierId: number) => {
@@ -61,7 +54,7 @@ export const UploadCsvDialogue = ({
                 onClose();
             }
         } catch (error) {
-            toast.error('Failed to upload CSV file');
+            toast.error( 'Failed to upload CSV file');
         }
 
     };
@@ -83,7 +76,7 @@ export const UploadCsvDialogue = ({
                 </DialogHeader>
                 <div className="py-1 border-b">
                     <GlobalSupplierSelector
-                        selectedSupplierId={selectedSupplierId ?? undefined}
+                        selectedSupplierId={selectedSupplierId}
                         suppliers={suppliersData?.data || []}
                         error={errors.supplier_id}
                         onSupplierChange={handleSupplierChange}
@@ -100,12 +93,11 @@ export const UploadCsvDialogue = ({
                     <Button variant="outline" onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? 'Creating...' : 'Add CSV'}
+                    <Button onClick={handleSubmit} disabled={isUploading}>
+                        {isUploading ? 'Uploading...' : 'Add CSV'}
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 };
-
