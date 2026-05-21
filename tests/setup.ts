@@ -1,10 +1,11 @@
 import '@testing-library/jest-dom/vitest';
+import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import { vi } from 'vitest';
 
-afterEach(() => {
-  cleanup();
-});
+// Ensure React Testing Library cleans up the DOM after every test.
+// Required in Vitest when globals are not injected.
+afterEach(cleanup);
 
 class ResizeObserverMock {
   observe() {}

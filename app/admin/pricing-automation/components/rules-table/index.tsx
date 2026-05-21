@@ -10,32 +10,38 @@ import { useEffect, useState } from "react";
 import { createRulesColumns } from "../rules-column";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDeletePriceRuleMutation, useGetPriceRulesListQuery } from "@/lib/redux/features/priceAutomationApi";
-import { PriceRule, RuleStatus, ProductStatus } from "@/types";
+import { PriceRule } from "@/types";
 import { toast } from "react-toastify";
 import { usePermissions } from "@/hooks/usePermissions";
 import { getModulePermission, hasPermission } from "@/lib/permissions";
+
+type RuleStatusFilter = "all" | "active" | "in_active";
 
 const RulesTable = () => {
   const [debouncedNameSearch, setDebouncedNameSearch] = useState('');
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [nameSearch, setNameSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<RuleStatusFilter>('all');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<PriceRule | null>(null);
+  const [rulePendingDelete, setRulePendingDelete] = useState<PriceRule | null>(
+    null
+  );
   const { permissionSet } = usePermissions();
   const canCreate = hasPermission(getModulePermission('create', 'price_rule'), permissionSet);
   const canEdit = hasPermission(getModulePermission('edit', 'price_rule'), permissionSet);
   const canDelete = hasPermission(getModulePermission('delete', 'price_rule'), permissionSet);
 
-  const [deleteProduct, { isLoading: isDeleting }] = useDeletePriceRuleMutation();
+  const [deletePriceRule, { isLoading: isDeleting }] =
+    useDeletePriceRuleMutation();
 
   const openEditPage = (rules: PriceRule) => {
+    if (rules.id == null) return;
     router.push(`/admin/pricing-automation/edit/${rules.id}`);
   };
 
   const openDeleteDialog = (rules: PriceRule) => {
-    setSelectedProduct(rules);
+    setRulePendingDelete(rules);
     setIsDeleteDialogOpen(true);
   };
 
@@ -67,15 +73,15 @@ const RulesTable = () => {
     page,
     per_page: perPage,
     name: debouncedNameSearch || undefined,
-    status: statusFilter === 'all' ? undefined : (statusFilter as RuleStatus)
+    status: statusFilter === "all" ? undefined : statusFilter,
   });
 
   const handleDelete = async () => {
-    if (!selectedProduct) return;
+    if (rulePendingDelete?.id == null) return;
     try {
-      await deleteProduct(Number(selectedProduct.id)).unwrap();
+      await deletePriceRule(rulePendingDelete.id).unwrap();
       setIsDeleteDialogOpen(false);
-      setSelectedProduct(null);
+      setRulePendingDelete(null);
       toast.success("Price rule deleted successfully");
     } catch {
       toast.error("Failed to delete price rule");
@@ -103,7 +109,10 @@ const RulesTable = () => {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <div className="md:w-64 w-full">
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ProductStatus | 'all')}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value as RuleStatusFilter)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -143,7 +152,7 @@ const RulesTable = () => {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         title="Delete Price Rule"
-        description={`Are you sure you want to delete "${selectedProduct?.name}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${rulePendingDelete?.name}"? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={handleDelete}
         isLoading={isDeleting}
