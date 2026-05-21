@@ -14,14 +14,12 @@ interface PurchaseOrderHeaderProps {
   orderType: 'purchase' | 'sales';
   order: PurchaseOrder | SalesOrderDetails;
   isExternalSupplier?: boolean;
-  onRefetch: () => void;
 }
 
 export const PurchaseOrderHeader = ({
   orderType,
   order,
   isExternalSupplier,
-  onRefetch,
 }: PurchaseOrderHeaderProps) => {
   const router = useRouter();
 
@@ -70,10 +68,7 @@ export const PurchaseOrderHeader = ({
               />
             )}
             {showImportVouchers && (
-              <ImportVouchersDialog
-                order={order as PurchaseOrder}
-                onSuccess={onRefetch}
-              />
+              <ImportVouchersDialog order={order as PurchaseOrder} />
             )}
           </div>
         )}
