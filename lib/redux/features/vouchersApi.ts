@@ -94,6 +94,7 @@ export const vouchersApi = createApi({
       invalidatesTags: (result, error, { purchase_order_id }) => [
         { type: "Voucher", id: "LIST" },
         { type: "PurchaseOrder", id: String(purchase_order_id) },
+  
       ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {

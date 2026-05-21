@@ -59,4 +59,28 @@ describe('ImportVouchersDialog', () => {
       purchase_order_id: 123,
     });
   });
+
+  it('calls onSuccess after a successful import', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const onSuccess = vi.fn();
+    const order = {
+      id: 123,
+      order_number: 'PO-123',
+      items: [],
+    } as any;
+
+    render(<ImportVouchersDialog order={order} onSuccess={onSuccess} />);
+
+    await user.click(screen.getByRole('button', { name: 'Import Vouchers' }));
+
+    const fileInput = screen.getByLabelText(/vouchers file/i);
+    const file = new File(['code-1'], 'vouchers.csv', { type: 'text/csv' });
+
+    await user.upload(fileInput, file);
+    await user.click(screen.getByRole('button', { name: 'Import' }));
+
+    await vi.waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
+  });
 });

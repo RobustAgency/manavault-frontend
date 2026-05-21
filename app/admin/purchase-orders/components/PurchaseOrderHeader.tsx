@@ -13,12 +13,15 @@ interface PurchaseOrderHeaderProps {
   purchaseOrderId: number;
   order: PurchaseOrder;
   isExternalSupplier: boolean;
+  /** Refetch PO after vouchers are imported so status and vouchers stay in sync. */
+  onRefetch?: () => void;
 }
 
 export const PurchaseOrderHeader = ({
   purchaseOrderId,
   order,
   isExternalSupplier,
+  onRefetch,
 }: PurchaseOrderHeaderProps) => {
   const router = useRouter();
   const [updatePurchaseOrder, { isLoading: isUpdatingPurchaseOrder }] = useUpdatePurchaseOrderMutation();
@@ -67,7 +70,9 @@ export const PurchaseOrderHeader = ({
           </p>
         </div>
         <div className="flex lg:flex-row flex-col gap-4 max-w-sm">
-        {!isExternalSupplier && <ImportVouchersDialog order={order} />}
+        {!isExternalSupplier && (
+          <ImportVouchersDialog order={order} onSuccess={onRefetch} />
+        )}
         
         <Button variant="secondary" className="text-white"  onClick={() => handleSyncPurchaseOrder()}>
           {isUpdatingPurchaseOrder ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />  : 'Sync Purchase Order'}

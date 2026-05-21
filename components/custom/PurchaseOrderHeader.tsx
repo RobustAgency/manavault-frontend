@@ -14,6 +14,8 @@ interface PurchaseOrderHeaderProps {
   orderType: 'purchase' | 'sales';
   order: PurchaseOrder | SalesOrderDetails;
   isExternalSupplier?: boolean;
+  onRefetch?: () => void;
+
 }
 
 export const PurchaseOrderHeader = ({
