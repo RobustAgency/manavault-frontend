@@ -13,14 +13,12 @@ interface PurchaseOrderHeaderProps {
   purchaseOrderId: number;
   order: PurchaseOrder;
   isExternalSupplier: boolean;
-  onRefetch: () => void;
 }
 
 export const PurchaseOrderHeader = ({
   purchaseOrderId,
   order,
   isExternalSupplier,
-  onRefetch,
 }: PurchaseOrderHeaderProps) => {
   const router = useRouter();
   const [updatePurchaseOrder, { isLoading: isUpdatingPurchaseOrder }] = useUpdatePurchaseOrderMutation();
@@ -39,7 +37,6 @@ export const PurchaseOrderHeader = ({
         toast.error(res.message || 'Failed to sync purchase order');
       } else {
         toast.success(res.message || 'Purchase order synced successfully');
-        onRefetch();
       }
     }).catch((err) => {
       toast.error(err.message || 'Failed to sync purchase order');
@@ -70,9 +67,7 @@ export const PurchaseOrderHeader = ({
           </p>
         </div>
         <div className="flex lg:flex-row flex-col gap-4 max-w-sm">
-        {!isExternalSupplier && (
-          <ImportVouchersDialog order={order} onSuccess={onRefetch} />
-        )}
+        {!isExternalSupplier && <ImportVouchersDialog order={order} />}
         
         <Button variant="secondary" className="text-white"  onClick={() => handleSyncPurchaseOrder()}>
           {isUpdatingPurchaseOrder ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />  : 'Sync Purchase Order'}

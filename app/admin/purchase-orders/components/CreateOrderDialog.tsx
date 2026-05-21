@@ -33,7 +33,6 @@ interface CreateOrderDialogProps {
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (data: CreatePurchaseOrderData) => void;
-  onSuppliersRefetch?: () => void;
 }
 
 export const CreateOrderDialog = ({
@@ -46,8 +45,6 @@ export const CreateOrderDialog = ({
   const { formData, errors, validateForm, resetForm, addItem, updateItem, removeItem, currency, setCurrency } = usePurchaseOrderForm();
 
   // Dialog states for adding new items
-  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-  const [isAddSupplierDialogOpen, setIsAddSupplierDialogOpen] = useState(false);
   const [isSelectProductsDialogOpen, setIsSelectProductsDialogOpen] = useState(false);
   const [selectedSupplierForProducts, setSelectedSupplierForProducts] = useState<number | null>(null);
 
@@ -56,7 +53,7 @@ export const CreateOrderDialog = ({
   const [expandedSuppliers, setExpandedSuppliers] = useState<Set<number>>(new Set());
 
   // Fetch all digital products (we'll filter by supplier in the dialog)
-  const { data: digitalProductsData, isLoading: isLoadingProducts, refetch: refetchProducts } = useGetDigitalProductsListQuery(
+  const { data: digitalProductsData } = useGetDigitalProductsListQuery(
     {
       per_page: 100,
       status: 'active',
@@ -118,8 +115,6 @@ export const CreateOrderDialog = ({
   useEffect(() => {
     if (!isOpen) {
       resetForm();
-      setIsAddProductDialogOpen(false);
-      setIsAddSupplierDialogOpen(false);
       setIsSelectProductsDialogOpen(false);
       setSelectedSupplierForProducts(null);
       setActiveSupplierSelects([0]); // Reset to one empty select
@@ -256,8 +251,6 @@ export const CreateOrderDialog = ({
     onClose();
   };
 
-  console.log(formData);
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -287,12 +280,9 @@ export const CreateOrderDialog = ({
               onChange={(value) => {
                 const newCurrency = value as 'usd' | 'eur';
                 setCurrency(newCurrency);
-                // Update currency for all existing items
                 formData.items.forEach((_, index) => {
                   updateItem(index, { currency: newCurrency as DigitalProductCurrency });
                 });
-                if (formData.items.length > 0) {
-                }
               }}
             />
             {!currency && (
@@ -417,10 +407,6 @@ export const CreateOrderDialog = ({
         isSubmitting={false}
         onClose={handleProductsDialogClose}
         onSubmit={handleProductsSelected}
-        onAddNewProduct={() => {
-          setIsSelectProductsDialogOpen(false);
-          setIsAddProductDialogOpen(true);
-        }}
       />
     </Dialog>
   );

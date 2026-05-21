@@ -6,7 +6,7 @@ import { GetDecryptedVoucherData, GetDecryptedVoucherResponse, GetVouchersParams
 export const vouchersApi = createApi({
   reducerPath: "vouchersApi",
   baseQuery: axiosBaseQuery(),
-  tagTypes: ["Voucher"],
+  tagTypes: ["Voucher", "PurchaseOrder"],
   endpoints: (builder) => ({
     getVouchers: builder.query<GetVouchersResponse, GetVouchersParams>({
       query: (params) => ({
@@ -91,7 +91,10 @@ export const vouchersApi = createApi({
           },
         };
       },
-      invalidatesTags: [{ type: "Voucher", id: "LIST" }],
+      invalidatesTags: (result, error, { purchase_order_id }) => [
+        { type: "Voucher", id: "LIST" },
+        { type: "PurchaseOrder", id: String(purchase_order_id) },
+      ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -120,7 +123,10 @@ export const vouchersApi = createApi({
           },
         };
       },
-      invalidatesTags: [{ type: "Voucher", id: "LIST" }],
+      invalidatesTags: (result, error, { purchase_order_id }) => [
+        { type: "Voucher", id: "LIST" },
+        { type: "PurchaseOrder", id: String(purchase_order_id) },
+      ],
       async onQueryStarted(_, { queryFulfilled }) {
         try {
            await queryFulfilled;

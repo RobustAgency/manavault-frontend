@@ -22,7 +22,6 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
     data: order,
     isLoading,
     error,
-    refetch: refetchOrder,
   } = useGetPurchaseOrderQuery(orderId, {
     skip: !orderId || isNaN(orderId),
   });
@@ -72,7 +71,6 @@ export default function PurchaseOrderDetailPage({ params }: { params: Promise<{ 
         purchaseOrderId={order.id}
         order={order}
         isExternalSupplier={isExternalSupplier}
-        onRefetch={() => refetchOrder()}
       />
 
       <div className="grid gap-6">

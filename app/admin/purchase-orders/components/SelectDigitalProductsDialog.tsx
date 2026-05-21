@@ -19,11 +19,6 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { DigitalProductCurrency } from '@/types';
 
-interface SelectedProduct {
-    id: number;
-    quantity: number;
-}
-
 interface SelectDigitalProductsDialogProps {
     isOpen: boolean;
     supplierId: number;
@@ -43,7 +38,6 @@ export const SelectDigitalProductsDialog = ({
     isSubmitting,
     onClose,
     onSubmit,
-    onAddNewProduct,
 }: SelectDigitalProductsDialogProps) => {
     const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(new Map());
     const [searchQuery, setSearchQuery] = useState('');

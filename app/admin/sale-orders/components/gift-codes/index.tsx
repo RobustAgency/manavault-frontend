@@ -5,7 +5,7 @@ import { Download, Gift } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { useDownloadSaleOrderCodesMutation } from '@/lib/redux/features/salesOrdersApi';
-import { GiftCodesDialog } from './GiftCodesDialog';
+import { GiftCodesDialog } from './gift-codes-dialog';
 
 interface SalesOrderGiftCodesActionsProps {
   orderId: number;

@@ -26,12 +26,10 @@ import { toast } from 'react-toastify';
 
 interface ImportVouchersDialogProps {
   order: PurchaseOrder;
-  onSuccess?: (order?: PurchaseOrder) => void;
 }
 
 export const ImportVouchersDialog = ({
   order,
-  onSuccess,
 }: ImportVouchersDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -343,9 +341,6 @@ export const ImportVouchersDialog = ({
       const isSuccess = result?.error === false;
 
       if (isSuccess) {
-        if (typeof onSuccess === 'function') {
-          onSuccess(result?.data as PurchaseOrder | undefined);
-        }
         setImportResult(null);
         resetState();
         setIsOpen(false);
@@ -375,7 +370,6 @@ export const ImportVouchersDialog = ({
     importVouchers,
     internalProducts,
     manualVouchers,
-    onSuccess,
     order.id,
     parseVoucherCodes,
     resetState,
