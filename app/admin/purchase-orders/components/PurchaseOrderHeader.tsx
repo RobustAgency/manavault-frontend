@@ -13,7 +13,8 @@ interface PurchaseOrderHeaderProps {
   purchaseOrderId: number;
   order: PurchaseOrder;
   isExternalSupplier: boolean;
-  onRefetch: () => void;
+  /** Refetch PO after vouchers are imported so status and vouchers stay in sync. */
+  onRefetch?: () => void;
 }
 
 export const PurchaseOrderHeader = ({
@@ -39,7 +40,6 @@ export const PurchaseOrderHeader = ({
         toast.error(res.message || 'Failed to sync purchase order');
       } else {
         toast.success(res.message || 'Purchase order synced successfully');
-        onRefetch();
       }
     }).catch((err) => {
       toast.error(err.message || 'Failed to sync purchase order');
