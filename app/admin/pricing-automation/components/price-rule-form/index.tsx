@@ -28,9 +28,71 @@ import { Condition, PriceRule, Supplier } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 import {
   formatPriceRuleFormErrorsToast,
+  fromRulePayload,
+  normalizeRuleForComparison,
+  resolveShouldUsePreviewMode,
   toRulePayload,
   validatePriceRuleForm,
 } from "@/app/admin/pricing-automation/utils/ruleUtils";
+
+/** Matches `usePricingAutomationForm` merge so unchanged edit rules don't look "dirty". */
+const FORM_DEFAULTS_FOR_COMPARE: PriceRule = {
+  name: "",
+  description: "",
+  status: "active",
+  match_type: "all",
+  conditions: [{ id: "", field: "", value: "", operator: "" }],
+  action_operator: "+",
+  action_mode: "percentage",
+  action_value: null,
+};
+
+function mergedLikeForm(rule: Partial<PriceRule> | undefined): PriceRule {
+  const r = rule ?? {};
+  return {
+    ...FORM_DEFAULTS_FOR_COMPARE,
+    ...r,
+    conditions: r.conditions?.length
+      ? r.conditions
+      : FORM_DEFAULTS_FOR_COMPARE.conditions,
+  };
+}
+
+/** Whitespace / number quirks shouldn't keep edit mode stuck in "dirty". */
+function sanitizeRuleForDirtyCompare(rule: Partial<PriceRule>): Partial<PriceRule> {
+  const actionValueRaw = rule.action_value;
+  const actionValueNormalized =
+    actionValueRaw === undefined || actionValueRaw === null
+      ? actionValueRaw
+      : typeof actionValueRaw === "number"
+        ? actionValueRaw
+        : Number(actionValueRaw);
+  const action_value =
+    actionValueNormalized === undefined || actionValueNormalized === null
+      ? actionValueNormalized
+      : Number.isFinite(actionValueNormalized)
+        ? actionValueNormalized
+        : null;
+
+  return {
+    ...rule,
+    ...(typeof rule.name === "string" ? { name: rule.name.trim() } : {}),
+    ...(typeof rule.description === "string"
+      ? { description: rule.description.trim() }
+      : {}),
+    ...(actionValueRaw !== undefined ? { action_value } : {}),
+    conditions: rule.conditions?.map((c) => ({
+      ...c,
+      field: typeof c.field === "string" ? c.field.trim() : c.field,
+      operator:
+        typeof c.operator === "string"
+          ? c.operator.trim()
+          : String(c.operator ?? ""),
+      value:
+        typeof c.value === "string" ? c.value.trim() : c.value ?? "",
+    })),
+  };
+}
 
 interface PriceRuleFormProps {
   mode: "create" | "edit";
@@ -81,8 +143,46 @@ const PriceRuleForm = ({
     return map;
   }, [suppliers]);
 
-  /** Preview API for new rules; post-view API for existing rules applied in the catalogue */
-  const shouldUsePreviewMode = mode === "create";
+  const hasFormChangesInEditMode = useMemo(() => {
+    if (mode !== "edit") return false;
+    const initialSnap = normalizeRuleForComparison(
+      sanitizeRuleForDirtyCompare(
+        fromRulePayload(
+          mergedLikeForm(initialData),
+          suppliersByNameToFirstId,
+          suppliersById
+        )
+      )
+    );
+    const currentSnap = normalizeRuleForComparison(
+      sanitizeRuleForDirtyCompare(
+        fromRulePayload(
+          mergedLikeForm(formData),
+          suppliersByNameToFirstId,
+          suppliersById
+        )
+      )
+    );
+    return JSON.stringify(currentSnap) !== JSON.stringify(initialSnap);
+  }, [
+    mode,
+    initialData,
+    formData,
+    suppliersByNameToFirstId,
+    suppliersById,
+  ]);
+
+  /** Create → preview; edit unchanged → postview; edit with edits → preview */
+  const shouldUsePreviewMode = resolveShouldUsePreviewMode(
+    mode,
+    hasFormChangesInEditMode
+  );
+
+  useEffect(() => {
+    if (mode !== "edit" || hasFormChangesInEditMode) return;
+    setIsPreviewDialogOpen(false);
+    setIsPreviewRuleExecuteOpen(false);
+  }, [mode, hasFormChangesInEditMode]);
 
   useEffect(() => {
     // In edit mode, backend might return `supplier_name` value as a supplier name.
