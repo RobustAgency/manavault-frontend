@@ -27,10 +27,7 @@ import { toast } from "react-toastify";
 import { Condition, PriceRule, Supplier } from "@/types";
 import ConfirmationDialog from "@/components/custom/ConfirmationDialog";
 import {
-  fromRulePayload,
   formatPriceRuleFormErrorsToast,
-  normalizeRuleForComparison,
-  resolveShouldUsePreviewMode,
   toRulePayload,
   validatePriceRuleForm,
 } from "@/app/admin/pricing-automation/utils/ruleUtils";
@@ -84,27 +81,8 @@ const PriceRuleForm = ({
     return map;
   }, [suppliers]);
 
-  const hasFormChangesInEditMode = useMemo(() => {
-    if (mode !== "edit") return false;
-    const initialSnapshot = normalizeRuleForComparison(
-      fromRulePayload(initialData ?? {}, suppliersByNameToFirstId, suppliersById)
-    );
-    const currentSnapshot = normalizeRuleForComparison(
-      fromRulePayload(formData, suppliersByNameToFirstId, suppliersById)
-    );
-    return JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot);
-  }, [
-    mode,
-    initialData,
-    formData,
-    suppliersByNameToFirstId,
-    suppliersById,
-  ]);
-
-  const shouldUsePreviewMode = resolveShouldUsePreviewMode(
-    mode,
-    hasFormChangesInEditMode
-  );
+  /** Preview API for new rules; post-view API for existing rules applied in the catalogue */
+  const shouldUsePreviewMode = mode === "create";
 
   useEffect(() => {
     // In edit mode, backend might return `supplier_name` value as a supplier name.
@@ -211,13 +189,20 @@ const PriceRuleForm = ({
     }
 
     try {
-      await triggerPreview({
-        rule: buildPayload(),
-        page: 1,
-      }).unwrap();
+      if (shouldUsePreviewMode) {
+        await triggerPreview({
+          rule: buildPayload(),
+          page: 1,
+        }).unwrap();
+      } else {
+        await triggerPostView({
+          rule: buildPayload(),
+          page: 1,
+        }).unwrap();
+      }
       setIsPreviewRuleExecuteOpen(true);
     } catch {
-      toast.error("Could not load preview for execution. Please try again.");
+      toast.error("Could not load affected products for this rule. Try again.");
     }
   };
 
@@ -231,7 +216,13 @@ const PriceRuleForm = ({
 
   const confirmationTitle = `Are you sure you want to execute?`;
   const affectedProductCount =
-    previewData?.pagination?.total ?? previewData?.data?.length ?? 0;
+    shouldUsePreviewMode
+      ? previewData?.pagination?.total ??
+        previewData?.data?.length ??
+        0
+      : postViewData?.pagination?.total ??
+        postViewData?.data?.length ??
+        0;
   const affectedProductLabel =
     affectedProductCount === 1 ? "product" : "products";
 
@@ -424,7 +415,10 @@ const PriceRuleForm = ({
         description={`This action will affect ${affectedProductCount} ${affectedProductLabel}`}
         confirmText="Execute"
         type="warning"
-        isLoading={isPreviewing && isPreviewRuleExecuteOpen}
+        isLoading={
+          (shouldUsePreviewMode ? isPreviewing : isPostViewing) &&
+          isPreviewRuleExecuteOpen
+        }
         onConfirm={handleConfirmExecute}
       />
     </>
