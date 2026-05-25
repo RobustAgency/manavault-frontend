@@ -1,46 +1,28 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     useCreateProductMutation,
     useUpdateProductMutation,
-    type ProductStatus,
     type CreateProductData,
 } from '@/lib/redux/features';
 import { useProductForm } from '../components/useProductForm';
 import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { ImagePicker } from '@/components/custom/ImagePicker';
-import { RegionSelect } from '@/components/custom/RegionSelect';
-import { BrandSelector } from '../components/BrandSelector';
 import { withPermission } from '@/components/auth/withPermission';
 import { getModulePermission } from '@/lib/permissions';
+import { CreateProductHeader } from '../components/CreateProductHeader';
+import { CreateProductForm } from '../components/CreateProductForm';
 
 function CreateProductPage() {
     const router = useRouter();
     const { formData, errors, validateForm, updateFormData } = useProductForm(false);
-    const [createProduct, { isLoading, isSuccess, isError, error }] = useCreateProductMutation();
+    const [createProduct, { isLoading, isError, error }] = useCreateProductMutation();
     const [updateProduct, { isLoading: isUploadingImage }] = useUpdateProductMutation();
 
-    // Refs for required fields
     const nameRef = useRef<HTMLInputElement>(null);
     const skuRef = useRef<HTMLInputElement>(null);
     const statusRef = useRef<HTMLButtonElement>(null);
-    const faceValueRef = useRef<HTMLInputElement>(null);
-
 
     useEffect(() => {
         if (isError) {
@@ -50,27 +32,18 @@ function CreateProductPage() {
     }, [isError, error]);
 
     const scrollToFirstError = () => {
-        // Define the order of required fields
         const fieldOrder = [
             { key: 'name', ref: nameRef },
             { key: 'sku', ref: skuRef },
             { key: 'status', ref: statusRef },
         ];
 
-        // Find the first field with an error
         for (const field of fieldOrder) {
             if (errors[field.key as keyof typeof errors]) {
                 const element = field.ref.current;
                 if (element) {
-                    // Scroll to the element with smooth behavior
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                    // Focus the element after a small delay to ensure scroll completes
-                    setTimeout(() => {
-                        element.focus();
-                    }, 100);
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => element.focus(), 100);
                     break;
                 }
             }
@@ -81,7 +54,6 @@ function CreateProductPage() {
         e.preventDefault();
 
         if (!validateForm(false, '')) {
-            // Scroll to and focus the first error field
             scrollToFirstError();
             return;
         }
@@ -97,29 +69,20 @@ function CreateProductPage() {
 
         if (formData.brand_id.trim()) {
             const brandId = parseInt(formData.brand_id);
-            if (!isNaN(brandId)) {
-                submitData.brand_id = brandId;
-            }
+            if (!isNaN(brandId)) submitData.brand_id = brandId;
         }
         if (formData.short_description.trim()) submitData.short_description = formData.short_description.trim();
         if (formData.long_description.trim()) submitData.long_description = formData.long_description.trim();
 
         if (formData.tags.trim()) {
-            submitData.tags = formData.tags
-                .split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag.length > 0);
+            submitData.tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
         }
 
         if (formData.regions.trim()) {
-            submitData.regions = formData.regions
-                .split(',')
-                .map(region => region.trim())
-                .filter(region => region.length > 0);
+            submitData.regions = formData.regions.split(',').map(r => r.trim()).filter(Boolean);
         }
 
         try {
-            // Step 1: Create the product (no image in payload)
             const result = await createProduct(submitData).unwrap();
 
             if (!result?.id) {
@@ -127,7 +90,6 @@ function CreateProductPage() {
                 return;
             }
 
-            // Step 2: If an image was selected, immediately upload it
             if (formData.image instanceof File) {
                 try {
                     const imagePayload = new FormData();
@@ -150,245 +112,17 @@ function CreateProductPage() {
 
     return (
         <div className="container mx-auto py-8 max-w-4xl">
-            <div className="mb-8">
-                <Button
-                    variant="ghost"
-                    onClick={() => router.back()}
-                    className="mb-6 -ml-2"
-                >
-                    <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                    Back
-                </Button>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Create Product</h1>
-                    <p className="text-muted-foreground">Add a new product to your inventory</p>
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Basic Information */}
-                <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b flex justify-between items-center px-6 py-4">
-                        <div>
-                            <h2 className="text-lg font-semibold">Basic Information</h2>
-                            <p className="text-sm text-muted-foreground mt-1">Essential product details</p>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-md px-0 py-2">
-                            <Checkbox
-                                id="is_out_of_stock"
-                                checked={formData.is_out_of_stock}
-                                className="cursor-pointer"
-                                onCheckedChange={(checked) =>
-                                    updateFormData({ is_out_of_stock: checked === true })
-                                }
-                            />
-                            <Label htmlFor="is_out_of_stock" className="text-sm font-medium">
-                                Out of stock
-                            </Label>
-                        </div>
-                    </div>
-                    <div className="p-6 space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="name" className="text-sm font-medium">Product Name *</Label>
-                                <Input
-                                    ref={nameRef}
-                                    id="name"
-                                    value={formData.name}
-                                    onChange={(e) => updateFormData({ name: e.target.value })}
-                                    placeholder="Enter product name"
-                                    maxLength={255}
-                                    className="h-10"
-                                />
-                                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="sku" className="text-sm font-medium">SKU *</Label>
-                                <Input
-                                    ref={skuRef}
-                                    id="sku"
-                                    value={formData.sku}
-                                    onChange={(e) => updateFormData({ sku: e.target.value })}
-                                    placeholder="PROD-001"
-                                    maxLength={100}
-                                    className="h-10"
-                                />
-                                {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <BrandSelector
-                                value={formData.brand_id}
-                                onChange={(value) => updateFormData({ brand_id: value ? String(value) : '' })}
-                                error={errors.brand}
-                            />
-                             <div className="space-y-2">
-                                <Label htmlFor="face_value" className="text-sm font-medium">Face value *</Label>
-                                <Input
-                                    ref={faceValueRef}
-                                    id="face_value"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.face_value}
-                                    onChange={(e) => updateFormData({ face_value: e.target.value })}
-                                    placeholder="0.00"
-                                    className="h-10"
-                                />
-                                {errors.face_value && <p className="text-sm text-red-500">{errors.face_value}</p>}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="currency" className="text-sm font-medium">Currency</Label>
-                                <Select
-                                    value={formData.currency}
-                                    onValueChange={(value) => updateFormData({ currency: value })}
-                                >
-                                    <SelectTrigger ref={statusRef} className="h-10" id="status">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="usd">USD ($)</SelectItem>
-                                        <SelectItem value="eur">EUR (€)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="status" className="text-sm font-medium">Status *</Label>
-                                <Select
-                                    value={formData.status}
-                                    onValueChange={(value: ProductStatus) => updateFormData({ status: value })}
-                                >
-                                    <SelectTrigger ref={statusRef} className="h-10" id="status">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="in_active">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-                            
-                        </div>
-                        </div>
-                       
-
-                    
-
-
-                    </div>
-                </div>
-
-                {/* Descriptions */}
-                <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b px-6 py-4">
-                        <h2 className="text-lg font-semibold">Product Descriptions</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Detailed information about the product</p>
-                    </div>
-                    <div className="p-6 space-y-5">
-
-                        <div className="space-y-2">
-                            <Label htmlFor="short_description" className="text-sm font-medium">Short Description</Label>
-                            <Textarea
-                                id="short_description"
-                                value={formData.short_description}
-                                onChange={(e) => updateFormData({ short_description: e.target.value })}
-                                placeholder="Brief product description..."
-                                rows={2}
-                                className="resize-none"
-                            />
-                            <p className="text-xs text-muted-foreground">Brief summary for listing pages</p>
-                        </div>
-
-                        {/* <div className="space-y-2">
-                            <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-                            <Textarea
-                                id="description"
-                                value={formData.description}
-                                onChange={(e) => updateFormData({ description: e.target.value })}
-                                placeholder="Product description..."
-                                rows={3}
-                                className="resize-none"
-                            />
-                            <p className="text-xs text-muted-foreground">Standard product description</p>
-                        </div> */}
-
-                        <div className="space-y-2">
-                            <Label htmlFor="long_description" className="text-sm font-medium">Long Description</Label>
-                            <Textarea
-                                id="long_description"
-                                value={formData.long_description}
-                                onChange={(e) => updateFormData({ long_description: e.target.value })}
-                                placeholder="Detailed product description..."
-                                rows={5}
-                                className="resize-none"
-                            />
-                            <p className="text-xs text-muted-foreground">Detailed description for product pages</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Additional Details */}
-                <div className="bg-card border rounded-lg shadow-sm">
-                    <div className="border-b px-6 py-4">
-                        <h2 className="text-lg font-semibold">Additional Details</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Media, tags, and regional information</p>
-                    </div>
-                    <div className="p-6 space-y-5">
-                        <ImagePicker
-                            value={formData.image ?? ''}
-                            onChange={(value) => updateFormData({ image: value ?? '' })}
-                            label="Product Image"
-                            description="Select a product image to upload (PNG, JPG, GIF up to 5MB)"
-                            disabled={isUploadingImage}
-                        />
-
-                        <div className="space-y-2">
-                            <Label htmlFor="tags" className="text-sm font-medium">Tags</Label>
-                            <Input
-                                id="tags"
-                                value={formData.tags}
-                                onChange={(e) => updateFormData({ tags: e.target.value })}
-                                placeholder="gaming, console, electronics"
-                                className="h-10"
-                            />
-                            <p className="text-xs text-muted-foreground">Separate multiple tags with commas</p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="regions" className="text-sm font-medium">Regions</Label>
-                           <Input
-                            id="regions"
-                            value={formData.regions}
-                            onChange={(e) => updateFormData({ regions: e.target.value })}
-                            placeholder="Search regions..."
-                            className="h-10"
-                           />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex items-center justify-between pt-6 border-t">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => router.back()}
-                        disabled={isLoading || isUploadingImage}
-                    >
-                        Cancel
-                    </Button>
-                    <Button type="submit" disabled={isLoading || isUploadingImage} size="lg" className="min-w-[150px]">
-                        {isUploadingImage ? 'Uploading image...' : isLoading ? 'Creating...' : 'Create Product'}
-                    </Button>
-                </div>
-            </form>
+            <CreateProductHeader onBack={() => router.back()} />
+            <CreateProductForm
+                mode="create"
+                formData={formData}
+                errors={errors}
+                isLoading={isLoading}
+                isUploadingImage={isUploadingImage}
+                onUpdate={updateFormData}
+                onSubmit={handleSubmit}
+                onCancel={() => router.back()}
+            />
         </div>
     );
 }

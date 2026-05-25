@@ -34,7 +34,7 @@ export const GlobalSupplierSelector = ({
       <Label htmlFor="global-supplier-id">Supplier *</Label>
       <Select
         required
-        value={selectedSupplierId?.toString() ?? undefined}
+        value={selectedSupplierId === undefined ? undefined : String(selectedSupplierId)}
         onValueChange={(value) => onSupplierChange(parseInt(value))}
       >
         <SelectTrigger>

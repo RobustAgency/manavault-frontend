@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DigitalProduct, DigitalProductStatus } from '@/lib/redux/features';
 import Link from 'next/link';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { DigitalDiscountCell } from './DigitalDiscountCell';
+import { DigitalDiscountCell, isSellingPricePresent } from './DigitalDiscountCell';
 
 export const getStatusColor = (status: DigitalProductStatus): 'success' | 'default' => {
   switch (status) {
@@ -24,7 +24,6 @@ interface DigitalProductColumnsProps {
   canEdit: boolean;
   canDelete: boolean;
   onUpdateDiscount?: (product: DigitalProduct, value: string) => void | Promise<void>;
-  onUpdateSellingPrice?: (product: DigitalProduct, value: string) => void | Promise<void>;
   savingDiscountId?: number | null;
 }
 
@@ -34,7 +33,6 @@ export const createDigitalProductColumns = ({
   canEdit,
   canDelete,
   onUpdateDiscount,
-  onUpdateSellingPrice,
   savingDiscountId,
 }: DigitalProductColumnsProps): ColumnDef<DigitalProduct>[] => [
     {
@@ -91,7 +89,6 @@ export const createDigitalProductColumns = ({
           product={row.original}
           canEdit={canEdit}
           onUpdateDiscount={onUpdateDiscount}
-          onUpdateSellingPrice={onUpdateSellingPrice}
           savingDiscountId={savingDiscountId}
         />
       ),
@@ -99,7 +96,11 @@ export const createDigitalProductColumns = ({
     {
       accessorKey: 'selling_price',
       header: 'Selling Price',
-      cell: ({ row }) => formatCurrency(Number(row.original.selling_price), row.original.currency),
+      cell: ({ row }) => {
+        const p = row.original;
+        if (!isSellingPricePresent(p)) return '—';
+        return formatCurrency(Number(p.selling_price), p.currency);
+      },
     },
     {
       accessorKey: 'profit_margin',

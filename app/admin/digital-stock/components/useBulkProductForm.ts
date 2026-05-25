@@ -44,7 +44,6 @@ export const useBulkProductForm = () => {
     const newForm = createInitialForm(supplierId);
     setProductForms((prev) => {
       const updated = [...prev, newForm];
-      // Collapse the previous last item when adding a new one
       if (prev.length > 0) {
         const prevLastId = prev[prev.length - 1].id;
         setExpandedItems((current) => {
