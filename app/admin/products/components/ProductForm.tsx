@@ -49,7 +49,7 @@ export const ProductForm = ({
     const faceValueRef = useRef<HTMLInputElement>(null);
 
     const isEdit = mode === 'edit';
-    const resolvedImageValue = imageValue ?? (formData.image instanceof File ? '' : (formData.image as string) ?? '');
+    const resolvedImageValue = imageValue ?? formData.image ?? '';
     const handleImage = onImageChange ?? ((value: string | File | null) => onUpdate({ image: value ?? '' }));
 
     return (

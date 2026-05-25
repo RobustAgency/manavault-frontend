@@ -28,6 +28,12 @@ export const ImagePicker = ({
     const [validationError, setValidationError] = useState<string | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
 
+    const resetFileInput = useCallback(() => {
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, []);
+
     useEffect(() => {
         if (value instanceof File) {
             const objectUrl = URL.createObjectURL(value);
@@ -39,9 +45,10 @@ export const ImagePicker = ({
 
     const openFileDialog = useCallback(() => {
         if (!disabled) {
+            resetFileInput();
             fileInputRef.current?.click();
         }
-    }, [disabled]);
+    }, [disabled, resetFileInput]);
 
     const validateFile = (file: File): string | null => {
         const isImage = file.type.startsWith('image/');
@@ -57,11 +64,13 @@ export const ImagePicker = ({
         const validation = validateFile(file);
         if (validation) {
             setValidationError(validation);
+            resetFileInput();
             return;
         }
 
         setValidationError(null);
         onChange(file);
+        resetFileInput();
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -91,6 +100,7 @@ export const ImagePicker = ({
     const handleRemove = () => {
         onChange(null);
         setValidationError(null);
+        resetFileInput();
     };
 
     // Determine the display image
