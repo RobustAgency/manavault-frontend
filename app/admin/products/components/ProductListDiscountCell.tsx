@@ -47,11 +47,6 @@ export interface ProductListDiscountCellProps {
     digitalProduct: DigitalProduct,
     value: string
   ) => Promise<void>;
-  onUpdateSellingPrice?: (
-    productId: number,
-    digitalProduct: DigitalProduct,
-    value: string
-  ) => Promise<void>;
   savingDiscountId?: number | null;
 }
 
@@ -59,7 +54,6 @@ export function ProductListDiscountCell({
   product,
   canEdit,
   onUpdateDiscount,
-  onUpdateSellingPrice,
   savingDiscountId,
 }: ProductListDiscountCellProps) {
   const [getProduct, { isFetching }] = useLazyGetProductQuery();
@@ -122,11 +116,6 @@ export function ProductListDiscountCell({
         onUpdateDiscount={
           onUpdateDiscount
             ? (dp, v) => onUpdateDiscount(product.id, dp, v)
-            : undefined
-        }
-        onUpdateSellingPrice={
-          onUpdateSellingPrice
-            ? (dp, v) => onUpdateSellingPrice(product.id, dp, v)
             : undefined
         }
         savingDiscountId={savingDiscountId}

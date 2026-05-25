@@ -135,35 +135,6 @@ export default function ProductsPage() {
     }
   };
 
-  const handleUpdateSellingPrice = async (
-    productId: number,
-    digitalProduct: DigitalProduct,
-    value: string
-  ) => {
-    const price = parseFloat(value);
-    if (value.trim() === '' || Number.isNaN(price) || price <= 0) {
-      toast.error('Price must be greater than 0');
-      throw new Error('invalid_price');
-    }
-    setSavingDiscountId(digitalProduct.id);
-    try {
-      await updateDigitalProduct({
-        id: digitalProduct.id,
-        data: { selling_price: price },
-        productId,
-      }).unwrap();
-      await refetchProducts();
-      toast.success('Selling price updated successfully');
-    } catch (e) {
-      if ((e as Error)?.message !== 'invalid_price') {
-        toast.error('Failed to update selling price');
-      }
-      throw e;
-    } finally {
-      setSavingDiscountId(null);
-    }
-  };
-
   const openEditPage = (product: Product) => {
     router.push(`/admin/products/edit/${product.id}`);
   };
@@ -205,7 +176,6 @@ export default function ProductsPage() {
     canEdit,
     canDelete,
     onUpdateDiscount: handleUpdateDiscount,
-    onUpdateSellingPrice: handleUpdateSellingPrice,
     savingDiscountId,
   });
   return (

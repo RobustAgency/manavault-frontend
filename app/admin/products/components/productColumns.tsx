@@ -46,11 +46,6 @@ interface ProductColumnsProps {
     digitalProduct: DigitalProduct,
     value: string
   ) => Promise<void>;
-  onUpdateSellingPrice?: (
-    productId: number,
-    digitalProduct: DigitalProduct,
-    value: string
-  ) => Promise<void>;
   savingDiscountId?: number | null;
 }
 
@@ -61,7 +56,6 @@ export const createProductColumns = ({
   canEdit,
   canDelete,
   onUpdateDiscount,
-  onUpdateSellingPrice,
   savingDiscountId,
 }: ProductColumnsProps): ColumnDef<Product>[] => {
 
@@ -121,7 +115,6 @@ export const createProductColumns = ({
         product={row.original}
         canEdit={canEdit}
         onUpdateDiscount={onUpdateDiscount}
-        onUpdateSellingPrice={onUpdateSellingPrice}
         savingDiscountId={savingDiscountId}
       />
     ),
