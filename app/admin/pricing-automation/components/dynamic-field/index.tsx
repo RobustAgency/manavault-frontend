@@ -80,7 +80,7 @@ interface DynamicFieldTypes {
   setConditions: React.Dispatch<React.SetStateAction<Condition[]>>;
   matchCondition: string;
   setMatchCondition: Dispatch<SetStateAction<string>>;
-  conditionError: string;
+  conditionError?: string;
 }
 
 const DynamicField: React.FC<DynamicFieldTypes> = ({
@@ -92,7 +92,7 @@ const DynamicField: React.FC<DynamicFieldTypes> = ({
   setConditions,
   matchCondition,
   setMatchCondition,
-  conditionError,
+  conditionError = "",
 }) => {
   const brands = brandOptions ?? selectorOptions ?? [];
   // Helper function to get default operator for a field

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ImportVouchersDialog } from '@/app/admin/purchase-orders/components';
-import { SalesOrderGiftCodesActions } from '@/app/admin/sale-orders/components/SalesOrderGiftCodesActions';
+import { SalesOrderGiftCodesActions } from '@/app/admin/sale-orders/components/gift-codes';
 import { SalesOrderDetails } from '@/lib/redux/features/salesOrdersApi';
 import { PurchaseOrder } from '@/types';
 
@@ -14,14 +14,14 @@ interface PurchaseOrderHeaderProps {
   orderType: 'purchase' | 'sales';
   order: PurchaseOrder | SalesOrderDetails;
   isExternalSupplier?: boolean;
-  onRefetch: () => void;
+  onRefetch?: () => void;
+
 }
 
 export const PurchaseOrderHeader = ({
   orderType,
   order,
   isExternalSupplier,
-  onRefetch,
 }: PurchaseOrderHeaderProps) => {
   const router = useRouter();
 
@@ -70,10 +70,7 @@ export const PurchaseOrderHeader = ({
               />
             )}
             {showImportVouchers && (
-              <ImportVouchersDialog
-                order={order as PurchaseOrder}
-                onSuccess={onRefetch}
-              />
+              <ImportVouchersDialog order={order as PurchaseOrder} />
             )}
           </div>
         )}

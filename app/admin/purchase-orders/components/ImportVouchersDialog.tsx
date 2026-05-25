@@ -26,7 +26,8 @@ import { toast } from 'react-toastify';
 
 interface ImportVouchersDialogProps {
   order: PurchaseOrder;
-  onSuccess?: (order?: PurchaseOrder) => void;
+  /** Called after vouchers are stored/imported successfully so parents can refetch PO state. */
+  onSuccess?: () => void;
 }
 
 export const ImportVouchersDialog = ({
@@ -342,26 +343,22 @@ export const ImportVouchersDialog = ({
 
       const isSuccess = result?.error === false;
 
-      if (isSuccess) {
-        if (typeof onSuccess === 'function') {
-          onSuccess(result?.data as PurchaseOrder | undefined);
-        }
-        setImportResult(null);
-        resetState();
-        setIsOpen(false);
+      if (!isSuccess) {
+        setImportResult({
+          ...result,
+          error: true,
+          message:
+            result?.message ||
+            'Failed to import vouchers. Please try again.',
+        });
         return;
       }
 
-      setImportResult({
-        ...result,
-        error: true,
-        message:
-          result?.message ||
-          'Failed to import vouchers. Please try again.',
-      });
-      if (isSuccess)
-        toast.success(result.message || "Vouchers imported successfully");
-
+      toast.success(result.message || 'Vouchers imported successfully');
+      onSuccess?.();
+      setImportResult(null);
+      resetState();
+      setIsOpen(false);
     } catch (error) {
       const errorMessage =
         (error as any)?.data?.message || 'Failed to import vouchers. Please try again.';

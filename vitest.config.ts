@@ -13,7 +13,5 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     restoreMocks: true,
-    // Parallel workers + user-event can hit the default 5s timeout on slower machines
-    testTimeout: 15_000,
   },
 });

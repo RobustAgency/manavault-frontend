@@ -20,7 +20,6 @@ export default function SalesOrderDetailPage({ params }: { params: Promise<{ id:
     data: order,
     isLoading,
     error,
-    refetch: refetchOrder,
   } = useGetSalesOrderQuery(orderId, {
     skip: !orderId || isNaN(orderId),
   });
@@ -60,11 +59,7 @@ export default function SalesOrderDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="container mx-auto py-8">
-      <PurchaseOrderHeader
-        orderType='sales'
-        order={order}
-        onRefetch={() => refetchOrder()}
-      />
+      <PurchaseOrderHeader orderType='sales' order={order} />
 
       <div className="grid gap-6">
         <OrderSummaryCard type='sales' order={order} />
