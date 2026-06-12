@@ -12,6 +12,15 @@
       "binding": "ASSETS"
     },
   "r2_buckets": [],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
   "env": {
     "staging": {
       "name": "manavault-frontend-staging"
